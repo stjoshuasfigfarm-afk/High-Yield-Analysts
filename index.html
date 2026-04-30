@@ -1,226 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYA | Analysis Terminal v1.1</title>
-    <!-- Modern Tech Font -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --bloomberg-orange: #ff8800;
-            --terminal-dark: #050505;
-            --panel-bg: rgba(20, 20, 20, 0.7);
-        }
-        body { 
-            background-color: var(--terminal-dark); 
-            color: #e5e5e5; 
-            font-family: 'JetBrains Mono', monospace; 
-            background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
-        }
-        .glass-panel { 
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
-        .bloomberg-orange { color: var(--bloomberg-orange); }
-        .glow-orange { box-shadow: 0 0 15px rgba(255, 136, 0, 0.3); }
-        
-        /* Smooth scrolling for any custom elements */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+<!-- TERMINAL V2.1: WATCHLIST & DYNAMIC TOPOLOGY -->
 
-        @keyframes pulse-orange {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-        .status-pulse { animation: pulse-orange 2s infinite; }
-    </style>
-</head>
-<body class="p-4 h-screen flex flex-col gap-4 overflow-hidden">
-
-    <!-- TOP NAVIGATION & LIVE TICKER -->
-    <div class="flex flex-col gap-2">
-        <div class="flex justify-between items-center glass-panel p-3 rounded-t-lg">
-            <div class="flex space-x-4 items-center">
-                <div class="w-3 h-3 bg-orange-500 rounded-full status-pulse"></div>
-                <h1 class="font-bold text-xl bloomberg-orange tracking-tighter">HYA ANALYSIS TERMINAL</h1>
-                <span class="text-[10px] text-gray-500 px-2 border border-gray-800 rounded">v1.1_STABLE</span>
-            </div>
-            <div class="flex space-x-6 text-xs items-center">
-                <span id="clock" class="text-gray-400 font-bold"></span>
-            </div>
-        </div>
-        
-        <!-- TRADINGVIEW TICKER TAPE START -->
-        <div class="glass-panel border-t-0 rounded-b-lg overflow-hidden">
-            <div class="tradingview-widget-container">
-                <div class="tradingview-widget-container__widget"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-                {
-                "symbols": [
-                    { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
-                    { "proName": "NASDAQ:JEPI", "title": "JEPI" },
-                    { "proName": "NASDAQ:GPIQ", "title": "GPIQ" },
-                    { "proName": "FX_IDC:USDJPY", "title": "USD/JPY" },
-                    { "proName": "BITSTAMP:BTCUSD", "title": "BTC/USD" },
-                    { "proName": "NASDAQ:NVDA", "title": "NVDA" }
-                ],
-                "showSymbolLogo": true,
-                "colorTheme": "dark",
-                "isTransparent": true,
-                "displayMode": "adaptive",
-                "locale": "en"
-                }
-                </script>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN CONTENT GRID -->
-    <div class="grid grid-cols-12 gap-4 flex-grow">
-        
-        <!-- SIDEBAR: MACRO -->
-        <div class="col-span-3 space-y-4 overflow-y-auto custom-scroll">
-            <div class="glass-panel p-4 rounded-lg">
-                <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2 flex justify-between items-center">
-                    SECTOR ROTATION <i data-lucide="refresh-cw" class="w-3 h-3 text-gray-500"></i>
-                </h3>
-                <ul class="text-[11px] space-y-3">
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLK (Tech)</span><span class="text-emerald-400 font-bold">LEADING</span></li>
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLE (Energy)</span><span class="text-blue-400 font-bold">IMPROVING</span></li>
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLF (Financials)</span><span class="text-yellow-500 font-bold">WEAKENING</span></li>
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLV (Healthcare)</span><span class="text-red-500 font-bold">LAGGING</span></li>
-                </ul>
-            </div>
+<!-- SIDEBAR: MACRO ROTATION & WATCHLIST -->
+<div class="col-span-3 space-y-4 overflow-y-auto custom-scroll">
+    
+    <!-- WATCHLIST: MAG 7 + PLTR -->
+    <div class="glass-panel p-4 rounded-lg border-l-2 border-orange-500 shadow-[inset_2px_0_10px_rgba(255,136,0,0.05)]">
+        <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2 flex justify-between items-center text-gray-300">
+            ACTIVE WATCHLIST <i data-lucide="eye" class="w-3 h-3 text-orange-500"></i>
+        </h3>
+        <ul class="text-[11px] space-y-1">
+            <!-- Default Active State -->
+            <li class="flex justify-between items-center bg-orange-500/10 p-1.5 rounded cursor-pointer border border-orange-500/30">
+                <span class="text-orange-400 font-bold tracking-wider">SPY</span>
+                <span class="text-[9px] text-orange-500/80 font-mono">ETF DEFAULT</span>
+            </li>
             
-            <div class="glass-panel p-4 rounded-lg">
-                <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2">EARNINGS MONITOR</h3>
-                <div class="text-[10px] space-y-2">
-                    <div class="p-2 hover:bg-white/5 rounded transition-colors flex justify-between cursor-pointer border-l-2 border-transparent hover:border-orange-500">
-                        <span>04/30 | AMZN</span><span class="text-orange-500 font-bold">EST: 0.83</span>
-                    </div>
-                    <div class="p-2 hover:bg-white/5 rounded transition-colors flex justify-between cursor-pointer border-l-2 border-transparent hover:border-orange-500">
-                        <span>04/30 | AAPL</span><span class="text-orange-500 font-bold">EST: 1.51</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CENTER: TOPOLOGY -->
-        <div class="col-span-6 glass-panel p-6 rounded-lg relative overflow-hidden">
-            <h2 class="text-sm font-bold mb-8 flex items-center tracking-widest text-gray-400">
-                <i data-lucide="share-2" class="w-4 h-4 mr-2 bloomberg-orange"></i> SUPPLY CHAIN TOPOLOGY
-            </h2>
+            <!-- The Magnificent 7 -->
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors mt-1">
+                <span class="text-white font-bold">AAPL</span><span class="text-emerald-400">+1.24%</span>
+            </li>
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors">
+                <span class="text-white font-bold">MSFT</span><span class="text-red-400">-0.41%</span>
+            </li>
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors">
+                <span class="text-white font-bold">GOOGL</span><span class="text-emerald-400">+2.15%</span>
+            </li>
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors">
+                <span class="text-white font-bold">AMZN</span><span class="text-emerald-400">+0.88%</span>
+            </li>
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors">
+                <span class="text-white font-bold">NVDA</span><span class="text-emerald-400">+3.10%</span>
+            </li>
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors">
+                <span class="text-white font-bold">META</span><span class="text-red-400">-1.05%</span>
+            </li>
+            <li class="flex justify-between items-center hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors">
+                <span class="text-white font-bold">TSLA</span><span class="text-red-400">-2.20%</span>
+            </li>
             
-            <div class="flex justify-between items-center mt-12 relative z-10">
-                <!-- INBOUND -->
-                <div class="w-32 h-32 border border-white/10 rounded-xl flex flex-col items-center justify-center bg-black/40 hover:border-orange-500 transition-all cursor-pointer group">
-                    <span class="text-[9px] text-gray-500 uppercase font-bold mb-2">Inbound</span>
-                    <i data-lucide="anchor" class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform"></i>
-                    <div class="h-1 w-12 bg-emerald-500 rounded-full glow-orange mb-1"></div>
-                    <span class="text-[8px] text-gray-400 uppercase tracking-tighter">Sourcing</span>
-                </div>
-
-                <div class="h-px flex-grow bg-gradient-to-r from-emerald-500 via-blue-500 to-transparent mx-2 opacity-30"></div>
-
-                <!-- MIDSTREAM -->
-                <div class="w-36 h-36 border border-blue-500/30 rounded-xl flex flex-col items-center justify-center bg-blue-500/5 hover:border-blue-400 transition-all cursor-pointer group scale-110 shadow-2xl shadow-blue-500/10">
-                    <span class="text-[9px] text-blue-400 uppercase font-bold mb-2 tracking-widest">Midstream</span>
-                    <i data-lucide="cpu" class="w-10 h-10 mb-2 text-blue-400 group-hover:rotate-90 transition-transform duration-700"></i>
-                    <div class="h-1 w-16 bg-blue-400 rounded-full mb-1"></div>
-                    <span class="text-[8px] text-blue-300/50 uppercase tracking-tighter">Processing</span>
-                </div>
-
-                <div class="h-px flex-grow bg-gradient-to-r from-transparent via-blue-500 to-emerald-500 mx-2 opacity-30"></div>
-
-                <!-- OUTBOUND -->
-                <div class="w-32 h-32 border border-white/10 rounded-xl flex flex-col items-center justify-center bg-black/40 hover:border-emerald-500 transition-all cursor-pointer group">
-                    <span class="text-[9px] text-gray-500 uppercase font-bold mb-2">Outbound</span>
-                    <i data-lucide="truck" class="text-emerald-500 w-8 h-8 mb-2 group-hover:translate-x-2 transition-transform"></i>
-                    <div class="h-1 w-12 bg-emerald-500 rounded-full mb-1"></div>
-                    <span class="text-[8px] text-gray-400 uppercase tracking-tighter">Logistics</span>
-                </div>
-            </div>
-
-            <!-- Background Data Pulse Animation -->
-            <div class="absolute bottom-4 left-6 flex items-center space-x-2">
-                <span class="text-[9px] text-gray-600 font-bold uppercase tracking-[0.2em]">Silo Status: </span>
-                <span class="text-[9px] text-emerald-500 font-bold">OPERATIONAL</span>
-            </div>
-        </div>
-
-        <!-- RIGHT: INTELLIGENCE -->
-        <div class="col-span-3 space-y-4 overflow-y-auto custom-scroll">
-            <div class="glass-panel p-4 rounded-lg">
-                <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2 flex items-center gap-2">
-                    <i data-lucide="bar-chart-3" class="w-3 h-3"></i> FINANCIALS
-                </h3>
-                <div id="company-data" class="text-[11px] space-y-2">
-                    <div class="flex justify-between py-1 border-b border-white/5"><span class="text-gray-500">Market Cap</span><span class="text-white">$3.14T</span></div>
-                    <div class="flex justify-between py-1 border-b border-white/5"><span class="text-gray-500">P/E Ratio</span><span class="text-white">28.4</span></div>
-                    <div class="flex justify-between py-1"><span class="text-gray-500">Dividend</span><span class="text-emerald-400">0.82%</span></div>
-                </div>
-            </div>
-
-            <div class="glass-panel p-4 rounded-lg border-l-4 border-l-orange-500 glow-orange">
-                <h3 class="text-xs font-bold mb-2 bloomberg-orange flex items-center gap-2">
-                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> INTELLIGENCE LAYER
-                </h3>
-                <p id="ai-insight" class="text-[10px] text-gray-300 leading-relaxed italic">
-                    "Analyzing supply chain topology... Identifying bottleneck risk in Outbound Logistics for Sector XLK. Cross-referencing JEPI yield stability..."
-                </p>
-                <div class="mt-3 flex items-center gap-1">
-                    <div class="w-1 h-1 bg-orange-500 rounded-full animate-ping"></div>
-                    <span class="text-[8px] text-gray-500 uppercase tracking-widest font-bold">Recursive Synthesis Active</span>
-                </div>
-            </div>
-        </div>
+            <!-- Emerging Tech / Defense -->
+            <li class="flex justify-between items-center border-t border-gray-800 pt-2 mt-2 hover:bg-white/5 p-1.5 rounded cursor-pointer transition-colors group">
+                <span class="text-gray-300 font-bold group-hover:text-white transition-colors">PLTR</span>
+                <span class="text-[9px] bg-blue-500/20 text-blue-400 px-1 rounded">GOV/AI</span>
+            </li>
+        </ul>
     </div>
 
-    <!-- SYSTEM FOOTER -->
-<div class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-1 border-t border-gray-900 pt-2">
-    <div class="flex gap-6 items-center">
-        <div class="flex gap-4">
-            <span>TERMINAL_ID: HYA-7928</span>
-            <span>OS: LIARA_CHROMEBOOK_CORE</span>
-        </div>
-        <!-- YOUTUBE INTEGRATION -->
-        <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" 
-           target="_blank" 
-           class="flex items-center gap-1.5 hover:text-red-500 transition-colors border-l border-gray-800 pl-4">
-            <i data-lucide="youtube" class="w-3.5 h-3.5"></i>
-            <span class="tracking-widest uppercase">Live_Stream // Dev_Log</span>
-        </a>
-    </div>
-    <div class="flex gap-4 items-center">
-        <span class="text-emerald-500">● FIREBASE_SILO_CONNECTED</span>
-        <span class="border-l border-gray-800 pl-4">GITHUB_SYNC: 100%</span>
-    </div>
+    <!-- SECTOR ROTATION (From Previous Code) goes here -->
 </div>
 
-        // Insight Simulation
-        const insights = [
-            "Inbound sourcing for NVDA materials shows 12% tightening in APAC regions.",
-            "Midstream processing efficiency up 4% following AI software integration.",
-            "Rotation into JEPI suggested for defensive yield capture in Q2.",
-            "Recursive synthesis suggests SPY support at 5,120 based on logistics data."
-        ];
-        let i = 0;
-        setInterval(() => {
-            const el = document.getElementById('ai-insight');
-            el.style.opacity = 0;
-            setTimeout(() => {
-                el.innerText = `"${insights[i % insights.length]}"`;
-                el.style.opacity = 1;
-                i++;
-            }, 500);
-        }, 8000);
-    </script>
-</body>
-</html>
+<!-- CENTER: MACRO TOPOLOGY (ETF ADAPTATION FOR SPY) -->
+<div class="col-span-6 glass-panel p-6 rounded-lg relative overflow-hidden">
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col">
+            <h2 class="text-sm font-bold flex items-center tracking-widest text-gray-400">
+                <i data-lucide="network" class="w-4 h-4 mr-2 bloomberg-orange"></i> MACRO TOPOLOGY // <span class="text-white ml-1">ETF MODE</span>
+            </h2>
+            <span class="text-[9px] text-gray-500 mt-1">Asset Class: Broad Market Index | Algorithm: Cap-Weighted</span>
+        </div>
+        <div class="bg-orange-500/10 border border-orange-500/50 px-3 py-1 rounded text-xs font-mono text-orange-500 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span> ACTIVE: SPY
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-3 gap-4 items-center mt-8 relative z-10">
+        
+        <!-- LEFT: TOP CONSTITUENTS (Replaces Upstream Suppliers for ETFs) -->
+        <div class="flex flex-col gap-3">
+            <span class="text-[9px] text-gray-500 uppercase font-bold text-center tracking-widest border-b border-gray-800 pb-1">Top Constituents</span>
+            
+            <!-- MSFT Weighting -->
+            <div class="border border-white/10 p-2 rounded bg-black/40 hover:border-orange-500 transition-colors cursor-pointer group">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-white group-hover:text-orange-400 transition-colors">MSFT</span>
+                    <span class="text-[9px] text-gray-400 font-mono">7.1%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-1 mt-1"><div class="bg-orange-500 h-1 rounded-full shadow-[0_0_8px_rgba(255,136,0,0.6)]" style="width: 71%"></div></div>
+            </div>
+
+            <!-- AAPL Weighting -->
+            <div class="border border-white/10 p-2 rounded bg-black/40 hover:border-orange-500 transition-colors cursor-pointer group">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-white group-hover:text-orange-400 transition-colors">AAPL</span>
+                    <span class="text-[9px] text-gray-400 font-mono">5.6%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-1 mt-1"><div class="bg-orange-500 h-1 rounded-full shadow-[0_0_8px_rgba(255,136,0,0.6)]" style="width: 56%"></div></div>
+            </div>
+            
+            <!-- GOOGL Weighting (Combined Classes) -->
+            <div class="border border-white/10 p-2 rounded bg-black/40 hover:border-orange-500 transition-colors cursor-pointer group">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-white group-hover:text-orange-400 transition-colors">GOOGL + GOOG</span>
+                    <span class="text-[9px] text-gray-400 font-mono">3.8%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-1 mt-1"><div class="bg-orange-500 h-1 rounded-full shadow-[0_0_8px_rgba(255,136,0,0.6)]" style="width: 38%"></div></div>
+            </div>
+        </div>
+
+        <!-- MIDSTREAM (Selected Node - SPY) -->
+        <div class="flex flex-col items-center justify-center relative">
+            <div class="absolute w-full h-px bg-orange-500/30 top-1/2 -z-10"></div>
+            
+            <div class="w-32 h-32 border-2 border-orange-500 rounded-xl flex flex-col items-center justify-center bg-black/80 shadow-[0_0_30px_rgba(255,136,0,0.15)] scale-110 z-10 backdrop-blur-md">
+                <i data-lucide="layers" class="w-8 h-8 mb-2 text-orange-500"></i>
+                <span class="text-xl font-bold text-white tracking-wider drop-shadow-md">SPY</span>
+                <span class="text-[9px] text-gray-400 uppercase mt-1">S&P 500 Trust</span>
+            </div>
+        </div>
+
+        <!-- RIGHT: SECTOR EXPOSURE (Replaces Downstream Buyers for ETFs) -->
+        <div class="flex flex-col gap-3">
+            <span class="text-[9px] text-gray-500 uppercase font-bold text-center tracking-widest border-b border-gray-800 pb-1">Sector Exposure</span>
+            
+            <div class="border border-white/10 p-2 rounded bg-black/40 hover:border-blue-400 transition-colors cursor-pointer">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-white">Info Tech (XLK)</span>
+                    <span class="text-[9px] text-blue-400 font-mono">29.8%</span>
+                </div>
+                <span class="text-[8px] text-gray-500">Primary Systemic Driver</span>
+            </div>
+
+            <div class="border border-white/10 p-2 rounded bg-black/40 hover:border-blue-400 transition-colors cursor-pointer">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-white">Financials (XLF)</span>
+                    <span class="text-[9px] text-blue-400 font-mono">13.2%</span>
+                </div>
+                <span class="text-[8px] text-gray-500">Yield Curve Sensitive</span>
+            </div>
+            
+            <div class="border border-white/10 p-2 rounded bg-black/40 hover:border-blue-400 transition-colors cursor-pointer">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-white">Healthcare (XLV)</span>
+                    <span class="text-[9px] text-blue-400 font-mono">12.4%</span>
+                </div>
+                <span class="text-[8px] text-gray-500">Defensive Flow Allocation</span>
+            </div>
+        </div>
+
+    </div>
+</div>
