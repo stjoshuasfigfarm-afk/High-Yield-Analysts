@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYA | Analysis Terminal v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Courier New', Courier, monospace; }
+        .terminal-border { border: 1px solid #1a1a1a; }
+        .ticker-red { color: #ff4d4d; }
+        .ticker-green { color: #00ff88; }
+        .bloomberg-orange { color: #ff8800; }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="flex justify-between items-center mb-4 terminal-border p-2 bg-[#0a0a0a]">
+        <div class="flex space-x-4 items-center">
+            <h1 class="font-bold text-xl bloomberg-orange tracking-tighter">ANALYSIS TERMINAL</h1>
+            <span class="text-xs text-gray-500">LIVE FEED: [CONNECTED]</span>
+        </div>
+        <div class="flex space-x-6 text-sm">
+            <span>SPY <span class="ticker-green">▲ 0.12%</span></span>
+            <span>JEPI <span class="ticker-green">▲ 0.05%</span></span>
+            <span>GPIQ <span class="ticker-red">▼ 0.02%</span></span>
+            <span id="clock" class="text-gray-400"></span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4">
+        
+        <div class="col-span-3 space-y-4">
+            <div class="terminal-border p-3 bg-[#0a0a0a]">
+                <h3 class="text-xs font-bold mb-2 border-b border-gray-800 pb-1">SECTOR ROTATION (RRG)</h3>
+                <ul class="text-xs space-y-2">
+                    <li class="flex justify-between"><span>Technology (XLK)</span><span class="ticker-green">Leading</span></li>
+                    <li class="flex justify-between"><span>Energy (XLE)</span><span class="ticker-green">Improving</span></li>
+                    <li class="flex justify-between"><span>Financials (XLF)</span><span class="text-yellow-500">Weakening</span></li>
+                    <li class="flex justify-between"><span>Healthcare (XLV)</span><span class="ticker-red">Lagging</span></li>
+                </ul>
+            </div>
+            
+            <div class="terminal-border p-3 bg-[#0a0a0a]">
+                <h3 class="text-xs font-bold mb-2 border-b border-gray-800 pb-1">EARNINGS CALENDAR</h3>
+                <div class="text-[10px] space-y-1">
+                    <div class="p-1 hover:bg-[#1a1a1a] cursor-pointer">04/30 | AMZN | Est: 0.83</div>
+                    <div class="p-1 hover:bg-[#1a1a1a] cursor-pointer text-yellow-500">04/30 | AAPL | Est: 1.51</div>
+                    <div class="p-1 hover:bg-[#1a1a1a] cursor-pointer">05/01 | COIN | Est: 1.15</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-6 terminal-border p-4 bg-[#0a0a0a] relative min-h-[500px]">
+            <h2 class="text-sm font-bold mb-4 flex items-center">
+                <i data-lucide="network" class="w-4 h-4 mr-2"></i> SUPPLY CHAIN TOPOLOGY MAP
+            </h2>
+            
+            <div class="flex justify-between items-center mt-20">
+                <div class="w-32 h-32 terminal-border flex flex-col items-center justify-center bg-[#0d0d0d]">
+                    <span class="text-[10px] bloomberg-orange font-bold uppercase">Inbound</span>
+                    <i data-lucide="ship" class="w-8 h-8 my-2"></i>
+                    <span class="text-[8px] text-gray-500 text-center">Raw Materials & Sourcing</span>
+                </div>
+
+                <i data-lucide="arrow-right" class="text-gray-700"></i>
+
+                <div class="w-32 h-32 terminal-border flex flex-col items-center justify-center bg-[#0d0d0d] border-blue-900">
+                    <span class="text-[10px] text-blue-400 font-bold uppercase">Midstream</span>
+                    <i data-lucide="factory" class="w-8 h-8 my-2"></i>
+                    <span class="text-[8px] text-gray-500 text-center">Manufacturing & Processing</span>
+                </div>
+
+                <i data-lucide="arrow-right" class="text-gray-700"></i>
+
+                <div class="w-32 h-32 terminal-border flex flex-col items-center justify-center bg-[#0d0d0d] border-green-900">
+                    <span class="text-[10px] text-green-400 font-bold uppercase">Outbound</span>
+                    <i data-lucide="truck" class="w-8 h-8 my-2"></i>
+                    <span class="text-[8px] text-gray-500 text-center">Logistics & End-User</span>
+                </div>
+            </div>
+
+            <div class="absolute bottom-4 left-4 text-[10px] text-gray-600">
+                AI_AGENT_STATUS: SYNTHESIZING_GLOBAL_TRADE_TRENDS...
+            </div>
+        </div>
+
+        <div class="col-span-3 space-y-4">
+            <div class="terminal-border p-3 bg-[#0a0a0a]">
+                <h3 class="text-xs font-bold mb-2 border-b border-gray-800 pb-1">COMPANY FINANCIALS</h3>
+                <div id="company-data" class="text-xs">
+                    <div class="flex justify-between py-1 italic text-gray-400">Select Node to load...</div>
+                </div>
+            </div>
+
+            <div class="terminal-border p-3 bg-[#0a0a0a] border-l-2 border-l-orange-500">
+                <h3 class="text-xs font-bold mb-2">INTELLIGENCE LAYER</h3>
+                <p class="text-[10px] text-gray-400 italic">"Recursive synthesis suggests a rotation into mid-cap energy based on supply chain bottlenecks in outbound logistics."</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Simple Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
