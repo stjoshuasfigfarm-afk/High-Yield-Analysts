@@ -184,31 +184,25 @@
     </div>
 
     <!-- SYSTEM FOOTER -->
-    <div class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-1">
+<div class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-1 border-t border-gray-900 pt-2">
+    <div class="flex gap-6 items-center">
         <div class="flex gap-4">
             <span>TERMINAL_ID: HYA-7928</span>
             <span>OS: LIARA_CHROMEBOOK_CORE</span>
         </div>
-        <div class="flex gap-4">
-            <span class="text-emerald-500">● FIREBASE_SILO_CONNECTED</span>
-            <span>GITHUB_SYNC: 100%</span>
-        </div>
+        <!-- YOUTUBE INTEGRATION -->
+        <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" 
+           target="_blank" 
+           class="flex items-center gap-1.5 hover:text-red-500 transition-colors border-l border-gray-800 pl-4">
+            <i data-lucide="youtube" class="w-3.5 h-3.5"></i>
+            <span class="tracking-widest uppercase">Live_Stream // Dev_Log</span>
+        </a>
     </div>
-
-    <script>
-        lucide.createIcons();
-
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            });
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+    <div class="flex gap-4 items-center">
+        <span class="text-emerald-500">● FIREBASE_SILO_CONNECTED</span>
+        <span class="border-l border-gray-800 pl-4">GITHUB_SYNC: 100%</span>
+    </div>
+</div>
 
         // Insight Simulation
         const insights = [
