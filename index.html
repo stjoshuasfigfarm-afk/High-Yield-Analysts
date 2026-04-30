@@ -1,23 +1,211 @@
-<!-- TRADINGVIEW TICKER TAPE - FIXED OVERFLOW -->
-<div class="glass-panel rounded-lg overflow-hidden mb-4" style="height: 46px; background: #050505;">
-    <div class="tradingview-widget-container" style="width: 100%; height: 46px;">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-        {
-          "symbols": [
-            { "proName": "AMEX:JEPI", "title": "JEPI INCOME" },
-            { "proName": "AMEX:GPIQ", "title": "GPIQ" },
-            { "proName": "SP:SPX", "title": "S&P 500" },
-            { "proName": "TVC:US10Y", "title": "10YR YIELD" },
-            { "proName": "TVC:US02Y", "title": "2YR YIELD" },
-            { "proName": "NASDAQ:NVDA", "title": "NVDA" }
-          ],
-          "showSymbolLogo": true,
-          "colorTheme": "dark",
-          "isTransparent": false, 
-          "displayMode": "adaptive",
-          "locale": "en"
-        }
-        </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYA | Analysis Terminal v1.2</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bloomberg-orange: #ff8800; --terminal-dark: #050505; }
+        body { background-color: var(--terminal-dark); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; }
+        .glass-panel { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .bloomberg-orange { color: var(--bloomberg-orange); }
+        .status-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body class="p-4 h-screen flex flex-col gap-4 overflow-hidden">
+
+    <!-- HEADER & CUSTOM TRADINGVIEW BAR -->
+    <div class="flex flex-col gap-1">
+        <div class="flex justify-between items-center glass-panel p-2 rounded-t-lg border-b-0">
+            <div class="flex items-center gap-3">
+                <div class="w-2 h-2 bg-orange-500 rounded-full status-pulse"></div>
+                <h1 class="font-bold text-lg bloomberg-orange tracking-tighter text-shadow-glow">HYA QUANT TERMINAL</h1>
+            </div>
+            <div id="clock" class="text-xs font-bold text-gray-500"></div>
+        </div>
+        
+        <div class="glass-panel rounded-b-lg overflow-hidden h-10">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+                {
+                "symbols": [
+                    { "proName": "AMEX:JEPI", "title": "JEPI INCOME" },
+                    { "proName": "AMEX:GPIQ", "title": "GPIQ" },
+                    { "proName": "SP:SPX", "title": "S&P 500" },
+                    { "proName": "TVC:US10Y", "title": "10YR YIELD" },
+                    { "proName": "TVC:US02Y", "title": "2YR YIELD" },
+                    { "proName": "NASDAQ:NVDA", "title": "NVDA" }
+                ],
+                "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"
+                }
+                </script>
+            </div>
+        </div>
     </div>
-</div>
+
+    <!-- MAIN GRID -->
+    <div class="grid grid-cols-12 gap-4 flex-grow overflow-hidden">
+        
+        <!-- COLUMN 1: MARKET CYCLE & ROTATION -->
+        <div class="col-span-3 flex flex-col gap-4">
+            <div class="glass-panel p-4 rounded-lg flex-grow">
+                <h3 class="text-xs font-bold mb-4 border-b border-gray-800 pb-2 flex justify-between">
+                    SECTOR ROTATION <span class="text-orange-500">STAGES</span>
+                </h3>
+                <div class="space-y-4">
+                    <div class="p-2 border border-emerald-900/50 bg-emerald-500/5 rounded">
+                        <p class="text-[10px] text-emerald-400 font-bold uppercase">Early Recovery</p>
+                        <p class="text-[9px] text-gray-400">XLK, XLY Leading</p>
+                    </div>
+                    <div class="p-2 border border-blue-900/50 bg-blue-500/5 rounded">
+                        <p class="text-[10px] text-blue-400 font-bold uppercase">Full Recovery</p>
+                        <p class="text-[9px] text-gray-400">XLI, XLB Strengthening</p>
+                    </div>
+                    <div class="p-2 border border-yellow-900/50 bg-yellow-500/10 rounded-sm ring-1 ring-yellow-500/50">
+                        <p class="text-[10px] text-yellow-500 font-bold uppercase">Early Recession</p>
+                        <p class="text-[9px] text-gray-300">XLP, XLU (Defensive) Gain</p>
+                    </div>
+                    <div class="p-2 border border-red-900/50 bg-red-500/5 rounded opacity-40">
+                        <p class="text-[10px] text-red-500 font-bold uppercase">Full Recession</p>
+                        <p class="text-[9px] text-gray-400">Cash/Bonds Outperform</p>
+                    </div>
+                </div>
+                <canvas id="rotationChart" class="mt-6"></canvas>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: TOPOLOGY & YIELD CURVE -->
+        <div class="col-span-6 flex flex-col gap-4">
+            <!-- YIELD CURVE PANEL -->
+            <div class="glass-panel p-4 rounded-lg h-1/3">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Yield Curve Monitor (10Y - 2Y)</h3>
+                    <span id="yieldSpread" class="text-xs font-bold text-red-500">Spread: -0.32% (Inverted)</span>
+                </div>
+                <div class="h-24">
+                    <canvas id="yieldChart"></canvas>
+                </div>
+            </div>
+
+            <!-- TOPOLOGY MAP -->
+            <div class="glass-panel p-6 rounded-lg flex-grow relative">
+                <h2 class="text-sm font-bold mb-4 flex items-center text-gray-400 uppercase tracking-widest">
+                    <i data-lucide="map" class="w-4 h-4 mr-2 bloomberg-orange"></i> Supply Chain Topology
+                </h2>
+                <div class="flex justify-around items-center mt-8">
+                    <div class="text-center p-4 border border-gray-800 rounded-lg hover:border-orange-500 transition-all cursor-pointer">
+                        <i data-lucide="factory" class="w-8 h-8 mx-auto mb-2 text-blue-400"></i>
+                        <span class="text-[10px] font-bold block uppercase">Midstream</span>
+                        <div class="w-full h-1 bg-blue-500/20 mt-1 rounded-full"><div class="h-full bg-blue-500 w-3/4"></div></div>
+                    </div>
+                    <i data-lucide="arrow-right-left" class="text-gray-700 animate-pulse"></i>
+                    <div class="text-center p-4 border border-gray-800 rounded-lg hover:border-emerald-500 transition-all cursor-pointer">
+                        <i data-lucide="package" class="w-8 h-8 mx-auto mb-2 text-emerald-500"></i>
+                        <span class="text-[10px] font-bold block uppercase">Outbound</span>
+                        <div class="w-full h-1 bg-emerald-500/20 mt-1 rounded-full"><div class="h-full bg-emerald-500 w-1/2"></div></div>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-4 text-[9px] text-gray-600 uppercase font-bold tracking-tighter">
+                    Syncing: Analyst Terminal Data Silo v2.0
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 3: INTELLIGENCE & SYNOPSIS -->
+        <div class="col-span-3 flex flex-col gap-4">
+            <div class="glass-panel p-4 rounded-lg flex-grow">
+                <h3 class="text-xs font-bold mb-4 border-b border-gray-800 pb-2">AI SYNOPSIS</h3>
+                <div class="space-y-4">
+                    <div class="text-[11px] text-gray-400 italic leading-relaxed border-l-2 border-orange-500 pl-3 py-1">
+                        "Yield curve inversion persistent at -32bps. Sector rotation confirms <span class="text-yellow-500 font-bold">EARLY RECESSION</span> signals as utilities outperform tech."
+                    </div>
+                    <canvas id="yieldBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Yield Curve Line Chart
+        const ctxYield = document.getElementById('yieldChart').getContext('2d');
+        new Chart(ctxYield, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: '10Y-2Y Spread',
+                    data: [-0.1, -0.15, -0.25, -0.32, -0.28, -0.32],
+                    borderColor: '#ff4d4d',
+                    backgroundColor: 'rgba(255, 77, 77, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { size: 8 } } }
+                }
+            }
+        });
+
+        // Sector Strength Bar Chart
+        const ctxRotation = document.getElementById('rotationChart').getContext('2d');
+        new Chart(ctxRotation, {
+            type: 'bar',
+            data: {
+                labels: ['XLK', 'XLP', 'XLU', 'XLY'],
+                datasets: [{
+                    data: [12, 19, 25, 8],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { grid: { display: false }, ticks: { display: false } },
+                    y: { ticks: { color: '#888', font: { size: 9 } } }
+                }
+            }
+        });
+
+        // Yield Comparison Bar Chart
+        const ctxYieldBar = document.getElementById('yieldBarChart').getContext('2d');
+        new Chart(ctxYieldBar, {
+            type: 'bar',
+            data: {
+                labels: ['2YR', '10YR'],
+                datasets: [{
+                    data: [4.82, 4.50],
+                    backgroundColor: ['#ff8800', '#3b82f6']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { size: 8 } } }
+                }
+            }
+        });
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
+        }
+        setInterval(updateClock, 1000); updateClock();
+    </script>
+</body>
+</html>
