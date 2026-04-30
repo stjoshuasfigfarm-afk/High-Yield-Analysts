@@ -3,230 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYA | Analysis Terminal v1.1</title>
-    <!-- Modern Tech Font -->
+    <title>HYA | Analysis Terminal v1.2</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bloomberg-orange: #ff8800;
-            --terminal-dark: #050505;
-            --panel-bg: rgba(20, 20, 20, 0.7);
-        }
-        body { 
-            background-color: var(--terminal-dark); 
-            color: #e5e5e5; 
-            font-family: 'JetBrains Mono', monospace; 
-            background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
-        }
-        .glass-panel { 
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
+        :root { --bloomberg-orange: #ff8800; --terminal-dark: #050505; }
+        body { background-color: var(--terminal-dark); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; }
+        .glass-panel { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .bloomberg-orange { color: var(--bloomberg-orange); }
-        .glow-orange { box-shadow: 0 0 15px rgba(255, 136, 0, 0.3); }
-        
-        /* Smooth scrolling for any custom elements */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-
-        @keyframes pulse-orange {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-        .status-pulse { animation: pulse-orange 2s infinite; }
+        .status-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body class="p-4 h-screen flex flex-col gap-4 overflow-hidden">
 
-    <!-- TOP NAVIGATION & LIVE TICKER -->
-    <div class="flex flex-col gap-2">
-        <div class="flex justify-between items-center glass-panel p-3 rounded-t-lg">
-            <div class="flex space-x-4 items-center">
-                <div class="w-3 h-3 bg-orange-500 rounded-full status-pulse"></div>
-                <h1 class="font-bold text-xl bloomberg-orange tracking-tighter">HYA ANALYSIS TERMINAL</h1>
-                <span class="text-[10px] text-gray-500 px-2 border border-gray-800 rounded">v1.1_STABLE</span>
+    <!-- HEADER & CUSTOM TRADINGVIEW BAR -->
+    <div class="flex flex-col gap-1">
+        <div class="flex justify-between items-center glass-panel p-2 rounded-t-lg border-b-0">
+            <div class="flex items-center gap-3">
+                <div class="w-2 h-2 bg-orange-500 rounded-full status-pulse"></div>
+                <h1 class="font-bold text-lg bloomberg-orange tracking-tighter text-shadow-glow">HYA QUANT TERMINAL</h1>
             </div>
-            <div class="flex space-x-6 text-xs items-center">
-                <span id="clock" class="text-gray-400 font-bold"></span>
-            </div>
+            <div id="clock" class="text-xs font-bold text-gray-500"></div>
         </div>
         
-        <!-- TRADINGVIEW TICKER TAPE START -->
-        <div class="glass-panel border-t-0 rounded-b-lg overflow-hidden">
+        <div class="glass-panel rounded-b-lg overflow-hidden h-10">
             <div class="tradingview-widget-container">
                 <div class="tradingview-widget-container__widget"></div>
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
                 {
                 "symbols": [
-                    { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
-                    { "proName": "NASDAQ:JEPI", "title": "JEPI" },
-                    { "proName": "NASDAQ:GPIQ", "title": "GPIQ" },
-                    { "proName": "FX_IDC:USDJPY", "title": "USD/JPY" },
-                    { "proName": "BITSTAMP:BTCUSD", "title": "BTC/USD" },
+                    { "proName": "AMEX:JEPI", "title": "JEPI INCOME" },
+                    { "proName": "AMEX:GPIQ", "title": "GPIQ" },
+                    { "proName": "SP:SPX", "title": "S&P 500" },
+                    { "proName": "TVC:US10Y", "title": "10YR YIELD" },
+                    { "proName": "TVC:US02Y", "title": "2YR YIELD" },
                     { "proName": "NASDAQ:NVDA", "title": "NVDA" }
                 ],
-                "showSymbolLogo": true,
-                "colorTheme": "dark",
-                "isTransparent": true,
-                "displayMode": "adaptive",
-                "locale": "en"
+                "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "en"
                 }
                 </script>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CONTENT GRID -->
-    <div class="grid grid-cols-12 gap-4 flex-grow">
+    <!-- MAIN GRID -->
+    <div class="grid grid-cols-12 gap-4 flex-grow overflow-hidden">
         
-        <!-- SIDEBAR: MACRO -->
-        <div class="col-span-3 space-y-4 overflow-y-auto custom-scroll">
-            <div class="glass-panel p-4 rounded-lg">
-                <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2 flex justify-between items-center">
-                    SECTOR ROTATION <i data-lucide="refresh-cw" class="w-3 h-3 text-gray-500"></i>
+        <!-- COLUMN 1: MARKET CYCLE & ROTATION -->
+        <div class="col-span-3 flex flex-col gap-4">
+            <div class="glass-panel p-4 rounded-lg flex-grow">
+                <h3 class="text-xs font-bold mb-4 border-b border-gray-800 pb-2 flex justify-between">
+                    SECTOR ROTATION <span class="text-orange-500">STAGES</span>
                 </h3>
-                <ul class="text-[11px] space-y-3">
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLK (Tech)</span><span class="text-emerald-400 font-bold">LEADING</span></li>
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLE (Energy)</span><span class="text-blue-400 font-bold">IMPROVING</span></li>
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLF (Financials)</span><span class="text-yellow-500 font-bold">WEAKENING</span></li>
-                    <li class="flex justify-between items-center"><span class="text-gray-400">XLV (Healthcare)</span><span class="text-red-500 font-bold">LAGGING</span></li>
-                </ul>
-            </div>
-            
-            <div class="glass-panel p-4 rounded-lg">
-                <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2">EARNINGS MONITOR</h3>
-                <div class="text-[10px] space-y-2">
-                    <div class="p-2 hover:bg-white/5 rounded transition-colors flex justify-between cursor-pointer border-l-2 border-transparent hover:border-orange-500">
-                        <span>04/30 | AMZN</span><span class="text-orange-500 font-bold">EST: 0.83</span>
+                <div class="space-y-4">
+                    <div class="p-2 border border-emerald-900/50 bg-emerald-500/5 rounded">
+                        <p class="text-[10px] text-emerald-400 font-bold uppercase">Early Recovery</p>
+                        <p class="text-[9px] text-gray-400">XLK, XLY Leading</p>
                     </div>
-                    <div class="p-2 hover:bg-white/5 rounded transition-colors flex justify-between cursor-pointer border-l-2 border-transparent hover:border-orange-500">
-                        <span>04/30 | AAPL</span><span class="text-orange-500 font-bold">EST: 1.51</span>
+                    <div class="p-2 border border-blue-900/50 bg-blue-500/5 rounded">
+                        <p class="text-[10px] text-blue-400 font-bold uppercase">Full Recovery</p>
+                        <p class="text-[9px] text-gray-400">XLI, XLB Strengthening</p>
+                    </div>
+                    <div class="p-2 border border-yellow-900/50 bg-yellow-500/10 rounded-sm ring-1 ring-yellow-500/50">
+                        <p class="text-[10px] text-yellow-500 font-bold uppercase">Early Recession</p>
+                        <p class="text-[9px] text-gray-300">XLP, XLU (Defensive) Gain</p>
+                    </div>
+                    <div class="p-2 border border-red-900/50 bg-red-500/5 rounded opacity-40">
+                        <p class="text-[10px] text-red-500 font-bold uppercase">Full Recession</p>
+                        <p class="text-[9px] text-gray-400">Cash/Bonds Outperform</p>
                     </div>
                 </div>
+                <canvas id="rotationChart" class="mt-6"></canvas>
             </div>
         </div>
 
-        <!-- CENTER: TOPOLOGY -->
-        <div class="col-span-6 glass-panel p-6 rounded-lg relative overflow-hidden">
-            <h2 class="text-sm font-bold mb-8 flex items-center tracking-widest text-gray-400">
-                <i data-lucide="share-2" class="w-4 h-4 mr-2 bloomberg-orange"></i> SUPPLY CHAIN TOPOLOGY
-            </h2>
-            
-            <div class="flex justify-between items-center mt-12 relative z-10">
-                <!-- INBOUND -->
-                <div class="w-32 h-32 border border-white/10 rounded-xl flex flex-col items-center justify-center bg-black/40 hover:border-orange-500 transition-all cursor-pointer group">
-                    <span class="text-[9px] text-gray-500 uppercase font-bold mb-2">Inbound</span>
-                    <i data-lucide="anchor" class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform"></i>
-                    <div class="h-1 w-12 bg-emerald-500 rounded-full glow-orange mb-1"></div>
-                    <span class="text-[8px] text-gray-400 uppercase tracking-tighter">Sourcing</span>
+        <!-- COLUMN 2: TOPOLOGY & YIELD CURVE -->
+        <div class="col-span-6 flex flex-col gap-4">
+            <!-- YIELD CURVE PANEL -->
+            <div class="glass-panel p-4 rounded-lg h-1/3">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Yield Curve Monitor (10Y - 2Y)</h3>
+                    <span id="yieldSpread" class="text-xs font-bold text-red-500">Spread: -0.32% (Inverted)</span>
                 </div>
-
-                <div class="h-px flex-grow bg-gradient-to-r from-emerald-500 via-blue-500 to-transparent mx-2 opacity-30"></div>
-
-                <!-- MIDSTREAM -->
-                <div class="w-36 h-36 border border-blue-500/30 rounded-xl flex flex-col items-center justify-center bg-blue-500/5 hover:border-blue-400 transition-all cursor-pointer group scale-110 shadow-2xl shadow-blue-500/10">
-                    <span class="text-[9px] text-blue-400 uppercase font-bold mb-2 tracking-widest">Midstream</span>
-                    <i data-lucide="cpu" class="w-10 h-10 mb-2 text-blue-400 group-hover:rotate-90 transition-transform duration-700"></i>
-                    <div class="h-1 w-16 bg-blue-400 rounded-full mb-1"></div>
-                    <span class="text-[8px] text-blue-300/50 uppercase tracking-tighter">Processing</span>
-                </div>
-
-                <div class="h-px flex-grow bg-gradient-to-r from-transparent via-blue-500 to-emerald-500 mx-2 opacity-30"></div>
-
-                <!-- OUTBOUND -->
-                <div class="w-32 h-32 border border-white/10 rounded-xl flex flex-col items-center justify-center bg-black/40 hover:border-emerald-500 transition-all cursor-pointer group">
-                    <span class="text-[9px] text-gray-500 uppercase font-bold mb-2">Outbound</span>
-                    <i data-lucide="truck" class="text-emerald-500 w-8 h-8 mb-2 group-hover:translate-x-2 transition-transform"></i>
-                    <div class="h-1 w-12 bg-emerald-500 rounded-full mb-1"></div>
-                    <span class="text-[8px] text-gray-400 uppercase tracking-tighter">Logistics</span>
+                <div class="h-24">
+                    <canvas id="yieldChart"></canvas>
                 </div>
             </div>
 
-            <!-- Background Data Pulse Animation -->
-            <div class="absolute bottom-4 left-6 flex items-center space-x-2">
-                <span class="text-[9px] text-gray-600 font-bold uppercase tracking-[0.2em]">Silo Status: </span>
-                <span class="text-[9px] text-emerald-500 font-bold">OPERATIONAL</span>
+            <!-- TOPOLOGY MAP -->
+            <div class="glass-panel p-6 rounded-lg flex-grow relative">
+                <h2 class="text-sm font-bold mb-4 flex items-center text-gray-400 uppercase tracking-widest">
+                    <i data-lucide="map" class="w-4 h-4 mr-2 bloomberg-orange"></i> Supply Chain Topology
+                </h2>
+                <div class="flex justify-around items-center mt-8">
+                    <div class="text-center p-4 border border-gray-800 rounded-lg hover:border-orange-500 transition-all cursor-pointer">
+                        <i data-lucide="factory" class="w-8 h-8 mx-auto mb-2 text-blue-400"></i>
+                        <span class="text-[10px] font-bold block uppercase">Midstream</span>
+                        <div class="w-full h-1 bg-blue-500/20 mt-1 rounded-full"><div class="h-full bg-blue-500 w-3/4"></div></div>
+                    </div>
+                    <i data-lucide="arrow-right-left" class="text-gray-700 animate-pulse"></i>
+                    <div class="text-center p-4 border border-gray-800 rounded-lg hover:border-emerald-500 transition-all cursor-pointer">
+                        <i data-lucide="package" class="w-8 h-8 mx-auto mb-2 text-emerald-500"></i>
+                        <span class="text-[10px] font-bold block uppercase">Outbound</span>
+                        <div class="w-full h-1 bg-emerald-500/20 mt-1 rounded-full"><div class="h-full bg-emerald-500 w-1/2"></div></div>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-4 text-[9px] text-gray-600 uppercase font-bold tracking-tighter">
+                    Syncing: Analyst Terminal Data Silo v2.0
+                </div>
             </div>
         </div>
 
-        <!-- RIGHT: INTELLIGENCE -->
-        <div class="col-span-3 space-y-4 overflow-y-auto custom-scroll">
-            <div class="glass-panel p-4 rounded-lg">
-                <h3 class="text-xs font-bold mb-3 border-b border-gray-800 pb-2 flex items-center gap-2">
-                    <i data-lucide="bar-chart-3" class="w-3 h-3"></i> FINANCIALS
-                </h3>
-                <div id="company-data" class="text-[11px] space-y-2">
-                    <div class="flex justify-between py-1 border-b border-white/5"><span class="text-gray-500">Market Cap</span><span class="text-white">$3.14T</span></div>
-                    <div class="flex justify-between py-1 border-b border-white/5"><span class="text-gray-500">P/E Ratio</span><span class="text-white">28.4</span></div>
-                    <div class="flex justify-between py-1"><span class="text-gray-500">Dividend</span><span class="text-emerald-400">0.82%</span></div>
+        <!-- COLUMN 3: INTELLIGENCE & SYNOPSIS -->
+        <div class="col-span-3 flex flex-col gap-4">
+            <div class="glass-panel p-4 rounded-lg flex-grow">
+                <h3 class="text-xs font-bold mb-4 border-b border-gray-800 pb-2">AI SYNOPSIS</h3>
+                <div class="space-y-4">
+                    <div class="text-[11px] text-gray-400 italic leading-relaxed border-l-2 border-orange-500 pl-3 py-1">
+                        "Yield curve inversion persistent at -32bps. Sector rotation confirms <span class="text-yellow-500 font-bold">EARLY RECESSION</span> signals as utilities outperform tech."
+                    </div>
+                    <canvas id="yieldBarChart"></canvas>
                 </div>
             </div>
-
-            <div class="glass-panel p-4 rounded-lg border-l-4 border-l-orange-500 glow-orange">
-                <h3 class="text-xs font-bold mb-2 bloomberg-orange flex items-center gap-2">
-                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> INTELLIGENCE LAYER
-                </h3>
-                <p id="ai-insight" class="text-[10px] text-gray-300 leading-relaxed italic">
-                    "Analyzing supply chain topology... Identifying bottleneck risk in Outbound Logistics for Sector XLK. Cross-referencing JEPI yield stability..."
-                </p>
-                <div class="mt-3 flex items-center gap-1">
-                    <div class="w-1 h-1 bg-orange-500 rounded-full animate-ping"></div>
-                    <span class="text-[8px] text-gray-500 uppercase tracking-widest font-bold">Recursive Synthesis Active</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SYSTEM FOOTER -->
-    <div class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-1">
-        <div class="flex gap-4">
-            <span>TERMINAL_ID: HYA-7928</span>
-            <span>OS: LIARA_CHROMEBOOK_CORE</span>
-        </div>
-        <div class="flex gap-4">
-            <span class="text-emerald-500">● FIREBASE_SILO_CONNECTED</span>
-            <span>GITHUB_SYNC: 100%</span>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
 
+        // Yield Curve Line Chart
+        const ctxYield = document.getElementById('yieldChart').getContext('2d');
+        new Chart(ctxYield, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: '10Y-2Y Spread',
+                    data: [-0.1, -0.15, -0.25, -0.32, -0.28, -0.32],
+                    borderColor: '#ff4d4d',
+                    backgroundColor: 'rgba(255, 77, 77, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { size: 8 } } }
+                }
+            }
+        });
+
+        // Sector Strength Bar Chart
+        const ctxRotation = document.getElementById('rotationChart').getContext('2d');
+        new Chart(ctxRotation, {
+            type: 'bar',
+            data: {
+                labels: ['XLK', 'XLP', 'XLU', 'XLY'],
+                datasets: [{
+                    data: [12, 19, 25, 8],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { grid: { display: false }, ticks: { display: false } },
+                    y: { ticks: { color: '#888', font: { size: 9 } } }
+                }
+            }
+        });
+
+        // Yield Comparison Bar Chart
+        const ctxYieldBar = document.getElementById('yieldBarChart').getContext('2d');
+        new Chart(ctxYieldBar, {
+            type: 'bar',
+            data: {
+                labels: ['2YR', '10YR'],
+                datasets: [{
+                    data: [4.82, 4.50],
+                    backgroundColor: ['#ff8800', '#3b82f6']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { size: 8 } } }
+                }
+            }
+        });
+
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            });
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
         }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Insight Simulation
-        const insights = [
-            "Inbound sourcing for NVDA materials shows 12% tightening in APAC regions.",
-            "Midstream processing efficiency up 4% following AI software integration.",
-            "Rotation into JEPI suggested for defensive yield capture in Q2.",
-            "Recursive synthesis suggests SPY support at 5,120 based on logistics data."
-        ];
-        let i = 0;
-        setInterval(() => {
-            const el = document.getElementById('ai-insight');
-            el.style.opacity = 0;
-            setTimeout(() => {
-                el.innerText = `"${insights[i % insights.length]}"`;
-                el.style.opacity = 1;
-                i++;
-            }, 500);
-        }, 8000);
+        setInterval(updateClock, 1000); updateClock();
     </script>
 </body>
 </html>
