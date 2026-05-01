@@ -21,10 +21,9 @@
         .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
         
-        .yield-chart-container { height: 120px; position: relative; margin-top: 8px; }
+        .macro-chart-container { height: 80px; position: relative; margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .macro-stat-card { border-left: 2px solid rgba(255,255,255,0.1); padding-left: 8px; }
 
-        /* Tooltip Styling */
         .leaflet-tooltip-own {
             background: rgba(0, 0, 0, 0.9) !important;
             border: 1px solid #ff8800 !important;
@@ -32,7 +31,6 @@
             font-family: 'JetBrains Mono', monospace !important;
             font-size: 9px !important;
             padding: 2px 6px !important;
-            box-shadow: 0 0 10px rgba(255, 136, 0, 0.2);
         }
     </style>
 </head>
@@ -46,12 +44,13 @@
               "symbols": [
                 { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
                 { "proName": "NASDAQ:NVDA", "title": "NVDA" },
+                { "proName": "NASDAQ:AVGO", "title": "AVGO" },
+                { "proName": "NASDAQ:COST", "title": "COST" },
+                { "proName": "NYSE:LLY", "title": "LLY" },
+                { "proName": "BITSTAMP:BTCUSD", "title": "BTC/USD" },
                 { "proName": "NASDAQ:PLTR", "title": "PLTR" },
                 { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
-                { "proName": "NYSE:V", "title": "V" },
-                { "proName": "NYSE:BRK.B", "title": "BRK.B" },
-                { "proName": "NASDAQ:MSFT", "title": "MSFT" },
-                { "proName": "NASDAQ:TSLA", "title": "TSLA" }
+                { "proName": "NYSE:BRK.B", "title": "BRK.B" }
               ],
               "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
             }
@@ -69,12 +68,13 @@
             </div>
             <div class="text-[8px] font-bold text-gray-500 flex gap-4 uppercase">
                 <span class="text-emerald-500">● LIVE TERMINAL</span>
-                <span class="text-blue-400">PRECISION DATA OVERLAY</span>
+                <span class="text-blue-400">MACRO OVERLAY ACTIVE</span>
             </div>
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
             
+            <!-- LEFT: COMPANY & ASSETS -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
                     <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
@@ -84,30 +84,59 @@
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
                     <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Company</h2>
                     <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
-                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Hover for employment. Click for deep-dive.</div>
+                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Hover for workforce. Click for financials.</div>
                     </div>
                 </div>
             </aside>
 
+            <!-- CENTER: MAP -->
             <main class="col-span-6 glass-card rounded p-1 relative z-0">
                 <div id="map"></div>
             </main>
 
-            <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
+            <!-- RIGHT: MACRO CHARTS -->
+            <aside class="col-span-3 flex flex-col gap-2 overflow-hidden overflow-y-auto custom-scroll pr-1">
                 <div class="glass-card p-3 rounded shrink-0">
                     <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Sector Rotation (Macro)</h2>
                     <div class="space-y-2 pt-1" id="sector-bars"></div>
                 </div>
 
-                <div class="glass-card p-3 rounded flex-grow">
+                <!-- Yield Curve -->
+                <div class="glass-card p-3 rounded shrink-0">
                     <h2 class="text-[9px] font-bold text-blue-500 uppercase flex justify-between">
                         <span>Treasury Yields (12M)</span>
-                        <span class="text-[7px] text-gray-500">2Y <span class="text-blue-400">──</span> 10Y <span class="text-white/40">──</span></span>
+                        <span class="text-[7px] text-gray-500">10Y <span class="text-white/40">──</span> 2Y <span class="text-blue-400">──</span></span>
                     </h2>
-                    <div class="yield-chart-container">
+                    <div class="macro-chart-container">
                         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
                             <path d="M0,20 Q25,15 50,25 T100,18" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                             <path d="M0,25 Q25,28 50,15 T100,10" fill="none" stroke="#3b82f6" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Interest Rates (Fed Funds) -->
+                <div class="glass-card p-3 rounded shrink-0">
+                    <h2 class="text-[9px] font-bold text-red-500 uppercase flex justify-between">
+                        <span>Fed Funds Rate</span>
+                        <span class="text-[7px] text-gray-500">Current: 5.33%</span>
+                    </h2>
+                    <div class="macro-chart-container">
+                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <path d="M0,35 L20,35 L40,25 L60,10 L80,10 L100,10" fill="none" stroke="#ef4444" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Employment Data (Macro Trend) -->
+                <div class="glass-card p-3 rounded shrink-0">
+                    <h2 class="text-[9px] font-bold text-emerald-500 uppercase flex justify-between">
+                        <span>Employment Trend</span>
+                        <span class="text-[7px] text-gray-500">Non-Farm Payrolls</span>
+                    </h2>
+                    <div class="macro-chart-container">
+                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <path d="M0,30 L10,28 L20,25 L30,22 L40,24 L50,20 L60,18 L70,19 L80,15 L90,12 L100,10" fill="none" stroke="#10b981" stroke-width="1.5" />
                         </svg>
                     </div>
                 </div>
@@ -124,21 +153,17 @@
             { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', empVal: 29, rev: '$60.9B', oil: 'Hyper-Scale (GPU)', coms: 'Silicon, Neon', earn: [12, 18, 25, 32], cash: '$25.9B' },
             { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '221k', empVal: 221, rev: '$211B', oil: 'Data Center Ops', coms: 'Silicon, Copper', earn: [52, 56, 61, 65], cash: '$143B' },
             { id: 'AMZN', n: 'Amazon', c: [47.60, -122.33], emp: '1.5M', empVal: 1500, rev: '$514B', oil: 'Heavy (Logistics)', coms: 'Fuel, Cardboard', earn: [110, 125, 135, 143], cash: '$64B' },
-            { id: 'META', n: 'Meta', c: [37.48, -122.14], emp: '67k', empVal: 67, rev: '$134B', oil: 'Medium (Compute)', coms: 'Fiber, Silicon', earn: [28, 32, 34, 40], cash: '$65B' },
             { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], emp: '182k', empVal: 182, rev: '$307B', oil: 'High (Data Center)', coms: 'Silicon, Copper', earn: [70, 75, 82, 86], cash: '$110B' },
             { id: 'TSLA', n: 'Tesla', c: [30.26, -97.74], emp: '140k', empVal: 140, rev: '$96B', oil: 'Neutral', coms: 'Lithium, Nickel', earn: [30, 35, 32, 45], cash: '$26B' },
-            { id: 'JPM', n: 'JPMorgan', c: [40.75, -73.97], emp: '300k', empVal: 300, rev: '$158B', oil: 'Financing Ops', coms: 'Credit, Gold', earn: [70, 75, 80, 78], cash: '$1.4T' },
-            { id: 'V', n: 'Visa', c: [37.55, -122.29], emp: '28k', empVal: 28, rev: '$32.6B', oil: 'Net-Low (Data)', coms: 'Energy', earn: [7, 8, 8, 9], cash: '$20B' },
-            { id: 'MA', n: 'Mastercard', c: [41.04, -73.68], emp: '30k', empVal: 30, rev: '$25.1B', oil: 'Net-Low (Data)', coms: 'Energy', earn: [5, 6, 6, 7], cash: '$10B' },
-            { id: 'HD', n: 'Home Depot', c: [33.84, -84.48], emp: '465k', empVal: 465, rev: '$152B', oil: 'High (Logistics)', coms: 'Lumber, Copper', earn: [38, 42, 35, 33], cash: '$3B' },
             { id: 'BRK.B', n: 'Berkshire', c: [41.25, -95.93], emp: '396k', empVal: 396, rev: '$364B', oil: 'Massive (BNSF/Energy)', coms: 'Rail, Oil, Energy', earn: [90, 85, 100, 110], cash: '$167B' },
-            { id: 'PLTR', n: 'Palantir', c: [39.73, -104.99], emp: '3.8k', empVal: 3.8, rev: '$2.2B', oil: 'Low (Data Center)', coms: 'Silicon', earn: [5, 7, 9, 12], cash: '$3.7B' }
+            { id: 'LLY', n: 'Eli Lilly', c: [39.76, -86.15], emp: '43k', empVal: 43, rev: '$34B', oil: 'Chemical Ops', coms: 'Reagents', earn: [8, 9, 10, 12], cash: '$3B' },
+            { id: 'AVGO', n: 'Broadcom', c: [37.37, -121.92], emp: '20k', empVal: 20, rev: '$35B', oil: 'Data Center', coms: 'Silicon', earn: [7, 8, 9, 11], cash: '$12B' }
         ];
 
         function init() {
             document.getElementById('sector-bars').innerHTML = [
-                {n:"Technology (XLK)", v:92}, {n:"Financials (XLF)", v:78}, 
-                {n:"Comm Svcs (XLC)", v:65}, {n:"Consumer Disc (XLY)", v:58}
+                {n:"Technology (XLK)", v:94}, {n:"Health Care (XLV)", v:82}, 
+                {n:"Financials (XLF)", v:76}, {n:"Comm Svcs (XLC)", v:68}
             ].map(s => `
                 <div class="text-[8px] uppercase flex justify-between mb-0.5 text-gray-300"><span>${s.n}</span><span>${s.v}%</span></div>
                 <div class="bar-container mb-2"><div class="bar-fill" style="width:${s.v}%"></div></div>
@@ -153,15 +178,7 @@
 
             sAndP.forEach(e => {
                 const marker = L.circleMarker(e.c, { radius: 6, color: '#ff8800', weight: 2, fillOpacity: 0.5 }).addTo(map);
-                
-                // HOVER TOOLTIP: Employment Numbers
-                marker.bindTooltip(`EMP: ${e.emp}`, { 
-                    permanent: false, 
-                    direction: 'top', 
-                    className: 'leaflet-tooltip-own',
-                    offset: [0, -5]
-                });
-
+                marker.bindTooltip(`Workforce: ${e.emp}`, { direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] });
                 marker.on('click', () => selectCompany(e.id));
             });
         }
@@ -213,19 +230,12 @@
                             <div class="text-[7px] text-gray-500 uppercase">Sector Layoffs (30D)</div>
                             <div class="text-xs font-bold text-red-400">12,482 <span class="text-[7px] text-gray-400 ml-1">Aggregate</span></div>
                         </div>
-                        <div class="macro-stat-card border-blue-900/50">
-                            <div class="text-[7px] text-gray-500 uppercase">Regional Unemployment</div>
-                            <div class="text-xs font-bold text-blue-300">3.9%</div>
-                        </div>
                     </div>
 
                     <div class="space-y-2 mt-6">
                         <div class="bg-blue-900/10 border border-blue-500/20 p-2 rounded">
                             <div class="text-[8px] text-blue-400 uppercase font-bold mb-1">Infrastructure Load</div>
                             <div class="text-[9px] text-blue-200">${co.oil}</div>
-                        </div>
-                        <div class="text-[8px] text-gray-400 uppercase bg-white/5 p-2 rounded">
-                            Key Dependencies: <span class="text-white font-bold">${co.coms}</span>
                         </div>
                     </div>
                 </div>
