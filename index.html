@@ -45,16 +45,16 @@
                 { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
                 { "proName": "NASDAQ:NVDA", "title": "NVDA" },
                 { "proName": "NASDAQ:AMD", "title": "AMD" },
-                { "proName": "NASDAQ:SMCI", "title": "SMCI" },
-                { "proName": "NASDAQ:AVGO", "title": "AVGO" },
-                { "proName": "NASDAQ:NFLX", "title": "NFLX" },
-                { "proName": "NASDAQ:COST", "title": "COST" },
+                { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
+                { "proName": "NASDAQ:MSFT", "title": "MSFT" },
+                { "proName": "NYSE:V", "title": "Visa" },
+                { "proName": "NYSE:WMT", "title": "Walmart" },
+                { "proName": "NYSE:XOM", "title": "Exxon" },
+                { "proName": "NYSE:JPM", "title": "JP Morgan" },
                 { "proName": "NYSE:LLY", "title": "LLY" },
                 { "proName": "BITSTAMP:BTCUSD", "title": "BTC/USD" },
                 { "proName": "TVC:GOLD", "title": "GOLD" },
-                { "proName": "NASDAQ:PLTR", "title": "PLTR" },
-                { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
-                { "proName": "NASDAQ:MSFT", "title": "MSFT" }
+                { "proName": "TVC:US10Y", "title": "US 10Y Yield" }
               ],
               "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
             }
@@ -70,7 +70,6 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                 </a>
             </div>
-            <!-- UPDATED HEADLINE TICKER REPLACING DATA SYNTHESIS ACTIVE -->
             <div class="text-[8px] font-bold flex gap-4 uppercase overflow-hidden">
                 <span class="text-emerald-500 shrink-0">● LIVE TERMINAL</span>
                 <span id="headline-ticker" class="text-blue-400 transition-opacity duration-500 opacity-100">INITIALIZING FEED...</span>
@@ -78,15 +77,13 @@
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
                     <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
                     <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
                 </div>
-                
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Company</h2>
+                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Company Intelligence</h2>
                     <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
                         <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Hover for workforce. Click for financials.</div>
                     </div>
@@ -127,18 +124,6 @@
                         </svg>
                     </div>
                 </div>
-
-                <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-emerald-500 uppercase flex justify-between">
-                        <span>Employment Trend</span>
-                        <span class="text-[7px] text-gray-500">Non-Farm Payrolls</span>
-                    </h2>
-                    <div class="macro-chart-container">
-                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,30 L10,28 L20,25 L30,22 L40,24 L50,20 L60,18 L70,19 L80,15 L90,12 L100,10" fill="none" stroke="#10b981" stroke-width="1.5" />
-                        </svg>
-                    </div>
-                </div>
             </aside>
         </div>
     </div>
@@ -150,10 +135,9 @@
         const headlines = [
             "FED: Interest Rates held steady at 3.50% despite 8-4 vote pressure",
             "CONFLICT: Israel-Iran ceasefire extended; Strait of Hormuz remains restricted",
-            "FED: New guidance clarifies GenAI excluded from traditional model risk rules",
-            "GEOPOLITICS: Trump declares Iran hostilities 'terminated' amid April 7 ceasefire",
-            "MARKET: Global oil spikes as naval blockade pressures Iranian exports",
-            "FED: Powell announces intent to remain at central bank as Governor"
+            "MARKET: S&P 500 maintains bullish trajectory amid technical breakouts",
+            "GEOPOLITICS: Global trade routes stabilize following recent resolution",
+            "MACRO: Treasury yields flatten as inflation data meets analyst targets"
         ];
 
         let currentHeadline = 0;
@@ -168,16 +152,15 @@
             }, 500);
         }
 
-        const sAndP = [
-            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', empVal: 161, rev: '$383B', earn: [82, 94, 88, 110], cash: '$162B' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', empVal: 29, rev: '$60.9B', earn: [12, 18, 25, 32], cash: '$25.9B' },
-            { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '221k', empVal: 221, rev: '$211B', earn: [52, 56, 61, 65], cash: '$143B' },
-            { id: 'AMZN', n: 'Amazon', c: [47.60, -122.33], emp: '1.5M', empVal: 1500, rev: '$514B', earn: [110, 125, 135, 143], cash: '$64B' },
-            { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], emp: '182k', empVal: 182, rev: '$307B', earn: [70, 75, 82, 86], cash: '$110B' },
-            { id: 'TSLA', n: 'Tesla', c: [30.26, -97.74], emp: '140k', empVal: 140, rev: '$96B', earn: [30, 35, 32, 45], cash: '$26B' },
-            { id: 'BRK.B', n: 'Berkshire', c: [41.25, -95.93], emp: '396k', empVal: 396, rev: '$364B', earn: [90, 85, 100, 110], cash: '$167B' },
-            { id: 'AMD', n: 'AMD', c: [37.37, -121.96], emp: '25k', empVal: 25, rev: '$22.6B', earn: [4, 5, 6, 7], cash: '$5B' },
-            { id: 'NFLX', n: 'Netflix', c: [37.22, -121.97], emp: '13k', empVal: 13, rev: '$33.7B', earn: [6, 7, 8, 9], cash: '$7B' }
+        const assets = [
+            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', rev: '$383B', earn: [82, 94, 88, 110], cash: '$162B' },
+            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', rev: '$60.9B', earn: [12, 18, 25, 32], cash: '$25.9B' },
+            { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '221k', rev: '$211B', earn: [52, 56, 61, 65], cash: '$143B' },
+            { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], emp: '182k', rev: '$307B', earn: [70, 75, 82, 86], cash: '$110B' },
+            { id: 'JPM', n: 'JP Morgan', c: [40.75, -73.97], emp: '300k', rev: '$158B', earn: [40, 42, 45, 48], cash: '$1.4T' },
+            { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], emp: '2.1M', rev: '$611B', earn: [145, 150, 155, 161], cash: '$14.7B' },
+            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], emp: '62k', rev: '$344B', earn: [80, 85, 90, 89], cash: '$31.5B' },
+            { id: 'TSLA', n: 'Tesla', c: [30.26, -97.74], emp: '140k', rev: '$96B', earn: [30, 35, 32, 45], cash: '$26B' }
         ];
 
         function init() {
@@ -185,42 +168,43 @@
             cycleHeadlines();
 
             document.getElementById('sector-bars').innerHTML = [
-                {n:"Technology (XLK)", v:94}, {n:"Health Care (XLV)", v:82}, 
-                {n:"Financials (XLF)", v:76}, {n:"Comm Svcs (XLC)", v:68}
+                {n:"Technology (XLK)", v:94}, 
+                {n:"Financials (XLF)", v:76}, 
+                {n:"Energy (XLE)", v:62},
+                {n:"Consumer Disc (XLY)", v:58},
+                {n:"Industrial (XLI)", v:52},
+                {n:"Utilities (XLU)", v:41}
             ].map(s => `
                 <div class="text-[8px] uppercase flex justify-between mb-0.5 text-gray-300"><span>${s.n}</span><span>${s.v}%</span></div>
                 <div class="bar-container mb-2"><div class="bar-fill" style="width:${s.v}%"></div></div>
             `).join('');
 
-            document.getElementById('equity-list').innerHTML = sAndP.map(e => `
+            document.getElementById('equity-list').innerHTML = assets.map(e => `
                 <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onclick="selectCompany('${e.id}')">
                     <span class="text-orange-500">${e.id}</span>
                     <span class="text-gray-500 font-normal">${e.n}</span>
                 </div>
             `).join('');
 
-            sAndP.forEach(e => {
+            assets.forEach(e => {
                 const marker = L.circleMarker(e.c, { radius: 6, color: '#ff8800', weight: 2, fillOpacity: 0.5 }).addTo(map);
                 marker.bindTooltip(`<strong>${e.n}</strong><br>Workforce: ${e.emp}`, { 
-                    direction: 'top', 
-                    className: 'leaflet-tooltip-own', 
-                    offset: [0, -5] 
+                    direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] 
                 });
                 marker.on('click', () => selectCompany(e.id));
             });
         }
 
         function selectCompany(id) {
-            const co = sAndP.find(e => e.id === id);
-            map.flyTo(co.c, 12, { animate: true, duration: 4.0 });
+            const co = assets.find(e => e.id === id);
+            map.flyTo(co.c, 10, { animate: true, duration: 2.5 });
             
-            const empPercent = Math.min((co.empVal / 1500) * 100, 100);
             const maxEarn = Math.max(...co.earn);
 
             document.getElementById('company-content').innerHTML = `
                 <div class="mb-4">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-lg font-bold text-white">${co.n}</span>
+                        <span class="text-sm font-bold text-white">${co.n}</span>
                         <span class="text-xs font-bold text-[#ff8800] bg-[#ff8800]/10 px-2 py-1 rounded">${co.id}</span>
                     </div>
 
@@ -243,15 +227,10 @@
                         <span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span>
                     </div>
 
-                    <h3 class="text-[8px] font-bold text-emerald-500 uppercase mb-3 italic tracking-tighter">Labor & Payroll Data</h3>
-                    <div class="space-y-3">
-                        <div class="bg-emerald-900/10 border-l-2 border-emerald-500 p-2 rounded">
-                            <div class="flex justify-between text-[7px] text-emerald-400 uppercase font-bold mb-1">
-                                <span>Total Workforce</span><span>${co.emp}</span>
-                            </div>
-                            <div class="h-1 bg-white/10 rounded overflow-hidden">
-                                <div class="h-full bg-emerald-500" style="width: ${empPercent}%"></div>
-                            </div>
+                    <h3 class="text-[8px] font-bold text-emerald-500 uppercase mb-2 italic">Labor Data</h3>
+                    <div class="bg-emerald-900/10 border-l-2 border-emerald-500 p-2 rounded">
+                        <div class="flex justify-between text-[7px] text-emerald-400 uppercase font-bold mb-1">
+                            <span>Total Workforce</span><span>${co.emp}</span>
                         </div>
                     </div>
                 </div>
