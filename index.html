@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal | Quantitative Fundamentals v9.0</title>
+    <title>HY Analysts Terminal | Quantitative Fundamentals v9.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -11,8 +11,9 @@
     <style>
         :root { --terminal-black: #050505; --hq-orange: #ff8800; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
-        .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .terminal-container { margin-top: 48px; height: calc(100vh - 56px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+        /* Ticker height increased to 48px to prevent TradingView from wrapping the price */
+        .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .terminal-container { margin-top: 56px; height: calc(100vh - 64px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
         #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
@@ -39,9 +40,12 @@
               "symbols": [
                 { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
                 { "proName": "NYMEX:CL1!", "title": "CRUDE OIL" },
-                { "proName": "CBOT:ZB1!", "title": "30Y BOND" }
+                { "proName": "NASDAQ:PLTR", "title": "PLTR" },
+                { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
+                { "proName": "NYSE:HD", "title": "HD" },
+                { "proName": "NYSE:BRK.B", "title": "BRK.B" }
               ],
-              "colorTheme": "dark", "isTransparent": true, "displayMode": "compact", "locale": "en"
+              "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
             }
             </script>
         </div>
@@ -58,10 +62,17 @@
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            <!-- LEFT: COMPANY DIRECTORY -->
-            <aside class="col-span-2 glass-card p-2 rounded flex flex-col overflow-hidden">
-                <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">S&P 500 Assets</h2>
-                <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1"></div>
+            <!-- LEFT: COMPANY DIRECTORY & EMPLOYMENT -->
+            <aside class="col-span-2 flex flex-col gap-2 overflow-hidden">
+                <div class="glass-card p-2 rounded flex-grow flex flex-col overflow-hidden">
+                    <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
+                    <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
+                </div>
+                
+                <div class="glass-card p-2 rounded shrink-0">
+                    <h2 class="text-[9px] font-bold text-emerald-500 uppercase mb-2">Employment Data</h2>
+                    <div id="employment-data" class="space-y-1"></div>
+                </div>
             </aside>
 
             <!-- CENTER: TOPOLOGY MAP -->
@@ -111,7 +122,11 @@
             { id: 'AAPL', n: 'Apple', c: [37.3, -122.0], emp: '161k', rev: '$383B', oil: '3.2M bbl', coms: 'Lithium, Gold', earn: [82, 94, 88, 110], cash: '$162B' },
             { id: 'NVDA', n: 'NVIDIA', c: [37.3, -121.9], emp: '29k', rev: '$60B', oil: 'Data Center Load', coms: 'Silicon, Neon', earn: [40, 65, 90, 120], cash: '$25B' },
             { id: 'TSLA', n: 'Tesla', c: [30.2, -97.7], emp: '140k', rev: '$96B', oil: 'Neutral', coms: 'Lithium, Nickel', earn: [30, 35, 32, 45], cash: '$26B' },
-            { id: 'JPM', n: 'JPMorgan', c: [40.7, -73.9], emp: '300k', rev: '$158B', oil: 'Financing Ops', coms: 'Credit, Gold', earn: [70, 75, 80, 78], cash: '$1.4T' }
+            { id: 'JPM', n: 'JPMorgan', c: [40.7, -73.9], emp: '300k', rev: '$158B', oil: 'Financing Ops', coms: 'Credit, Gold', earn: [70, 75, 80, 78], cash: '$1.4T' },
+            { id: 'PLTR', n: 'Palantir', c: [39.7, -104.9], emp: '3.8k', rev: '$2.2B', oil: 'Low (Data Center)', coms: 'Silicon', earn: [5, 7, 9, 12], cash: '$3.7B' },
+            { id: 'GOOGL', n: 'Alphabet', c: [37.4, -122.0], emp: '182k', rev: '$307B', oil: 'High (Data Center)', coms: 'Silicon, Copper', earn: [70, 75, 82, 86], cash: '$110B' },
+            { id: 'HD', n: 'Home Depot', c: [33.8, -84.4], emp: '465k', rev: '$152B', oil: 'High (Logistics)', coms: 'Lumber, Copper', earn: [38, 42, 35, 33], cash: '$3B' },
+            { id: 'BRK.B', n: 'Berkshire', c: [41.2, -95.9], emp: '396k', rev: '$364B', oil: 'Massive (BNSF/Energy)', coms: 'Rail, Oil, Energy', earn: [90, 85, 100, 110], cash: '$167B' }
         ];
 
         function init() {
@@ -124,7 +139,7 @@
             `).join('');
 
             // Yield Curve Mock
-            const yieldY = [80, 90, 70, 60, 55]; // Inverted look
+            const yieldY = [80, 90, 70, 60, 55]; 
             document.getElementById('yield-curve-points').innerHTML = yieldY.map((y, i) => `
                 <div class="yield-point" style="left: ${i * 24}%; bottom: ${y}%"></div>
             `).join('');
@@ -136,8 +151,17 @@
                 </div>
             `).join('');
 
+            // Employment Data Logic
+            const sortedByEmp = [...sAndP].sort((a, b) => parseFloat(b.emp) - parseFloat(a.emp)).slice(0, 4);
+            document.getElementById('employment-data').innerHTML = sortedByEmp.map(e => `
+                <div class="mb-1">
+                    <div class="flex justify-between text-[7px] text-gray-400 uppercase"><span>${e.id}</span><span>${e.emp}</span></div>
+                    <div class="h-1 bg-white/10 rounded"><div class="h-full bg-emerald-500 rounded" style="width: ${(parseFloat(e.emp) / 500) * 100}%"></div></div>
+                </div>
+            `).join('');
+
             sAndP.forEach(e => {
-                L.circleMarker(e.c, { radius: 3, color: '#ff8800' }).addTo(map).on('click', () => showIntel(e.id));
+                L.circleMarker(e.c, { radius: 4, color: '#ff8800' }).addTo(map).on('click', () => showIntel(e.id));
             });
         }
 
