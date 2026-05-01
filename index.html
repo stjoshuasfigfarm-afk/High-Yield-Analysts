@@ -17,44 +17,70 @@
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .tab-active { color: var(--hq-orange); border-bottom: 2px solid var(--hq-orange); }
-        .news-flash { border-left: 2px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
     </style>
 </head>
-<body class="h-screen p-2 flex flex-col gap-2">
+<body class="h-screen flex flex-col p-1 gap-1">
 
-    <!-- TOP BAR -->
-    <header class="flex justify-between items-center glass-card p-3 rounded border-b border-white/5">
+    <!-- TRADINGVIEW WIDGET (TOP BAR) -->
+    <div class="h-10 w-full glass-card overflow-hidden rounded">
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+            {
+              "symbols": [
+                { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
+                { "proName": "NASDAQ:GOOGL", "title": "Alphabet" },
+                { "proName": "NASDAQ:MSFT", "title": "Microsoft" },
+                { "proName": "NASDAQ:AAPL", "title": "Apple" },
+                { "proName": "NASDAQ:NVDA", "title": "NVIDIA" },
+                { "proName": "COMEX:GC1!", "title": "Gold" },
+                { "proName": "NYMEX:CL1!", "title": "Crude Oil" }
+              ],
+              "showSymbolLogo": true,
+              "colorTheme": "dark",
+              "isTransparent": true,
+              "displayMode": "adaptive",
+              "locale": "en"
+            }
+            </script>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="flex justify-between items-center glass-card p-3 rounded">
         <div class="flex items-center gap-6">
-            <h1 class="text-sm font-bold tracking-widest text-[#ff8800]">HYA TERMINAL_7928</h1>
+            <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">HYA_TERMINAL_7928</h1>
             <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank">
-                <svg class="w-6 h-6 fill-red-600 hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 fill-red-600 hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
                     <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
                 </svg>
             </a>
         </div>
-        <div class="flex items-center gap-4 text-[9px] font-bold text-gray-500 uppercase">
-            <span class="text-emerald-500">● LIVE_DATA_STREAM</span>
-            <span class="border-l border-white/10 pl-4">Eastpointe_MI_48021</span>
+        <div class="flex items-center gap-4 text-[8px] font-bold text-gray-500 uppercase">
+            <span class="text-emerald-500">● Global_Sync_Active</span>
+            <span class="border-l border-white/10 pl-4">Node: 48021</span>
         </div>
     </header>
 
-    <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
+    <div class="grid grid-cols-12 gap-1 flex-grow overflow-hidden">
         
-        <!-- LEFT: HQ & SECTOR ROTATION -->
-        <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
+        <!-- LEFT: TABBED HQ -->
+        <aside class="col-span-3 flex flex-col gap-1 overflow-hidden">
             <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
                 <div class="flex gap-4 border-b border-white/10 mb-3 text-[10px] font-bold uppercase">
                     <button onclick="switchTab('commodities')" id="tab-commodities" class="pb-1 tab-active">Commodities</button>
                     <button onclick="switchTab('stocks')" id="tab-stocks" class="pb-1 text-gray-600">Stocks</button>
                 </div>
-                <div id="hq-list" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-1">
+                <div id="hq-list" class="flex-grow overflow-y-auto custom-scroll space-y-2">
                     <!-- Dynamic List -->
                 </div>
             </div>
 
-            <!-- SECTOR ROTATION GRID -->
-            <div class="glass-card p-3 rounded h-40">
-                <h3 class="text-[9px] font-bold text-gray-500 uppercase mb-3 italic">Institutional Flow</h3>
+            <!-- SECTOR ROTATION -->
+            <div class="glass-card p-3 rounded h-36">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[9px] font-bold text-gray-500 uppercase italic">Institutional Weight</h3>
+                </div>
                 <div class="space-y-3">
                     <div class="flex justify-between text-[8px] uppercase"><span>Tech (XLK)</span><span class="text-emerald-400">94%</span></div>
                     <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-emerald-500 h-full w-[94%]"></div></div>
@@ -64,24 +90,23 @@
             </div>
         </aside>
 
-        <!-- CENTER: TOPOLOGY MAP -->
-        <main class="col-span-6 flex flex-col gap-2">
+        <!-- CENTER: MAP -->
+        <main class="col-span-6 flex flex-col">
             <div class="glass-card rounded p-1 flex-grow relative overflow-hidden">
                 <div id="map"></div>
             </div>
         </main>
 
-        <!-- RIGHT: NEWS (STRAIT OF HORMUZ / GLOBAL) -->
-        <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
+        <!-- RIGHT: INTELLIGENCE & NEWS -->
+        <aside class="col-span-3 flex flex-col gap-1 overflow-hidden">
             <div class="glass-card p-4 rounded flex-grow border-l-2 border-orange-500 flex flex-col overflow-hidden">
                 <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-4 flex items-center gap-2">
-                    <i data-lucide="globe" class="w-3 h-3"></i> Global Intelligence Feed
+                    <i data-lucide="rss" class="w-3 h-3"></i> Intelligence Feed
                 </h2>
-                <div id="news-feed" class="flex-grow overflow-y-auto custom-scroll space-y-4 pr-1">
-                    <!-- Priority News -->
-                    <div class="p-2 news-flash rounded">
-                        <span class="text-[8px] font-bold text-red-500 uppercase">Alert: Strait of Hormuz</span>
-                        <p class="text-[10px] text-gray-300 font-bold mt-1">Increased naval patrols; crude shipments holding at 21M bpd. Monitor WTI/Brent.</p>
+                <div id="news-feed" class="flex-grow overflow-y-auto custom-scroll space-y-4">
+                    <div class="p-2 border border-red-900/30 bg-red-900/10 rounded">
+                        <span class="text-[8px] font-bold text-red-500 uppercase">Geopolitical Alert</span>
+                        <p class="text-[10px] text-gray-300 font-bold mt-1">Strait of Hormuz congestion monitoring active. Energy volatility risk: HIGH.</p>
                     </div>
                 </div>
             </div>
@@ -95,29 +120,21 @@
 
         const data = {
             commodities: [
-                { id: 'WTI', name: 'West Texas Crude', val: '$84.22', coords: [31.9, -102.0], connected: 'Hormuz Hub' },
-                { id: 'NG', name: 'Natural Gas', val: '$2.15', coords: [29.7, -95.3], connected: 'Global LNG' },
-                { id: 'AU', name: 'Gold Bulk', val: '$2,410', coords: [-31.9, 115.8], connected: 'Currency Hedge' },
-                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], connected: 'Tech/EV' },
-                { id: 'LI', name: 'Lithium Spodumene', val: '$13,400', coords: [-27.3, -66.8], connected: 'Battery Silo' },
-                { id: 'AL', name: 'Aluminum', val: '$2,540', coords: [48.3, 2.3], connected: 'Aerospace' }
+                { id: 'WTI', name: 'West Texas Crude', val: '$84.22', coords: [31.9, -102.0], ref: 'Permian' },
+                { id: 'BRT', name: 'Brent Crude', val: '$89.10', coords: [26.0, 56.0], ref: 'Hormuz' },
+                { id: 'AU', name: 'Gold Bulk', val: '$2,410', coords: [-31.9, 115.8], ref: 'Reserve' },
+                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], ref: 'Tech' },
+                { id: 'LI', name: 'Lithium Spod.', val: '$13.4k', coords: [-27.3, -66.8], ref: 'Battery' },
+                { id: 'FE', name: 'Iron Ore', val: '$116', coords: [-21.0, 116.0], ref: 'Infrastructure' }
             ],
             stocks: [
                 { id: 'SPY', name: 'S&P 500 ETF', val: '$718.66', coords: [40.7, -74.0] },
                 { id: 'GOOGL', name: 'Alphabet Inc.', val: '$178.44', coords: [37.4, -122.0] },
                 { id: 'MSFT', name: 'Microsoft Corp', val: '$420.12', coords: [47.6, -122.1] },
                 { id: 'AAPL', name: 'Apple Inc.', val: '$189.50', coords: [37.3, -122.0] },
-                { id: 'NVDA', name: 'NVIDIA Corp', val: '$192.01', coords: [37.3, -121.8] },
-                { id: 'JEPI', name: 'JPM High Yield', val: '$56.40', coords: [40.7, -74.0] }
+                { id: 'NVDA', name: 'NVIDIA Corp', val: '$192.01', coords: [37.3, -121.8] }
             ]
         };
-
-        const news = [
-            { tag: "Shipping", msg: "Insurance premiums rising for vessels transiting the Arabian Gulf." },
-            { tag: "Tech", msg: "GOOGL/MSFT data center expansion increases copper demand." },
-            { tag: "Macro", msg: "SPY technical support holding. Monitor high-yield ex-dividend dates." },
-            { tag: "Silo", msg: "Lithium supply chain rehydration active in South American sector." }
-        ];
 
         function switchTab(tab) {
             document.getElementById('tab-commodities').className = tab === 'commodities' ? 'pb-1 tab-active' : 'pb-1 text-gray-600';
@@ -134,14 +151,19 @@
                         <span class="text-emerald-400">${item.val}</span>
                     </div>
                     <div class="text-[10px] font-bold text-gray-300 uppercase">${item.name}</div>
-                    ${item.connected ? `<div class="text-[7px] text-orange-500/60 font-bold uppercase mt-1">Ref: ${item.connected}</div>` : ''}
+                    ${item.ref ? `<div class="text-[7px] text-orange-500/60 font-bold uppercase">Ref: ${item.ref}</div>` : ''}
                 </div>
             `).join('');
         }
 
-        const newsFeed = document.getElementById('news-feed');
-        newsFeed.innerHTML += news.map(n => `
-            <div class="p-2 glass-card rounded border-l border-white/10">
+        const news = [
+            { tag: "Shipping", msg: "Insurance premiums rising for vessels in the Arabian Gulf." },
+            { tag: "Tech", msg: "GOOGL/MSFT AI infrastructure expansion driving copper futures." },
+            { tag: "Logic", msg: "Phase A-E supply chain rehydration active in SA Node." }
+        ];
+
+        document.getElementById('news-feed').innerHTML += news.map(n => `
+            <div class="p-2 border-b border-white/5">
                 <span class="text-[8px] text-orange-500 font-bold uppercase">${n.tag}</span>
                 <p class="text-[10px] text-gray-400 leading-tight">${n.msg}</p>
             </div>
