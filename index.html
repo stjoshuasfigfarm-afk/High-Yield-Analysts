@@ -13,118 +13,140 @@
         :root { --terminal-black: #050505; --hq-orange: #ff8800; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
-        #map { height: 100%; width: 100%; border-radius: 4px; filter: grayscale(0.2) contrast(1.1); }
+        #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        .news-item { border-left: 2px solid transparent; transition: all 0.3s ease; }
-        .news-item:hover { border-left: 2px solid var(--hq-orange); background: rgba(255, 136, 0, 0.05); }
+        .tab-active { color: var(--hq-orange); border-bottom: 2px solid var(--hq-orange); }
+        .bar-anim { transition: width 0.8s ease-in-out; }
     </style>
 </head>
 <body class="h-screen p-2 flex flex-col gap-2">
 
-    <!-- TOP BAR: MEDIA & SYSTEM STATUS -->
+    <!-- TOP BAR -->
     <header class="flex justify-between items-center glass-card p-3 rounded border-b border-white/5">
         <div class="flex items-center gap-6">
             <h1 class="text-sm font-bold tracking-widest text-[#ff8800]">HYA TERMINAL_7928</h1>
-            <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank" 
-               class="flex items-center gap-2 bg-red-600/10 border border-red-600/30 px-3 py-1 rounded-full text-[9px] font-bold text-red-500 hover:bg-red-600/20 transition-all">
-                <i data-lucide="youtube" class="w-3 h-3"></i> LIVE_FEED: ANALYST_CHANNEL
+            <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank" title="Live Analyst Channel">
+                <svg class="w-6 h-6 fill-red-600 hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
+                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                </svg>
             </a>
         </div>
         <div class="flex items-center gap-4 text-[9px] font-bold text-gray-500">
-            <span class="text-emerald-500">● SILO_SYNC_ACTIVE</span>
-            <span class="border-l border-white/10 pl-4">LOC: MI_48021</span>
+            <span class="text-emerald-500 uppercase">● Phase E Verified</span>
+            <span class="border-l border-white/10 pl-4 uppercase">Node: Eastpointe_MI</span>
         </div>
     </header>
 
     <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
         
-        <!-- LEFT: COMMODITY REGISTRY -->
+        <!-- LEFT: TABBED HEADQUARTERS -->
         <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
             <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                <h2 class="text-[10px] font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
-                    Commodity HQ <i data-lucide="anchor" class="w-3 h-3 text-blue-500"></i>
-                </h2>
-                <div id="hq-feed" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-1">
-                    <!-- JS Injected Cards -->
+                <div class="flex gap-4 border-b border-white/10 mb-3 text-[10px] font-bold uppercase tracking-tighter">
+                    <button onclick="switchTab('commodities')" id="tab-commodities" class="pb-1 tab-active">Commodities</button>
+                    <button onclick="switchTab('stocks')" id="tab-stocks" class="pb-1 text-gray-600 hover:text-white transition-colors">Stocks</button>
+                </div>
+                <div id="hq-list" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-1">
+                    <!-- Dynamic List -->
+                </div>
+            </div>
+
+            <!-- SECTOR ROTATION (RESTORED) -->
+            <div class="glass-card p-3 rounded h-48 border-t border-blue-500/30">
+                <h3 class="text-[9px] font-bold text-gray-500 uppercase mb-3 italic">Institutional Rotation</h3>
+                <div class="space-y-3" id="rotation-grid">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[8px] uppercase"><span>Technology</span><span class="text-emerald-400">92%</span></div>
+                        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full bar-anim" style="width: 92%"></div></div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[8px] uppercase"><span>Energy</span><span class="text-orange-400">45%</span></div>
+                        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden"><div class="bg-orange-500 h-full bar-anim" style="width: 45%"></div></div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[8px] uppercase"><span>Financials</span><span class="text-blue-400">78%</span></div>
+                        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden"><div class="bg-blue-500 h-full bar-anim" style="width: 78%"></div></div>
+                    </div>
                 </div>
             </div>
         </aside>
 
-        <!-- CENTER: TOPOLOGY MAP -->
+        <!-- CENTER: MAP -->
         <main class="col-span-6 flex flex-col gap-2">
-            <div class="glass-card rounded p-1 flex-grow relative">
+            <div class="glass-card rounded p-1 flex-grow relative overflow-hidden">
                 <div id="map"></div>
-                <div class="absolute top-4 left-4 z-[1000] glass-card p-2 rounded text-[8px] font-bold uppercase text-orange-500 border border-orange-500/20">
-                    Precision Supply Chain Overlay
+                <div class="absolute bottom-4 left-4 z-[1000] p-2 glass-card rounded text-[8px] font-bold text-orange-500 uppercase tracking-widest border border-orange-500/20">
+                    Silo Topology: Global Mode
                 </div>
-            </div>
-            
-            <!-- METRICS BAR -->
-            <div class="h-16 glass-card rounded p-2 flex justify-around items-center border-t border-emerald-500/20">
-                <div class="text-center"><div class="text-[8px] text-gray-500 uppercase">SPY</div><div class="text-xs font-bold">$718.66</div></div>
-                <div class="text-center"><div class="text-[8px] text-gray-500 uppercase">Yield Index</div><div class="text-xs font-bold text-emerald-400">7.2%</div></div>
-                <div class="text-center"><div class="text-[8px] text-gray-500 uppercase">Silo Latency</div><div class="text-xs font-bold text-blue-400">1.2ms</div></div>
             </div>
         </main>
 
-        <!-- RIGHT: LIVE NEWS FEED -->
+        <!-- RIGHT: NEWS -->
         <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-            <div class="glass-card p-4 rounded flex-grow flex flex-col border-l-2 border-orange-500">
+            <div class="glass-card p-4 rounded flex-grow border-l-2 border-orange-500 flex flex-col overflow-hidden">
                 <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-4 flex items-center gap-2">
-                    <i data-lucide="globe" class="w-4 h-4"></i> Global Intelligence
+                    <i data-lucide="rss" class="w-3 h-3"></i> Intelligence Feed
                 </h2>
                 <div id="news-feed" class="flex-grow overflow-y-auto custom-scroll space-y-4 pr-1">
-                    <!-- JS Injected News -->
+                    <!-- News Items -->
                 </div>
             </div>
-        </div>
-    </aside>
+        </aside>
+    </div>
 
     <script>
         lucide.createIcons();
-
-        // 1. Initialize Map
         const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // 2. News Data
-        const newsItems = [
-            { time: "2m ago", title: "Panama Canal Congestion Eases", tag: "Logistics" },
-            { time: "15m ago", title: "Lithium Spot Prices Stabilize in Argentina", tag: "Commodities" },
-            { time: "1h ago", title: "SPY Technical Support Verified at $702", tag: "Quant" },
-            { time: "2h ago", title: "Energy Sector Rotation Intensifies", tag: "Macro" },
-            { time: "4h ago", title: "New AI Software Engineering Trends for Q3", tag: "Tech" }
+        const data = {
+            commodities: [
+                { id: 'CR-01', name: 'WTI Crude', val: '$84.22', coords: [31.9, -102.0] },
+                { id: 'LI-22', name: 'Lithium Ore', val: '$13,400', coords: [-27.3, -66.8] },
+                { id: 'AU-09', name: 'Gold Bulk', val: '$2,410', coords: [-31.9, 115.8] }
+            ],
+            stocks: [
+                { id: 'SPY', name: 'S&P 500 ETF', val: '$718.66', coords: [40.7, -74.0] },
+                { id: 'JEPI', name: 'JPM Equity Premium', val: '$56.40', coords: [40.7, -74.0] },
+                { id: 'NVDA', name: 'NVIDIA Corp', val: '$192.01', coords: [37.3, -121.8] },
+                { id: 'PLTR', name: 'Palantir Tech', val: '$65.42', coords: [37.7, -122.4] }
+            ]
+        };
+
+        const news = [
+            { tag: "Macro", msg: "Yield inversion stabilizes in Phase E cycle." },
+            { tag: "Ship", msg: "Panama Node throughput returns to 100%." },
+            { tag: "Logic", msg: "Firebase Silo rehydration parity confirmed." }
         ];
 
-        // 3. Commodity Data
-        const commodities = [
-            { id: 'CRUDE-01', name: 'WTI Crude', status: 'Priority', coords: [31.9, -102.0] },
-            { id: 'LI-22', name: 'Lithium Ore', status: 'Transit', coords: [-27.3, -66.8] },
-            { id: 'FE-MI', name: 'Iron Ore', status: 'Secured', coords: [-23.5, -46.6] }
-        ];
+        function switchTab(tab) {
+            document.getElementById('tab-commodities').className = tab === 'commodities' ? 'pb-1 tab-active' : 'pb-1 text-gray-600';
+            document.getElementById('tab-stocks').className = tab === 'stocks' ? 'pb-1 tab-active' : 'pb-1 text-gray-600';
+            renderList(tab);
+        }
 
-        // 4. Render Feeds
-        const newsFeed = document.getElementById('news-feed');
-        newsFeed.innerHTML = newsItems.map(item => `
-            <div class="news-item p-2 glass-card rounded cursor-pointer">
-                <div class="flex justify-between text-[8px] font-bold mb-1">
-                    <span class="text-orange-500 uppercase">${item.tag}</span>
-                    <span class="text-gray-600">${item.time}</span>
+        function renderList(tab) {
+            const container = document.getElementById('hq-list');
+            container.innerHTML = data[tab].map(item => `
+                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-orange-500 cursor-pointer transition-all" onclick="map.flyTo([${item.coords}], 6)">
+                    <div class="flex justify-between text-[8px] font-bold text-gray-500 uppercase">
+                        <span>${item.id}</span>
+                        <span class="text-emerald-400">${item.val}</span>
+                    </div>
+                    <div class="text-[10px] font-bold text-gray-300 uppercase">${item.name}</div>
                 </div>
-                <p class="text-[10px] text-gray-300 leading-snug font-bold">${item.title}</p>
+            `).join('');
+        }
+
+        document.getElementById('news-feed').innerHTML = news.map(n => `
+            <div class="p-2 glass-card rounded border-l border-white/10">
+                <span class="text-[8px] text-orange-500 font-bold uppercase">${n.tag}</span>
+                <p class="text-[10px] text-gray-400 leading-tight">${n.msg}</p>
             </div>
         `).join('');
 
-        const hqFeed = document.getElementById('hq-feed');
-        commodities.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'p-3 glass-card rounded hover:border-orange-500 transition-all cursor-pointer';
-            card.innerHTML = `<div class="text-[8px] text-gray-500 font-bold">${c.id}</div><div class="text-[10px] font-bold text-gray-300">${c.name}</div>`;
-            card.onclick = () => map.flyTo(c.coords, 6);
-            hqFeed.appendChild(card);
-            L.circleMarker(c.coords, { radius: 5, fillColor: "#ff8800", color: "#000", weight: 1, fillOpacity: 0.8 }).addTo(map);
-        });
+        switchTab('commodities');
     </script>
 </body>
 </html>
