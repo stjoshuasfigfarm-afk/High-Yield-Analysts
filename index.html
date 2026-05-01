@@ -3,172 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYA | Precision Logistics Terminal</title>
-    <!-- Core Dependencies (CDN) -->
+    <title>HYA | Commodity HQ & Quant Stack</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
-        :root { --terminal-dark: #050505; --bloomberg-orange: #ff8800; }
-        body { background: var(--terminal-dark); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
-        .glass-card { background: rgba(10, 10, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
-        
-        /* Map Customization */
-        #map { height: 100%; width: 100%; background: #0a0a0a; border-radius: 8px; }
-        .leaflet-container { background: #050505 !important; }
-        
-        /* Custom Scrollbar for Terminal Feeds */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        
-        .pulse-icon { animation: shadow-pulse 2s infinite; }
-        @keyframes shadow-pulse { 0% { filter: drop-shadow(0 0 2px #ff8800); } 100% { filter: drop-shadow(0 0 8px #ff8800); } }
+        :root { --terminal-black: #050505; --hq-orange: #ff8800; --node-blue: #3b82f6; }
+        body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
+        .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
+        #map { height: 100%; width: 100%; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar { width: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        .scanning-bar { height: 1px; width: 100%; background: rgba(255, 136, 0, 0.2); position: absolute; animation: scan 4s linear infinite; z-index: 10; pointer-events: none; }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+        .node-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 136, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 136, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 136, 0, 0); } }
     </style>
 </head>
-<body class="h-screen p-3 flex flex-col gap-3">
+<body class="h-screen p-2 flex flex-col gap-2">
 
-    <!-- HEADER -->
-    <header class="flex justify-between items-center glass-card p-3 rounded-lg border-b border-orange-500/30 shrink-0">
-        <div class="flex items-center gap-4">
-            <h1 class="text-lg font-bold tracking-tighter text-[#ff8800]">HYA PRECISION TERMINAL</h1>
-            <div class="flex gap-4 text-[9px] font-bold text-gray-500 border-l border-white/10 pl-4">
-                <span>GEO_SYNC: <span class="text-emerald-500 font-bold">100%</span></span>
-                <span>DATA_STREAM: <span class="text-blue-500 font-bold">ACTIVE</span></span>
+    <!-- TOP BAR: MULTI-SITE STATUS -->
+    <header class="flex justify-between items-center glass-card p-2 rounded border-l-2 border-hq-orange">
+        <div class="flex items-center gap-6">
+            <h1 class="text-sm font-bold tracking-widest text-[#ff8800] flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4"></i> COMMODITY HQ / TERMINAL_7928
+            </h1>
+            <div class="flex gap-4 text-[9px] font-bold text-gray-500 uppercase">
+                <span>Phase: <span class="text-white">E (Verification)</span></span>
+                <span>Uptime: <span class="text-emerald-500">100%</span></span>
             </div>
         </div>
-        <div class="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
-            Node: Eastpointe_MI_48021
+        <div class="flex items-center gap-4 text-[9px]">
+            <span class="text-gray-600">LOC: EASTPOINTE_MI</span>
+            <div class="flex items-center gap-1 text-blue-400">
+                <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                FIREBASE_SILO_CONNECTED
+            </div>
         </div>
     </header>
 
-    <!-- MAIN INTERFACE -->
-    <main class="flex-grow grid grid-cols-12 gap-3 overflow-hidden">
+    <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
         
-        <!-- LEFT: SCROLLABLE SHIPMENT REPOSITORY -->
-        <aside class="col-span-3 flex flex-col gap-3 overflow-hidden">
-            <div class="glass-card rounded-lg p-4 flex-grow flex flex-col overflow-hidden">
-                <h2 class="text-xs font-bold text-gray-400 uppercase mb-4 flex items-center justify-between">
-                    <span>Commodity Registry</span>
-                    <i data-lucide="database" class="w-3 h-3"></i>
+        <!-- LEFT COLUMN: HARVESTER & ENGINE -->
+        <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
+            <!-- REHYDRATION PANEL -->
+            <div class="glass-card p-3 rounded flex flex-col">
+                <h2 class="text-[10px] font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
+                    Silo Rehydration <i data-lucide="refresh-cw" class="w-3 h-3 text-blue-500"></i>
                 </h2>
-                <!-- SCROLLABLE FEED -->
-                <div id="shipment-feed" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-2">
-                    <!-- Cards Injected by JS -->
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[8px] font-bold">
+                            <span>Institutional API Feed</span>
+                            <span class="text-emerald-500">COMPLETE</span>
+                        </div>
+                        <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-emerald-500 h-full w-full"></div></div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[8px] font-bold">
+                            <span>Commodity Mapping</span>
+                            <span class="text-hq-orange">84%</span>
+                        </div>
+                        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                            <div class="bg-hq-orange h-full w-[84%] animate-pulse"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- SYSTEM LOG -->
-            <div class="glass-card rounded-lg p-3 h-32 text-[9px] text-gray-500 font-bold">
-                <div class="flex items-center gap-2 text-orange-500 mb-2">
-                    <i data-lucide="terminal" class="w-3 h-3"></i>
-                    <span>INTELLIGENCE_LAYER</span>
+            <!-- COMMODITY HQ REGISTRY -->
+            <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden border-t border-white/5">
+                <h2 class="text-[10px] font-bold text-gray-400 uppercase mb-3">Commodity Headquarters</h2>
+                <div id="hq-feed" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-1">
+                    <!-- Cards injected via JS -->
                 </div>
-                <p id="typewriter" class="italic leading-relaxed">Mapping real-time supply chain topology...</p>
             </div>
         </aside>
 
-        <!-- RIGHT: INTERACTIVE ACCURATE MAP -->
-        <section class="col-span-9 glass-card rounded-lg p-1 relative">
-            <div id="map"></div>
-            
-            <!-- OVERLAY TOOLS -->
-            <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
-                <button onclick="flyToHub('US')" class="glass-card p-2 rounded hover:bg-white/5 text-[8px] font-bold uppercase">Focus: SPY Hub</button>
-                <button onclick="flyToHub('Global')" class="glass-card p-2 rounded hover:bg-white/5 text-[8px] font-bold uppercase">Reset View</button>
+        <!-- CENTER COLUMN: PRECISION TOPOLOGY -->
+        <main class="col-span-6 flex flex-col gap-2">
+            <div class="glass-card rounded p-1 flex-grow relative overflow-hidden">
+                <div class="scanning-bar"></div>
+                <div id="map"></div>
+                
+                <!-- MAP OVERLAY CONTROLS -->
+                <div class="absolute bottom-4 left-4 z-[1000] flex gap-2">
+                    <div class="glass-card p-2 rounded text-[8px] font-bold uppercase border border-hq-orange/20">
+                        Map Mode: <span class="text-hq-orange">Trade Corridor Accuracy</span>
+                    </div>
+                </div>
             </div>
-        </section>
-    </main>
 
-    <!-- FOOTER -->
-    <footer class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-2 uppercase shrink-0">
-        <div class="flex gap-4">
-            <span>Silo: Operational</span>
-            <span>Uptime: 100%</span>
-        </div>
-        <div class="text-emerald-500">
-            Phase A-E Systems Verified
-        </div>
-    </footer>
+            <!-- QUANTITATIVE METRICS -->
+            <div class="h-28 grid grid-cols-3 gap-2">
+                <div class="glass-card p-2 rounded flex flex-col justify-center items-center">
+                    <span class="text-[8px] text-gray-500 uppercase">SPY Correlation</span>
+                    <span class="text-lg font-bold text-emerald-400">0.94</span>
+                </div>
+                <div class="glass-card p-2 rounded flex flex-col justify-center items-center">
+                    <span class="text-[8px] text-gray-500 uppercase">Volatility Index</span>
+                    <span class="text-lg font-bold text-blue-400">14.2</span>
+                </div>
+                <div class="glass-card p-2 rounded flex flex-col justify-center items-center">
+                    <span class="text-[8px] text-gray-500 uppercase">Silo Throughput</span>
+                    <span class="text-lg font-bold text-hq-orange">1.2ms</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT COLUMN: INTELLIGENCE LAYER -->
+        <aside class="col-span-3 flex flex-col gap-2">
+            <div class="glass-card p-4 rounded flex-grow border-l-2 border-blue-500 flex flex-col">
+                <h2 class="text-[10px] font-bold text-blue-400 uppercase mb-4 flex items-center gap-2">
+                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> Recursive Synthesis
+                </h2>
+                <div id="ai-output" class="text-[10px] text-gray-400 space-y-4 italic leading-relaxed overflow-y-auto custom-scroll pr-1">
+                    <p class="text-white border-l border-white/10 pl-2">"Synthesizing global trade rotations... verifying predictive regulatory compliance for Node_7928."</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 rounded h-32 bg-hq-orange/5 border border-hq-orange/20">
+                <h2 class="text-[10px] font-bold text-hq-orange uppercase mb-2">Technical Trigger</h2>
+                <div class="text-[9px] text-gray-400">
+                    <div class="flex justify-between mb-1"><span>RSI (14)</span><span class="font-bold">58.4</span></div>
+                    <div class="flex justify-between mb-1"><span>MACD Signal</span><span class="text-emerald-400 font-bold">BULLISH</span></div>
+                    <div class="flex justify-between"><span>Silo Parity</span><span class="text-blue-400 font-bold">STABLE</span></div>
+                </div>
+            </div>
+        </aside>
+    </div>
 
     <script>
         lucide.createIcons();
 
-        // 1. Initialize Map (Border Accurate)
-        const map = L.map('map', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([20, 0], 2);
+        // 1. Map Initialization (Leaflet - Precision Borders)
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // Dark Matter Tiles (Clean & Accurate)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19
-        }).addTo(map);
-
-        // 2. Shipment Data
-        const shipments = [
-            { id: 'FE-MI', name: 'Iron Ore', start: [-23.5, -46.6], end: [42.3, -83.0], status: 'Transit' },
-            { id: 'LI-CH', name: 'Lithium', start: [-23.5, -70.4], end: [31.2, 121.4], status: 'Priority' },
-            { id: 'OIL-ER', name: 'Crude Oil', start: [26.2, 50.1], end: [51.5, 0.12], status: 'Loading' },
-            { id: 'AG-BR', name: 'Grain Bulk', start: [44.8, -93.2], end: [34.0, 118.2], status: 'Transit' },
-            { id: 'X-7928', name: 'Semiconductors', start: [25.0, 121.5], end: [42.4, -83.0], status: 'En Route' }
+        // 2. Data Silo (Commodities & HQ)
+        const commodities = [
+            { id: 'CRUDE-01', name: 'WTI Crude', origin: 'Texas, US', status: 'Priority Transit', coords: [31.9, -102.0], data: '84.22/bbl' },
+            { id: 'GOLD-09', name: 'Physical Gold', origin: 'Perth, AU', status: 'Secured Node', coords: [-31.9, 115.8], data: '2410.15/oz' },
+            { id: 'COP-12', name: 'Copper Bulk', origin: 'Antofagasta, CL', status: 'Delayed', coords: [-23.6, -70.4], data: '4.48/lb' },
+            { id: 'LITH-22', name: 'Lithium Ore', origin: 'Catamarca, AR', status: 'En Route', coords: [-27.3, -66.8], data: '13,400/t' }
         ];
 
-        // 3. Render Shipment Feed (Scrolling enabled via CSS)
-        const feed = document.getElementById('shipment-feed');
-        shipments.forEach(s => {
+        // 3. Render Feed & Map Markers
+        const feed = document.getElementById('hq-feed');
+        commodities.forEach(c => {
+            // Add to Registry List
             const card = document.createElement('div');
-            card.className = 'p-3 border border-white/5 bg-white/5 rounded hover:border-orange-500/50 cursor-pointer transition-all';
+            card.className = 'p-3 glass-card rounded hover:border-hq-orange transition-all cursor-pointer group';
             card.innerHTML = `
-                <div class="flex justify-between text-[10px] font-bold mb-1">
-                    <span class="text-orange-400">${s.id}</span>
-                    <span class="text-[8px] text-gray-600 uppercase">${s.status}</span>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[8px] text-gray-500 font-bold">${c.id}</span>
+                    <span class="text-[8px] ${c.status === 'Delayed' ? 'text-red-400' : 'text-emerald-400'} uppercase">${c.status}</span>
                 </div>
-                <div class="text-[10px] text-gray-300 font-bold">${s.name}</div>
+                <div class="text-[10px] font-bold text-gray-300 group-hover:text-white">${c.name}</div>
+                <div class="text-[9px] text-gray-600 mt-1">${c.data}</div>
             `;
-            card.onclick = () => map.flyTo(s.start, 5);
+            card.onclick = () => map.flyTo(c.coords, 6);
             feed.appendChild(card);
 
-            // Add Marker to Map
-            L.circleMarker(s.start, {
-                radius: 4,
+            // Add Marker with Custom Style
+            const marker = L.circleMarker(c.coords, {
+                radius: 5,
                 fillColor: "#ff8800",
                 color: "#000",
                 weight: 1,
-                opacity: 1,
                 fillOpacity: 0.8
-            }).addTo(map).bindPopup(`<b style="color:#000">${s.name} Origin</b>`);
-
-            // Add Route Polyline
-            L.polyline([s.start, s.end], {
-                color: '#3b82f6',
-                weight: 1,
-                dashArray: '5, 10',
-                opacity: 0.4
             }).addTo(map);
+            marker.bindPopup(`<div style="color:#000; font-family:monospace; font-size:10px;"><b>${c.name}</b><br>${c.origin}</div>`);
         });
 
-        // 4. Map Control Logic
-        function flyToHub(type) {
-            if(type === 'US') map.flyTo([39.8, -98.5], 4);
-            else map.flyTo([20, 0], 2);
-        }
-
-        // 5. Intelligence Layer (Typewriter Effect)
-        const messages = [
-            "Syncing global trade routes with SPY technicals...",
-            "Analyzing bottleneck at Panama Canal Node...",
-            "Predictive maintenance loop: 100% uptime confirmed.",
-            "Synthesizing high-yield dividend payouts for Q2."
+        // 4. Intelligence Synthesis Loop
+        const insights = [
+            "Tracking sector rotations into Energy via commodity throughput...",
+            "Analyzing SPY Hub liquidity rehydration via Firebase Silo...",
+            "Predictive Maintenance: Zero downtime across Node_7928...",
+            "Synthesizing technical analysis for JEPI/GPIQ dividend schedules..."
         ];
-        let i = 0;
+        let step = 0;
         setInterval(() => {
-            document.getElementById('typewriter').innerText = messages[i % messages.length];
-            i++;
-        }, 6000);
+            const out = document.getElementById('ai-output');
+            const p = document.createElement('p');
+            p.className = 'border-l border-white/5 pl-2 animate-pulse';
+            p.innerText = `"${insights[step % insights.length]}"`;
+            out.prepend(p);
+            if(out.children.length > 5) out.lastChild.remove();
+            step++;
+        }, 7000);
     </script>
 </body>
 </html>
