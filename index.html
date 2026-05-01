@@ -13,19 +13,19 @@
         :root { --terminal-black: #050505; --hq-orange: #ff8800; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
         
-        /* SHRANK TICKER: Optimized for single-line price/name alignment */
+        /* FIXED TICKER: regular mode forces price/name adjacency */
         .ticker-fixed-top {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 32px; /* Reduced height to tighten layout */
+            height: 40px;
             z-index: 9999;
             background: var(--terminal-black);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .terminal-container { margin-top: 40px; height: calc(100vh - 48px); display: flex; flex-direction: column; gap: 6px; padding: 4px; }
+        .terminal-container { margin-top: 48px; height: calc(100vh - 56px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
         #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
@@ -39,7 +39,7 @@
 </head>
 <body>
 
-    <!-- COMPACT TRADINGVIEW TICKER -->
+    <!-- TRADINGVIEW TICKER: REGULAR MODE FOR PRICE ALIGNMENT -->
     <div class="ticker-fixed-top overflow-hidden">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
@@ -51,12 +51,12 @@
                 { "proName": "NASDAQ:MSFT", "title": "MSFT" },
                 { "proName": "NASDAQ:AAPL", "title": "AAPL" },
                 { "proName": "NASDAQ:NVDA", "title": "NVDA" },
-                { "proName": "NYMEX:CL1!", "title": "OIL" }
+                { "proName": "NYMEX:CL1!", "title": "CRUDE_OIL" }
               ],
               "showSymbolLogo": false, 
               "colorTheme": "dark", 
               "isTransparent": true, 
-              "displayMode": "adaptive", 
+              "displayMode": "regular", 
               "locale": "en"
             }
             </script>
@@ -65,18 +65,18 @@
 
     <div class="terminal-container">
         <!-- HEADER -->
-        <header class="flex justify-between items-center glass-card p-2 rounded shrink-0">
-            <div class="flex items-center gap-4">
-                <h1 class="text-[10px] font-bold tracking-widest text-[#ff8800]">HY ANALYSTS TERMINAL</h1>
+        <header class="flex justify-between items-center glass-card p-3 rounded shrink-0">
+            <div class="flex items-center gap-6">
+                <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">HY ANALYSTS TERMINAL</h1>
                 <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank">
-                    <svg class="w-4 h-4 fill-red-600 hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 fill-red-600 hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
                         <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
                     </svg>
                 </a>
             </div>
-            <div class="flex items-center gap-3 text-[7px] font-bold text-gray-500 uppercase">
-                <span class="text-emerald-500">● Live Sync</span>
-                <span class="border-l border-white/10 pl-3">Eastpointe_Node</span>
+            <div class="flex items-center gap-4 text-[8px] font-bold text-gray-500 uppercase">
+                <span class="text-emerald-500">● Global_Intelligence_Sync</span>
+                <span class="border-l border-white/10 pl-4 italic">Node: 48021</span>
             </div>
         </header>
 
@@ -84,38 +84,39 @@
             <!-- HQ PANEL -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <div class="flex gap-4 border-b border-white/10 mb-2 text-[9px] font-bold uppercase">
+                    <div class="flex gap-4 border-b border-white/10 mb-3 text-[10px] font-bold uppercase">
                         <button onclick="switchTab('commodities')" id="tab-commodities" class="pb-1 tab-active">Commodities</button>
                         <button onclick="switchTab('stocks')" id="tab-stocks" class="pb-1 text-gray-600">Stocks</button>
                     </div>
-                    <div id="hq-list" class="flex-grow overflow-y-auto custom-scroll space-y-1"></div>
+                    <div id="hq-list" class="flex-grow overflow-y-auto custom-scroll space-y-2"></div>
                 </div>
 
-                <div class="glass-card p-3 rounded h-28 border-t border-emerald-900/20">
-                    <h3 class="text-[8px] font-bold text-gray-500 uppercase mb-2 italic">Institutional Flow</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-[7px] uppercase"><span>Tech (XLK)</span><span class="text-emerald-400">94%</span></div>
+                <!-- SECTOR FLOW -->
+                <div class="glass-card p-3 rounded h-32 border-t border-blue-900/20">
+                    <h3 class="text-[9px] font-bold text-gray-500 uppercase italic mb-2">Institutional Rotation</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-[8px] uppercase"><span>Tech</span><span class="text-emerald-400">94%</span></div>
                         <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-emerald-500 h-full w-[94%]"></div></div>
-                        <div class="flex justify-between text-[7px] uppercase"><span>Energy (XLE)</span><span class="text-orange-400">58%</span></div>
+                        <div class="flex justify-between text-[8px] uppercase"><span>Energy</span><span class="text-orange-400">58%</span></div>
                         <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-orange-500 h-full w-[58%]"></div></div>
                     </div>
                 </div>
             </aside>
 
-            <!-- MAP -->
+            <!-- CENTER MAP -->
             <main class="col-span-6 glass-card rounded p-1 overflow-hidden relative">
                 <div id="map"></div>
             </main>
 
-            <!-- INTELLIGENCE -->
+            <!-- RIGHT INTELLIGENCE -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <div class="glass-card p-4 rounded flex-grow border-l-2 border-orange-500 flex flex-col">
-                    <h2 class="text-[9px] font-bold text-orange-500 uppercase mb-6 flex items-center gap-2">
-                        <i data-lucide="activity" class="w-3 h-3"></i> Intelligence Layer
+                    <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-6 flex items-center gap-2">
+                        <i data-lucide="shield-alert" class="w-3 h-3"></i> Intelligence Layer
                     </h2>
                     <div class="headline-container" id="news-container"></div>
-                    <div class="mt-auto pt-3 border-t border-white/5 text-[7px] text-gray-600 uppercase font-bold italic">
-                        Surveillance Status: Active
+                    <div class="mt-auto pt-4 border-t border-white/5 text-[7px] text-gray-600 uppercase font-bold tracking-widest italic">
+                        Node Surveillance: Active
                     </div>
                 </div>
             </aside>
@@ -130,8 +131,9 @@
         const data = {
             commodities: [
                 { id: 'WTI', name: 'West Texas Crude', val: '$84.22', coords: [31.9, -102.0], ref: 'Permian' },
-                { id: 'BRT', name: 'Brent Crude', val: '$89.10', coords: [26.0, 56.0], ref: 'Hormuz Node' },
-                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], ref: 'Tech Infra' }
+                { id: 'BRT', name: 'Brent Crude', val: '$89.10', coords: [26.0, 56.0], ref: 'Hormuz Hub' },
+                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], ref: 'Infrastructure' },
+                { id: 'LI', name: 'Lithium Spod.', val: '$13.4k', coords: [-27.3, -66.8], ref: 'Battery Silo' }
             ],
             stocks: [
                 { id: 'SPY', name: 'S&P 500 ETF', val: '$718.66', coords: [40.7, -74.0] },
@@ -141,25 +143,25 @@
             ]
         };
 
-        const intelligenceReports = [
-            { tag: "GEOINT", head: "Hormuz Node Alert", body: "Vessel tracking indicates naval density increase. Risk premiums rising across Brent/WTI futures." },
-            { tag: "MACRO", head: "Tech Accumulation", body: "Institutional buying in GOOGL and MSFT signals confidence in AI infrastructure rehydration." },
+        const reports = [
+            { tag: "GEOINT", head: "Hormuz Node Alert", body: "Naval density increasing in the Strait. Risk premiums rising across Brent/WTI futures." },
+            { tag: "MACRO", head: "Tech Accumulation", body: "Institutional buying in GOOGL and MSFT signals confidence in AI infrastructure expansion." },
             { tag: "SQUAWK", head: "SPY Technicals", body: "Support verified at $700 level. High Yield Analysts portfolio parity confirmed." }
         ];
 
         let currentReport = 0;
         function initIntelligence() {
             const container = document.getElementById('news-container');
-            container.innerHTML = intelligenceReports.map((r, i) => `
+            container.innerHTML = reports.map((r, i) => `
                 <div class="news-block ${i === 0 ? 'news-active' : ''}" id="report-${i}">
                     <span class="text-[8px] text-red-500 font-bold uppercase tracking-widest">${r.tag}</span>
-                    <h4 class="text-[10px] text-white font-bold mt-1 uppercase underline decoration-orange-500/30 underline-offset-4">${r.head}</h4>
-                    <p class="text-[9px] text-gray-400 leading-relaxed mt-4 italic">${r.body}</p>
+                    <h4 class="text-[11px] text-white font-bold mt-1 uppercase underline decoration-orange-500/30 underline-offset-4">${r.head}</h4>
+                    <p class="text-[10px] text-gray-400 leading-relaxed mt-4 italic">${r.body}</p>
                 </div>
             `).join('');
             setInterval(() => {
                 document.getElementById(`report-${currentReport}`).classList.remove('news-active');
-                currentReport = (currentReport + 1) % intelligenceReports.length;
+                currentReport = (currentReport + 1) % reports.length;
                 document.getElementById(`report-${currentReport}`).classList.add('news-active');
             }, 7000);
         }
@@ -169,11 +171,11 @@
             document.getElementById('tab-stocks').className = tab === 'stocks' ? 'pb-1 tab-active' : 'pb-1 text-gray-600';
             const list = document.getElementById('hq-list');
             list.innerHTML = data[tab].map(item => `
-                <div class="p-2 border border-white/5 bg-white/10 rounded hover:border-orange-500 cursor-pointer transition-all" onclick="map.flyTo([${item.coords}], 6)">
-                    <div class="flex justify-between text-[7px] font-bold text-gray-500 uppercase">
+                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-orange-500 cursor-pointer transition-all" onclick="map.flyTo([${item.coords}], 6)">
+                    <div class="flex justify-between text-[8px] font-bold text-gray-500 uppercase">
                         <span>${item.id}</span><span class="text-emerald-400">${item.val}</span>
                     </div>
-                    <div class="text-[9px] font-bold text-gray-300 uppercase">${item.name}</div>
+                    <div class="text-[10px] font-bold text-gray-300 uppercase">${item.name}</div>
                 </div>
             `).join('');
         }
