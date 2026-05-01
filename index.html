@@ -11,23 +11,15 @@
     <style>
         :root { --terminal-black: #050505; --hq-orange: #ff8800; --tv-green: #22ab94; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
-        
-        /* Fixed ticker height and ensuring it doesn't collapse */
         .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        
-        /* Container adjusted for ticker clearance */
         .terminal-container { margin-top: 48px; height: calc(100vh - 48px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
-        
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
         #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; }
-        
         .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
-        
         .macro-chart-container { height: 80px; position: relative; margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        
         .leaflet-tooltip-own {
             background: rgba(0, 0, 0, 0.9) !important;
             border: 1px solid var(--tv-green) !important;
@@ -35,16 +27,12 @@
             font-family: 'JetBrains Mono', monospace !important;
             font-size: 9px !important;
             padding: 4px 8px !important;
-            box-shadow: 0 0 15px rgba(34, 171, 148, 0.2);
         }
-
-        /* Headline fade transition */
         #headline-ticker { transition: opacity 0.5s ease-in-out; white-space: nowrap; }
     </style>
 </head>
 <body>
 
-    <!-- TradingView Ticker Container -->
     <div class="ticker-fixed-top">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
@@ -53,16 +41,15 @@
               "symbols": [
                 { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
                 { "proName": "NASDAQ:NVDA", "title": "NVDA" },
-                { "proName": "NASDAQ:AMD", "title": "AMD" },
+                { "proName": "NASDAQ:PLTR", "title": "PLTR" },
+                { "proName": "NASDAQ:TSLA", "title": "TSLA" },
+                { "proName": "NASDAQ:META", "title": "META" },
+                { "proName": "NASDAQ:SMCI", "title": "SMCI" },
                 { "proName": "NASDAQ:AVGO", "title": "AVGO" },
                 { "proName": "NASDAQ:MSFT", "title": "MSFT" },
                 { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
-                { "proName": "NASDAQ:META", "title": "META" },
-                { "proName": "NASDAQ:TSLA", "title": "TSLA" },
                 { "proName": "BITSTAMP:BTCUSD", "title": "BTC/USD" },
-                { "proName": "TVC:GOLD", "title": "GOLD" },
-                { "proName": "TVC:US10Y", "title": "US 10Y" },
-                { "proName": "TVC:US02Y", "title": "US 2Y" }
+                { "proName": "TVC:GOLD", "title": "GOLD" }
               ],
               "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
             }
@@ -71,7 +58,6 @@
     </div>
 
     <div class="terminal-container">
-        <!-- Sub-Header for Site Title and Cycling News -->
         <header class="flex justify-between items-center glass-card p-2 rounded shrink-0 h-10">
             <div class="flex items-center gap-4">
                 <h1 class="text-xs font-bold tracking-widest text-[#22ab94]">HY ANALYSTS TERMINAL</h1>
@@ -79,7 +65,6 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                 </a>
             </div>
-            
             <div class="text-[8px] font-bold flex gap-4 uppercase overflow-hidden max-w-[60%]">
                 <span class="text-emerald-500 shrink-0">● LIVE FEED</span>
                 <span id="headline-ticker" class="text-blue-400">CONNECTING...</span>
@@ -87,67 +72,36 @@
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            <!-- LEFT COLUMN -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
+                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/3 shrink-0">
                     <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
                     <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
                 </div>
                 
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Asset Intel</h2>
+                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Asset Technicals</h2>
                     <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
-                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Select node for deep synthesis.</div>
+                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Select node for technical overlay.</div>
                     </div>
                 </div>
             </aside>
 
-            <!-- CENTER MAP -->
             <main class="col-span-6 glass-card rounded p-1 relative z-0">
                 <div id="map"></div>
             </main>
 
-            <!-- RIGHT MACRO -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden overflow-y-auto custom-scroll pr-1">
                 <div class="glass-card p-3 rounded shrink-0">
                     <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Sector Momentum</h2>
                     <div class="space-y-2 pt-1" id="sector-bars"></div>
                 </div>
-
                 <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-blue-500 uppercase flex justify-between">
-                        <span>Treasury Yields (12M)</span>
-                        <span class="text-[7px] text-gray-500">2Y/10Y Spread</span>
-                    </h2>
-                    <div class="macro-chart-container">
-                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,25 Q25,28 50,15 T100,10" fill="none" stroke="#3b82f6" stroke-width="1.5" />
-                        </svg>
-                    </div>
+                    <h2 class="text-[9px] font-bold text-blue-500 uppercase flex justify-between"><span>Treasury Yields (12M)</span></h2>
+                    <div class="macro-chart-container"><svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M0,25 Q25,28 50,15 T100,10" fill="none" stroke="#3b82f6" stroke-width="1.5" /></svg></div>
                 </div>
-
                 <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-red-500 uppercase flex justify-between">
-                        <span>Fed Funds Rate</span>
-                        <span class="text-[7px] text-gray-500">Target: 3.50%</span>
-                    </h2>
-                    <div class="macro-chart-container">
-                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,35 L20,35 L40,25 L60,10 L80,10 L100,10" fill="none" stroke="#ef4444" stroke-width="1.5" />
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-emerald-500 uppercase flex justify-between">
-                        <span>Employment Trend</span>
-                        <span class="text-[7px] text-gray-500">NFP Growth</span>
-                    </h2>
-                    <div class="macro-chart-container">
-                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,30 L10,28 L20,25 L30,22 L40,24 L50,20 L60,18 L70,19 L80,15 L90,12 L100,10" fill="none" stroke="#10b981" stroke-width="1.5" />
-                        </svg>
-                    </div>
+                    <h2 class="text-[9px] font-bold text-red-500 uppercase flex justify-between"><span>Fed Funds Rate</span><span class="text-[7px] text-gray-500">Target: 3.50%</span></h2>
+                    <div class="macro-chart-container"><svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M0,35 L20,35 L40,25 L60,10 L80,10 L100,10" fill="none" stroke="#ef4444" stroke-width="1.5" /></svg></div>
                 </div>
             </aside>
         </div>
@@ -161,14 +115,11 @@
             "FED: Powell signals 'Restrictive' stance to remain through Q3 2026",
             "CONFLICT: Israel-Iran ceasefire holds as April 7 withdrawal nears completion",
             "GEOPOLITICS: Maritime insurance premiums spike 40% in Strait of Hormuz",
-            "FED: Markets price in 25bps cut for July following NFP cooling",
-            "CONFLICT: Iran denies 'Direct Engagement' reports in recent drone intercept",
-            "MACRO: US Core Inflation edges lower to 2.4%; Bond yields stabilize"
+            "FED: Markets price in 25bps cut for July following NFP cooling"
         ];
 
         let currentHeadline = 0;
         const tickerEl = document.getElementById('headline-ticker');
-
         function cycleHeadlines() {
             tickerEl.style.opacity = 0;
             setTimeout(() => {
@@ -179,37 +130,31 @@
         }
 
         const assets = [
-            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', rev: '$383B', cash: '$162B' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', rev: '$60.9B', cash: '$25.9B' },
-            { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '221k', rev: '$211B', cash: '$143B' },
-            { id: 'AMZN', n: 'Amazon', c: [47.60, -122.33], emp: '1.5M', rev: '$514B', cash: '$64B' },
-            { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], emp: '182k', rev: '$307B', cash: '$110B' },
-            { id: 'TSLA', n: 'Tesla', c: [30.26, -97.74], emp: '140k', rev: '$96B', cash: '$26B' },
-            { id: 'AMD', n: 'AMD', c: [37.37, -121.96], emp: '25k', rev: '$22.6B', cash: '$5B' }
+            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', rev: '$60.9B', rsi: 72, sma: '+14.2%', atr: '4.82' },
+            { id: 'PLTR', n: 'Palantir', c: [34.05, -118.24], emp: '3.8k', rev: '$2.2B', rsi: 58, sma: '+5.4%', atr: '1.15' },
+            { id: 'META', n: 'Meta', c: [37.48, -122.14], emp: '67k', rev: '$134B', rsi: 64, sma: '+8.1%', atr: '12.4' },
+            { id: 'SMCI', n: 'Super Micro', c: [37.33, -121.89], emp: '5.1k', rev: '$14.9B', rsi: 45, sma: '-2.3%', atr: '35.6' },
+            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', rev: '$383B', rsi: 52, sma: '+1.2%', atr: '3.45' },
+            { id: 'TSLA', n: 'Tesla', c: [30.26, -97.74], emp: '140k', rev: '$96B', rsi: 38, sma: '-12.4%', atr: '8.90' },
+            { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '221k', rev: '$211B', rsi: 61, sma: '+4.5%', atr: '6.70' }
         ];
 
         function init() {
             setInterval(cycleHeadlines, 5000);
             cycleHeadlines();
-
             document.getElementById('equity-list').innerHTML = assets.map(e => `
                 <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onclick="selectCompany('${e.id}')">
-                    <span class="text-orange-500">${e.id}</span>
-                    <span class="text-gray-500 font-normal">${e.n}</span>
+                    <span class="text-orange-500">${e.id}</span><span class="text-gray-500 font-normal">${e.n}</span>
                 </div>
             `).join('');
 
             assets.forEach(e => {
-                const marker = L.circleMarker(e.c, { radius: 6, color: '#ff8800', weight: 2, fillOpacity: 0.5 }).addTo(map);
-                marker.bindTooltip(`<strong>${e.n}</strong><br>Workforce: ${e.emp}`, { 
-                    direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] 
-                });
-                marker.on('click', () => selectCompany(e.id));
+                L.circleMarker(e.c, { radius: 6, color: '#ff8800', weight: 2, fillOpacity: 0.5 }).addTo(map)
+                .bindTooltip(`<strong>${e.n}</strong><br>Workforce: ${e.emp}`, { direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] })
+                .on('click', () => selectCompany(e.id));
             });
 
-            document.getElementById('sector-bars').innerHTML = [
-                {n:"Tech", v:92}, {n:"Finance", v:74}, {n:"Energy", v:88}, {n:"Healthcare", v:65}
-            ].map(s => `
+            document.getElementById('sector-bars').innerHTML = [{n:"Tech", v:92}, {n:"Energy", v:88}].map(s => `
                 <div class="text-[8px] uppercase flex justify-between mb-0.5 text-gray-300"><span>${s.n}</span><span>${s.v}%</span></div>
                 <div class="bar-container mb-2"><div class="bar-fill" style="width:${s.v}%"></div></div>
             `).join('');
@@ -220,28 +165,19 @@
             map.flyTo(co.c, 11, { animate: true, duration: 2 });
             document.getElementById('company-content').innerHTML = `
                 <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg font-bold text-white">${co.n}</span>
-                        <span class="text-xs font-bold text-[#ff8800]">${co.id}</span>
-                    </div>
+                    <div class="flex justify-between items-center"><span class="text-lg font-bold text-white">${co.n}</span><span class="text-xs font-bold text-[#ff8800]">${co.id}</span></div>
                     <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-white/5 p-2 rounded">
-                            <div class="text-[7px] text-gray-500 uppercase">Revenue</div>
-                            <div class="text-xs font-bold">${co.rev}</div>
-                        </div>
-                        <div class="bg-white/5 p-2 rounded">
-                            <div class="text-[7px] text-gray-500 uppercase">Workforce</div>
-                            <div class="text-xs font-bold text-emerald-400">${co.emp}</div>
-                        </div>
+                        <div class="bg-white/5 p-2 rounded"><div class="text-[7px] text-gray-500 uppercase">RSI (14)</div><div class="text-xs font-bold ${co.rsi > 70 ? 'text-red-400' : co.rsi < 30 ? 'text-green-400' : 'text-blue-400'}">${co.rsi}</div></div>
+                        <div class="bg-white/5 p-2 rounded"><div class="text-[7px] text-gray-500 uppercase">SMA 200D</div><div class="text-xs font-bold ${co.sma.includes('+') ? 'text-green-400' : 'text-red-400'}">${co.sma}</div></div>
                     </div>
                     <div class="p-2 border-l-2 border-[#22ab94] bg-[#22ab94]/5 rounded-r">
-                        <div class="text-[8px] text-gray-400 uppercase mb-1">Status</div>
-                        <div class="text-[10px] text-white">Full integration with Analysis Terminal logic layer active.</div>
+                        <div class="text-[8px] text-gray-400 uppercase mb-1">Volatility (ATR)</div>
+                        <div class="text-[12px] font-bold text-white">${co.atr}</div>
+                        <div class="text-[7px] text-gray-500 mt-1 uppercase italic">High-performance quantitative stack active</div>
                     </div>
                 </div>
             `;
         }
-
         window.onload = init;
     </script>
 </body>
