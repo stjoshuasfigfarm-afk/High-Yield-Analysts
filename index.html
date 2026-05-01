@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYA | Terminal 7928</title>
+    <title>HY Analysts Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -18,16 +18,16 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .tab-active { color: var(--hq-orange); border-bottom: 2px solid var(--hq-orange); }
         
-        /* Headline Ticker Animation */
-        .headline-container { height: 40px; overflow: hidden; position: relative; }
-        .headline-item { position: absolute; width: 100%; opacity: 0; transform: translateY(20px); transition: all 0.5s ease-in-out; }
-        .headline-active { opacity: 1; transform: translateY(0); }
+        /* Fully Dynamic News Ticker */
+        .headline-container { height: 120px; overflow: hidden; position: relative; }
+        .news-block { position: absolute; width: 100%; opacity: 0; transform: translateX(10px); transition: all 0.6s ease-in-out; }
+        .news-active { opacity: 1; transform: translateX(0); }
     </style>
 </head>
-<body class="h-screen flex flex-col p-1 gap-1">
+<body class="h-screen flex flex-col p-1 gap-2">
 
-    <!-- TRADINGVIEW WIDGET (TOP BAR) -->
-    <div class="h-10 w-full glass-card overflow-hidden rounded">
+    <!-- TRADINGVIEW TICKER -->
+    <div class="h-10 w-full glass-card overflow-hidden rounded shrink-0">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
@@ -46,10 +46,10 @@
         </div>
     </div>
 
-    <!-- MAIN HEADER -->
-    <header class="flex justify-between items-center glass-card p-3 rounded">
+    <!-- MAIN HEADER: LOWERED FOR SPACING -->
+    <header class="flex justify-between items-center glass-card p-3 rounded mt-1 shrink-0">
         <div class="flex items-center gap-6">
-            <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">HYA_TERMINAL_7928</h1>
+            <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">HY ANALYSTS TERMINAL</h1>
             <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank">
                 <svg class="w-5 h-5 fill-red-600 hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
                     <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
@@ -57,15 +57,15 @@
             </a>
         </div>
         <div class="flex items-center gap-4 text-[8px] font-bold text-gray-500 uppercase">
-            <span class="text-emerald-500">● Global_Sync_Active</span>
-            <span class="border-l border-white/10 pl-4 italic">Node: Eastpointe, MI</span>
+            <span class="text-emerald-500">● 100% Uptime_Verified</span>
+            <span class="border-l border-white/10 pl-4 italic">Node: 48021</span>
         </div>
     </header>
 
-    <div class="grid grid-cols-12 gap-1 flex-grow overflow-hidden">
+    <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
         
         <!-- LEFT: HQ & SECTOR ROTATION -->
-        <aside class="col-span-3 flex flex-col gap-1 overflow-hidden">
+        <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
             <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
                 <div class="flex gap-4 border-b border-white/10 mb-3 text-[10px] font-bold uppercase">
                     <button onclick="switchTab('commodities')" id="tab-commodities" class="pb-1 tab-active">Commodities</button>
@@ -76,13 +76,12 @@
                 </div>
             </div>
 
-            <!-- SECTOR ROTATION -->
-            <div class="glass-card p-3 rounded h-32 border-t border-emerald-900/20">
-                <h3 class="text-[9px] font-bold text-gray-500 uppercase italic mb-2">Institutional Weight</h3>
+            <div class="glass-card p-3 rounded h-32 border-t border-blue-900/20">
+                <h3 class="text-[9px] font-bold text-gray-500 uppercase italic mb-2">Sector Rotation</h3>
                 <div class="space-y-3">
-                    <div class="flex justify-between text-[8px] uppercase"><span>Tech (XLK)</span><span class="text-emerald-400">94%</span></div>
+                    <div class="flex justify-between text-[8px] uppercase"><span>Tech</span><span class="text-emerald-400">94%</span></div>
                     <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-emerald-500 h-full w-[94%]"></div></div>
-                    <div class="flex justify-between text-[8px] uppercase"><span>Energy (XLE)</span><span class="text-orange-400">58%</span></div>
+                    <div class="flex justify-between text-[8px] uppercase"><span>Energy</span><span class="text-orange-400">58%</span></div>
                     <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-orange-500 h-full w-[58%]"></div></div>
                 </div>
             </div>
@@ -95,22 +94,17 @@
             </div>
         </main>
 
-        <!-- RIGHT: CYCLING HEADLINE PANEL -->
-        <aside class="col-span-3 flex flex-col gap-1 overflow-hidden">
+        <!-- RIGHT: DYNAMIC CYCLING INTELLIGENCE -->
+        <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
             <div class="glass-card p-4 rounded flex-grow border-l-2 border-orange-500 flex flex-col">
-                <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-4 flex items-center gap-2">
-                    <i data-lucide="rss" class="w-3 h-3"></i> Intelligence Layer
+                <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-6 flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-3 h-3"></i> Intelligence Layer
                 </h2>
                 <div class="headline-container" id="news-container">
-                    <!-- Headlines injected here -->
+                    <!-- Full Story Cycling Injected Here -->
                 </div>
-                
-                <!-- STABLE CONTEXT PANEL (BELOW TICKER) -->
-                <div class="mt-4 p-3 border border-white/5 bg-white/5 rounded">
-                    <h4 class="text-[8px] font-bold text-gray-500 uppercase mb-2">Global Monitoring Node</h4>
-                    <p class="text-[10px] text-gray-400 leading-snug">
-                        Strait of Hormuz transit remains under Phase A-E surveillance. Crude volatility impacts GOOGL/MSFT data center power logic.
-                    </p>
+                <div class="mt-auto pt-4 border-t border-white/5 text-[7px] text-gray-600 uppercase font-bold tracking-widest">
+                    Operational Status: Phase A-E Active
                 </div>
             </div>
         </aside>
@@ -124,8 +118,8 @@
         const data = {
             commodities: [
                 { id: 'WTI', name: 'West Texas Crude', val: '$84.22', coords: [31.9, -102.0], ref: 'Permian' },
-                { id: 'BRT', name: 'Brent Crude', val: '$89.10', coords: [26.0, 56.0], ref: 'Hormuz' },
-                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], ref: 'Tech Infrastructure' },
+                { id: 'BRT', name: 'Brent Crude', val: '$89.10', coords: [26.0, 56.0], ref: 'Strait of Hormuz' },
+                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], ref: 'Infrastructure' },
                 { id: 'LI', name: 'Lithium Spod.', val: '$13.4k', coords: [-27.3, -66.8], ref: 'Silo Storage' }
             ],
             stocks: [
@@ -136,29 +130,30 @@
             ]
         };
 
-        const headlines = [
-            { tag: "GEO", msg: "Hormuz Node: Shipping volume holding at 21M bpd." },
-            { tag: "TECH", msg: "GOOGL/MSFT expand AI clusters; copper demand up 12%." },
-            { tag: "MACRO", msg: "SPY technical support verified at $702 range." },
-            { tag: "LOGIC", msg: "Silo rehydration active; Phase E verification pending." }
+        const intelligenceReports = [
+            { tag: "GEOINT", head: "Hormuz Node Alert", body: "Vessel tracking indicates naval density increase. WTI/Brent spread widening due to risk premiums." },
+            { tag: "TECHINFRA", head: "Compute Expansion", body: "GOOGL & MSFT data center nodes in Michigan signal increased copper and power grid requirements." },
+            { tag: "QUANT", head: "SPY Technicals", body: "Institutional accumulation detected at $700 level. Support verified for the High Yield Analysts portfolio." },
+            { tag: "LOGISTICS", head: "Phase E Status", body: "Silo rehydration across logistics corridors reaching 100% parity. Predictive maintenance scheduled." }
         ];
 
-        let currentHeadline = 0;
+        let currentReport = 0;
         const container = document.getElementById('news-container');
 
-        function initNews() {
-            container.innerHTML = headlines.map((h, i) => `
-                <div class="headline-item ${i === 0 ? 'headline-active' : ''}" id="headline-${i}">
-                    <span class="text-[8px] text-red-500 font-bold uppercase">${h.tag} ALERT</span>
-                    <p class="text-[11px] text-gray-300 font-bold leading-tight mt-1">${h.msg}</p>
+        function initIntelligence() {
+            container.innerHTML = intelligenceReports.map((r, i) => `
+                <div class="news-block ${i === 0 ? 'news-active' : ''}" id="report-${i}">
+                    <span class="text-[8px] text-red-500 font-bold uppercase tracking-widest">${r.tag}</span>
+                    <h4 class="text-[11px] text-white font-bold mt-1 uppercase underline decoration-orange-500/50 underline-offset-4">${r.head}</h4>
+                    <p class="text-[10px] text-gray-400 leading-relaxed mt-3 italic">${r.body}</p>
                 </div>
             `).join('');
 
             setInterval(() => {
-                document.getElementById(`headline-${currentHeadline}`).classList.remove('headline-active');
-                currentHeadline = (currentHeadline + 1) % headlines.length;
-                document.getElementById(`headline-${currentHeadline}`).classList.add('headline-active');
-            }, 5000);
+                document.getElementById(`report-${currentReport}`).classList.remove('news-active');
+                currentReport = (currentReport + 1) % intelligenceReports.length;
+                document.getElementById(`report-${currentReport}`).classList.add('news-active');
+            }, 6000);
         }
 
         function switchTab(tab) {
@@ -167,16 +162,17 @@
             const list = document.getElementById('hq-list');
             list.innerHTML = data[tab].map(item => `
                 <div class="p-2 border border-white/5 bg-white/10 rounded hover:border-orange-500 cursor-pointer transition-all" onclick="map.flyTo([${item.coords}], 6)">
-                    <div class="flex justify-between text-[8px] font-bold text-gray-500">
+                    <div class="flex justify-between text-[8px] font-bold text-gray-500 uppercase">
                         <span>${item.id}</span><span class="text-emerald-400">${item.val}</span>
                     </div>
                     <div class="text-[10px] font-bold text-gray-300 uppercase">${item.name}</div>
+                    ${item.ref ? `<div class="text-[7px] text-orange-500/40 font-bold uppercase">Source: ${item.ref}</div>` : ''}
                 </div>
             `).join('');
         }
 
         switchTab('commodities');
-        initNews();
+        initIntelligence();
     </script>
 </body>
 </html>
