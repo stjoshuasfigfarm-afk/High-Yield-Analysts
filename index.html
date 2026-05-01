@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal</title>
+    <title>HY Analysts Terminal | v5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,37 +12,30 @@
     <style>
         :root { --terminal-black: #050505; --hq-orange: #ff8800; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
-        
         .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .terminal-container { margin-top: 48px; height: calc(100vh - 56px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
         #map { height: 100%; width: 100%; border-radius: 4px; }
-        
-        .leaflet-tooltip { background: rgba(10, 10, 10, 0.95) !important; border: 1px solid var(--hq-orange) !important; color: white !important; font-family: 'JetBrains Mono', monospace; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        .leaflet-tooltip-top:before { border-top-color: var(--hq-orange) !important; }
-
+        .leaflet-tooltip { background: rgba(10, 10, 10, 0.95) !important; border: 1px solid var(--hq-orange) !important; color: white !important; font-family: 'JetBrains Mono', monospace; font-size: 10px; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .tab-active { color: var(--hq-orange); border-bottom: 2px solid var(--hq-orange); }
-        
         .headline-container { height: 110px; overflow: hidden; position: relative; }
         .news-block { position: absolute; width: 100%; opacity: 0; transform: translateX(10px); transition: all 0.6s ease-in-out; }
         .news-active { opacity: 1; transform: translateX(0); }
-        
-        /* Modal Styles */
         #sector-modal { z-index: 10000; }
     </style>
 </head>
 <body>
 
-    <!-- TRADINGVIEW TICKER -->
+    <!-- TRADINGVIEW TICKER (FIXED) -->
     <div class="ticker-fixed-top overflow-hidden">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
             {
               "symbols": [
-                { "proName": "NASDAQ:SPY", "title": "SPY" },
+                { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500 (Live)" },
                 { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
                 { "proName": "NASDAQ:MSFT", "title": "MSFT" },
                 { "proName": "NASDAQ:AAPL", "title": "AAPL" },
@@ -57,83 +50,55 @@
 
     <!-- SECTOR ROTATION MODAL -->
     <div id="sector-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="glass-card w-full max-w-2xl p-6 rounded border border-[#ff8800]/50 shadow-[0_0_30px_rgba(255,136,0,0.1)]">
+        <div class="glass-card w-full max-w-2xl p-6 rounded border border-[#ff8800]/50">
             <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <h2 class="text-[#ff8800] font-bold text-[14px] uppercase tracking-widest flex items-center gap-2">
-                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Global Sector Rotation (Full View)
-                </h2>
-                <button onclick="closeSectorModal()" class="text-gray-400 hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <h2 class="text-[#ff8800] font-bold text-[14px] uppercase tracking-widest flex items-center gap-2">Institutional Rotation</h2>
+                <button onclick="closeSectorModal()" class="text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
             </div>
-            <div class="grid grid-cols-2 gap-x-8 gap-y-4" id="full-sector-list">
-                <!-- Injected via JS -->
-            </div>
+            <div class="grid grid-cols-2 gap-4" id="full-sector-list"></div>
         </div>
     </div>
 
     <div class="terminal-container">
-        <!-- HEADER -->
         <header class="flex justify-between items-center glass-card p-3 rounded shrink-0">
-            <div class="flex items-center gap-6">
-                <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">HY ANALYSTS TERMINAL</h1>
-            </div>
-            <div class="flex items-center gap-4 text-[8px] font-bold text-gray-500 uppercase">
-                <span class="text-emerald-500 animate-pulse">● Live Sync</span>
-                <span class="border-l border-white/10 pl-4 italic">Node: 48021</span>
+            <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">HY ANALYSTS TERMINAL</h1>
+            <div class="text-[8px] font-bold text-gray-500 uppercase flex gap-4">
+                <span class="text-emerald-500 animate-pulse">● Global Feed Active</span>
+                <span class="border-l border-white/10 pl-4">Node: Eastpointe, MI</span>
             </div>
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            <!-- LEFT PANEL -->
+            <!-- LEFT -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
                     <div class="flex gap-4 border-b border-white/10 mb-3 text-[10px] font-bold uppercase">
-                        <button onclick="switchTab('commodities')" id="tab-commodities" class="pb-1 tab-active">Commodities</button>
-                        <button onclick="switchTab('stocks')" id="tab-stocks" class="pb-1 text-gray-600">Stocks</button>
+                        <button onclick="switchTab('commodities')" id="tab-commodities" class="pb-1 tab-active">Logistics</button>
+                        <button onclick="switchTab('stocks')" id="tab-stocks" class="pb-1 text-gray-600">Equities</button>
                     </div>
                     <div id="hq-list" class="flex-grow overflow-y-auto custom-scroll space-y-2"></div>
                 </div>
-
-                <!-- SECTOR FLOW (CLICKABLE) -->
-                <div class="glass-card p-3 rounded h-32 border-t border-blue-900/20 cursor-pointer hover:border-[#ff8800]/50 transition-colors group relative" onclick="openSectorModal()">
-                    <div class="absolute inset-0 bg-[#ff8800]/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                    <div class="flex justify-between items-end mb-2">
-                        <h3 class="text-[9px] font-bold text-gray-500 uppercase italic group-hover:text-gray-300">Inst. Rotation</h3>
-                        <span class="text-[7px] text-[#ff8800] uppercase animate-pulse">Click to Maximize</span>
-                    </div>
+                <div class="glass-card p-3 rounded h-32 cursor-pointer hover:border-[#ff8800]/50 group" onclick="openSectorModal()">
+                    <h3 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Inst. Rotation (Maximize)</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between text-[8px] uppercase"><span>Tech (XLK)</span><span class="text-emerald-400">94%</span></div>
                         <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-emerald-500 h-full w-[94%]"></div></div>
-                        <div class="flex justify-between text-[8px] uppercase"><span>Energy (XLE)</span><span class="text-orange-400">58%</span></div>
-                        <div class="w-full bg-white/5 h-1 rounded-full"><div class="bg-orange-500 h-full w-[58%]"></div></div>
                     </div>
                 </div>
             </aside>
 
-            <!-- CENTER MAP -->
-            <main class="col-span-6 glass-card rounded p-1 overflow-hidden relative">
-                <div id="map"></div>
-            </main>
+            <!-- CENTER -->
+            <main class="col-span-6 glass-card rounded p-1 overflow-hidden"><div id="map"></div></main>
 
-            <!-- RIGHT INTELLIGENCE & LOGISTICS -->
+            <!-- RIGHT -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <!-- Intelligence Card -->
                 <div class="glass-card p-4 rounded h-48 border-l-2 border-orange-500 flex flex-col shrink-0">
-                    <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-4 flex items-center gap-2">
-                        <i data-lucide="shield-alert" class="w-3 h-3"></i> Intelligence Layer
-                    </h2>
+                    <h2 class="text-[10px] font-bold text-orange-500 uppercase mb-4">Intelligence Layer</h2>
                     <div class="headline-container flex-grow" id="news-container"></div>
                 </div>
-
-                <!-- Vessels / Logistics Card -->
-                <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden border-t border-red-900/20">
-                    <h3 class="text-[9px] font-bold text-gray-500 uppercase italic mb-3 flex items-center gap-2">
-                        <i data-lucide="anchor" class="w-3 h-3 text-red-500"></i> Active Logistics Nodes
-                    </h3>
-                    <div id="vessel-list" class="flex-grow overflow-y-auto custom-scroll space-y-2">
-                        <!-- Injected via JS -->
-                    </div>
+                <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
+                    <h3 class="text-[9px] font-bold text-gray-500 uppercase mb-3">Active Logistics Nodes</h3>
+                    <div id="vessel-list" class="flex-grow overflow-y-auto custom-scroll space-y-2"></div>
                 </div>
             </aside>
         </div>
@@ -141,127 +106,57 @@
 
     <script>
         lucide.createIcons();
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([22, 60], 3);
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38, -97], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // --- SHIPPING ROUTES ---
-        const shippingRoutes = [
-            [[26.5, 56.2], [24.0, 59.5], [14.0, 71.0], [6.0, 80.0], [5.5, 95.0], [1.2, 104.0], [10.0, 112.0]], // Hormuz to Asia
-            [[26.5, 56.2], [14.0, 52.0], [12.0, 44.0], [15.0, 41.0], [27.0, 34.5], [29.9, 32.5]], // Hormuz to Suez
-            [[-23.4, -70.4], [-30.0, -75.0], [-55.0, -70.0], [-55.0, -60.0], [-35.0, -40.0], [0.0, -30.0], [40.0, -60.0]] // SA to US East Coast
-        ];
-
-        shippingRoutes.forEach(route => L.polyline(route, { color: '#ff8800', weight: 1.5, opacity: 0.3, dashArray: '4, 6' }).addTo(map));
-
-        // --- VESSELS DATA ---
-        const vessels = [
-            { name: "VLCC Titan", coords: [24.8, 57.5], type: "Crude Carrier", dest: "Shanghai", cargo: "WTI / Brent" },
-            { name: "LNG Polaris", coords: [13.5, 48.0], type: "LNG Carrier", dest: "Rotterdam", cargo: "NatGas" },
-            { name: "MSC Vanguard", coords: [6.5, 85.0], type: "Container", dest: "Singapore", cargo: "Tech Components" },
-            { name: "Nordic WTI", coords: [28.5, 33.5], type: "Oil Tanker", dest: "Suez", cargo: "Light Sweet" },
-            { name: "Cupric Dawn", coords: [-20.0, -72.0], type: "Bulk Carrier", dest: "New York", cargo: "Copper Grade A" }
-        ];
-
-        const vesselIcon = L.divIcon({
-            className: 'custom-vessel',
-            html: '<div class="w-[6px] h-[6px] bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse"></div>',
-            iconSize: [6, 6], iconAnchor: [3, 3]
-        });
-
-        // Initialize markers and store references
-        vessels.forEach(v => {
-            v.marker = L.marker(v.coords, { icon: vesselIcon }).addTo(map);
-            v.marker.bindTooltip(`
-                <div class="text-[9px] uppercase leading-tight">
-                    <span class="text-[#ff8800] font-bold">${v.name}</span><br/>
-                    <span class="text-gray-400">Class:</span> ${v.type}<br/>
-                    <span class="text-gray-400">Cargo:</span> ${v.cargo}<br/>
-                    <span class="text-gray-400">Dest:</span> ${v.dest}
-                </div>
-            `, { direction: 'top', offset: [0, -5] });
-        });
-
-        // --- ALL SECTORS DATA ---
-        const allSectors = [
-            { name: 'Technology (XLK)', val: 94, bar: 'bg-emerald-500', text: 'text-emerald-400' },
-            { name: 'Comm. Services (XLC)', val: 82, bar: 'bg-emerald-400', text: 'text-emerald-300' },
-            { name: 'Energy (XLE)', val: 58, bar: 'bg-orange-500', text: 'text-orange-400' },
-            { name: 'Financials (XLF)', val: 51, bar: 'bg-yellow-500', text: 'text-yellow-400' },
-            { name: 'Industrials (XLI)', val: 45, bar: 'bg-gray-400', text: 'text-gray-300' },
-            { name: 'Healthcare (XLV)', val: 32, bar: 'bg-red-400', text: 'text-red-400' },
-            { name: 'Cons. Discret. (XLY)', val: 28, bar: 'bg-red-500', text: 'text-red-500' },
-            { name: 'Real Estate (XLRE)', val: 15, bar: 'bg-red-600', text: 'text-red-600' }
-        ];
-
-        // --- EXPANDED NEWS ---
         const reports = [
-            { tag: "GEOINT", head: "Hormuz Node Alert", body: "Naval density increasing in the Strait. VLCC Titan tracking active. Risk premiums rising." },
-            { tag: "MACRO", head: "Tech Accumulation", body: "Institutional buying in GOOGL and MSFT signals confidence in AI infrastructure expansion." },
-            { tag: "SUPPLY", head: "Copper Bottleneck", body: "South American exports delayed (Ref: Cupric Dawn). Data center builders securing off-market contracts." },
-            { tag: "ENERGY", head: "Strategic Reserve", body: "DOE signals intention to refill SPR at $75/bbl. WTI showing strong support at current levels." },
-            { tag: "SQUAWK", head: "SPY Technicals", body: "Support verified at $700 level. High Yield Analysts portfolio parity confirmed." },
-            { tag: "BOND", head: "Yield Curve", body: "10Y/2Y spread dynamics shifting. Algorithmic rebalancing noted across major ETF siloes." }
+            { tag: "SQUAWK", head: "SPY Parity Alert", body: "Asset flows into SPXUSD indicate heavy institutional rotation. Technical support holding at $700 level." },
+            { tag: "GEOINT", head: "Supply Chain Topology", body: "Copper Grade A logistics showing 4% lag in Pacific transit. Critical for infrastructure uptime." },
+            { tag: "LABOR", head: "Tech Talent Migration", body: "AI Engineering roles in Mountain View seeing 12% salary compression as automation scaling begins." },
+            { tag: "MACRO", head: "Global Trade Flow", body: "Strategic reserves in Gulf Coast nodes reaching full capacity. WTI volatility expected at 14:00 EST." }
         ];
 
-        // Functions
-        let currentReport = 0;
+        const stocks = [
+            { id: 'GOOGL', name: 'Alphabet Inc.', val: '$178.44', coords: [37.422, -122.084], emp: '182,000+', hq: 'Mountain View, CA', sector: 'Tech' },
+            { id: 'MSFT', name: 'Microsoft Corp', val: '$420.12', coords: [47.639, -122.128], emp: '221,000+', hq: 'Redmond, WA', sector: 'Tech' },
+            { id: 'NVDA', name: 'NVIDIA Corp', val: '$890.33', coords: [37.371, -121.954], emp: '29,000+', hq: 'Santa Clara, CA', sector: 'Semiconductors' },
+            { id: 'AAPL', name: 'Apple Inc.', val: '$189.50', coords: [37.334, -122.009], emp: '161,000+', hq: 'Cupertino, CA', sector: 'Tech' }
+        ];
+
+        const vessels = [
+            { name: "VLCC Titan", coords: [24.8, 57.5], cargo: "WTI Crude", dest: "Shanghai" },
+            { name: "LNG Polaris", coords: [13.5, 48.0], cargo: "NatGas", dest: "Rotterdam" }
+        ];
+
         function initIntelligence() {
             const container = document.getElementById('news-container');
             container.innerHTML = reports.map((r, i) => `
                 <div class="news-block ${i === 0 ? 'news-active' : ''}" id="report-${i}">
-                    <span class="text-[8px] text-red-500 font-bold uppercase tracking-widest">${r.tag}</span>
-                    <h4 class="text-[11px] text-white font-bold mt-1 uppercase underline decoration-orange-500/30 underline-offset-4">${r.head}</h4>
-                    <p class="text-[9px] text-gray-400 leading-relaxed mt-3 italic">${r.body}</p>
+                    <span class="text-[8px] text-red-500 font-bold uppercase">${r.tag}</span>
+                    <h4 class="text-[11px] text-white font-bold mt-1 uppercase underline underline-offset-4 decoration-orange-500/20">${r.head}</h4>
+                    <p class="text-[9px] text-gray-400 mt-3 italic leading-tight">${r.body}</p>
                 </div>
             `).join('');
+            let cur = 0;
             setInterval(() => {
-                document.getElementById(`report-${currentReport}`).classList.remove('news-active');
-                currentReport = (currentReport + 1) % reports.length;
-                document.getElementById(`report-${currentReport}`).classList.add('news-active');
-            }, 6000);
-        }
-
-        function initVessels() {
-            const list = document.getElementById('vessel-list');
-            list.innerHTML = vessels.map((v, i) => `
-                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-red-500/50 cursor-pointer transition-all group" onclick="flyToVessel(${i})">
-                    <div class="flex justify-between text-[8px] font-bold text-gray-400 uppercase">
-                        <span class="text-red-400 group-hover:text-red-300">${v.name}</span>
-                        <span>To: ${v.dest}</span>
-                    </div>
-                    <div class="text-[8px] text-gray-500 uppercase mt-1">Cargo: ${v.cargo}</div>
-                </div>
-            `).join('');
-        }
-
-        function flyToVessel(index) {
-            const v = vessels[index];
-            map.flyTo(v.coords, 5, { duration: 1.5 });
-            setTimeout(() => v.marker.openTooltip(), 1500); // Open tooltip after flight
+                document.getElementById(`report-${cur}`).classList.remove('news-active');
+                cur = (cur + 1) % reports.length;
+                document.getElementById(`report-${cur}`).classList.add('news-active');
+            }, 5000);
         }
 
         function switchTab(tab) {
+            const list = document.getElementById('hq-list');
             document.getElementById('tab-commodities').className = tab === 'commodities' ? 'pb-1 tab-active' : 'pb-1 text-gray-600';
             document.getElementById('tab-stocks').className = tab === 'stocks' ? 'pb-1 tab-active' : 'pb-1 text-gray-600';
-            
-            const data = {
-                commodities: [
-                    { id: 'WTI', name: 'West Texas Crude', val: '$84.22', coords: [31.9, -102.0], ref: 'Permian' },
-                    { id: 'BRT', name: 'Brent Crude', val: '$89.10', coords: [26.0, 56.0], ref: 'Hormuz Hub' },
-                    { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], ref: 'Infrastructure' },
-                    { id: 'LI', name: 'Lithium Spod.', val: '$13.4k', coords: [-27.3, -66.8], ref: 'Battery Silo' }
-                ],
-                stocks: [
-                    { id: 'SPY', name: 'S&P 500 ETF', val: '$718.66', coords: [40.7, -74.0] },
-                    { id: 'GOOGL', name: 'Alphabet Inc.', val: '$178.44', coords: [37.4, -122.0] },
-                    { id: 'MSFT', name: 'Microsoft Corp', val: '$420.12', coords: [47.6, -122.1] },
-                    { id: 'AAPL', name: 'Apple Inc.', val: '$189.50', coords: [37.3, -122.0] }
-                ]
-            };
 
-            const list = document.getElementById('hq-list');
-            list.innerHTML = data[tab].map(item => `
-                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-orange-500 cursor-pointer transition-all" onclick="map.flyTo([${item.coords}], 6)">
+            const items = tab === 'stocks' ? stocks : [
+                { id: 'WTI', name: 'Texas Crude', val: '$84.22', coords: [31.9, -102.0], hq: 'Permian Basin', emp: 'Midstream Ops' },
+                { id: 'CU', name: 'Copper Grade A', val: '$4.22', coords: [-23.4, -70.4], hq: 'Antofagasta', emp: 'Mining Ops' }
+            ];
+
+            list.innerHTML = items.map(item => `
+                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-orange-500 cursor-pointer" onclick="flyToHq('${item.id}')">
                     <div class="flex justify-between text-[8px] font-bold text-gray-500 uppercase">
                         <span>${item.id}</span><span class="text-emerald-400">${item.val}</span>
                     </div>
@@ -270,36 +165,39 @@
             `).join('');
         }
 
-        function openSectorModal() {
-            const modal = document.getElementById('sector-modal');
-            const list = document.getElementById('full-sector-list');
-            
-            list.innerHTML = allSectors.map(s => `
-                <div class="space-y-2 p-3 bg-white/5 rounded border border-white/5">
-                    <div class="flex justify-between text-[9px] font-bold uppercase">
-                        <span class="text-gray-300">${s.name}</span>
-                        <span class="${s.text}">${s.val}%</span>
-                    </div>
-                    <div class="w-full bg-black h-2 rounded-full border border-white/10">
-                        <div class="${s.bar} h-full rounded-full" style="width: ${s.val}%"></div>
-                    </div>
+        function flyToHq(id) {
+            const data = [...stocks, { id: 'WTI', coords: [31.9, -102.0], hq: 'Permian', emp: 'Regional' }, { id: 'CU', coords: [-23.4, -70.4], hq: 'Chile', emp: 'National' }].find(x => x.id === id);
+            map.flyTo(data.coords, 10);
+            L.popup().setLatLng(data.coords).setContent(`
+                <div class="bg-black text-white p-2 text-[10px] border border-[#ff8800]">
+                    <b class="text-[#ff8800] uppercase">${id} HQ</b><br/>
+                    Location: ${data.hq}<br/>
+                    Employment: ${data.emp}
+                </div>
+            `).openOn(map);
+        }
+
+        function initVessels() {
+            const vList = document.getElementById('vessel-list');
+            vList.innerHTML = vessels.map(v => `
+                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-red-500 cursor-pointer" onclick="map.flyTo([${v.coords}], 5)">
+                    <div class="text-[8px] font-bold text-red-400 uppercase">${v.name}</div>
+                    <div class="text-[8px] text-gray-500 uppercase mt-1">Cargo: ${v.cargo} | Dest: ${v.dest}</div>
                 </div>
             `).join('');
-
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            vessels.forEach(v => L.circleMarker(v.coords, { radius: 4, color: '#ef4444' }).addTo(map));
         }
 
+        function openSectorModal() {
+            document.getElementById('sector-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('sector-modal').classList.remove('opacity-0'), 10);
+        }
         function closeSectorModal() {
-            const modal = document.getElementById('sector-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+            document.getElementById('sector-modal').classList.add('opacity-0');
+            setTimeout(() => document.getElementById('sector-modal').classList.add('hidden'), 300);
         }
 
-        // Init
-        switchTab('commodities');
-        initIntelligence();
-        initVessels();
+        window.onload = () => { switchTab('commodities'); initIntelligence(); initVessels(); };
     </script>
 </body>
 </html>
