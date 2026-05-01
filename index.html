@@ -3,26 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal | Institutional Grade v8.0</title>
+    <title>HY Analysts Terminal | Quantitative Fundamentals v9.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --terminal-black: #050505; --hq-orange: #ff8800; --energy-blue: #00d4ff; }
+        :root { --terminal-black: #050505; --hq-orange: #ff8800; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
         .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255,255,255,0.1); }
         .terminal-container { margin-top: 48px; height: calc(100vh - 56px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
         #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #333; }
         
-        /* Bar Chart Styles */
-        .bar-container { height: 12px; background: rgba(255,255,255,0.05); border-radius: 2px; position: relative; overflow: hidden; }
-        .bar-fill-orange { height: 100%; background: var(--hq-orange); transition: width 1s ease; }
-        .bar-fill-green { height: 100%; background: #10b981; transition: width 1s ease; }
-        .earnings-bar { width: 14px; background: #3b82f6; border-radius: 2px 2px 0 0; min-height: 4px; }
+        .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
+        
+        .yield-point { width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; position: absolute; }
+        .yield-line { height: 1px; background: rgba(59, 130, 246, 0.3); position: absolute; width: 100%; top: 50%; }
+
+        /* Expandable Sector Section */
+        .sector-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .sector-expanded .sector-content { max-height: 200px; }
     </style>
 </head>
 <body>
@@ -34,64 +38,66 @@
             {
               "symbols": [
                 { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
-                { "proName": "NYMEX:CL1!", "title": "WTI CRUDE" },
-                { "proName": "NASDAQ:AAPL", "title": "AAPL" },
-                { "proName": "NASDAQ:NVDA", "title": "NVDA" }
+                { "proName": "NYMEX:CL1!", "title": "CRUDE OIL" },
+                { "proName": "CBOT:ZB1!", "title": "30Y BOND" }
               ],
-              "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
+              "colorTheme": "dark", "isTransparent": true, "displayMode": "compact", "locale": "en"
             }
             </script>
         </div>
     </div>
 
     <div class="terminal-container">
-        <header class="flex justify-between items-center glass-card p-3 rounded shrink-0">
+        <header class="flex justify-between items-center glass-card p-2 rounded shrink-0">
             <div class="flex items-center gap-4">
-                <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">FUNDAMENTAL TOPOLOGY</h1>
+                <h1 class="text-[10px] font-bold tracking-widest text-[#ff8800]">FUNDAMENTAL ANALYSIS ENGINE</h1>
                 <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                 </a>
-            </div>
-            <div class="text-[8px] font-bold text-gray-500 flex gap-4">
-                <span class="text-emerald-500">● LIVE FINANCIALS</span>
-                <span class="text-blue-400">ENERGY TRACKER: ACTIVE</span>
             </div>
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            <!-- LEFT: SECTOR CHART & EARNINGS -->
-            <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <div class="glass-card p-4 rounded shrink-0">
-                    <h2 class="text-[10px] font-bold text-[#ff8800] uppercase mb-4">Sector Rotation Chart</h2>
-                    <div id="sector-bars" class="space-y-4"></div>
-                </div>
-                
-                <div class="glass-card p-4 rounded shrink-0">
-                    <h2 class="text-[10px] font-bold text-gray-400 uppercase mb-4">Quarterly Earnings ($B)</h2>
-                    <div id="earnings-chart" class="flex items-end justify-between h-24 px-2 border-b border-white/10">
-                        <!-- JS Bars -->
-                    </div>
-                    <div class="flex justify-between text-[8px] text-gray-500 mt-1 uppercase">
-                        <span>Q1 25</span><span>Q2 25</span><span>Q3 25</span><span>Q4 25</span>
-                    </div>
-                </div>
-
-                <div class="glass-card p-3 rounded flex-grow overflow-hidden">
-                    <h2 class="text-[10px] font-bold text-gray-500 uppercase mb-2">Portfolio Directory</h2>
-                    <div id="equity-directory" class="space-y-1 overflow-y-auto h-full custom-scroll pr-2"></div>
-                </div>
+            <!-- LEFT: COMPANY DIRECTORY -->
+            <aside class="col-span-2 glass-card p-2 rounded flex flex-col overflow-hidden">
+                <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">S&P 500 Assets</h2>
+                <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1"></div>
             </aside>
 
-            <!-- CENTER: MAP -->
-            <main class="col-span-6 glass-card rounded p-1 overflow-hidden">
+            <!-- CENTER: TOPOLOGY MAP -->
+            <main class="col-span-6 glass-card rounded p-1">
                 <div id="map"></div>
             </main>
 
-            <!-- RIGHT: FUNDAMENTALS & COMMODITIES -->
-            <aside class="col-span-3 glass-card p-4 rounded flex flex-col overflow-hidden">
-                <h2 class="text-[10px] font-bold text-[#ff8800] uppercase mb-2">Company Intelligence Silo</h2>
-                <div id="intel-silo" class="space-y-4">
-                    <div class="p-8 text-center text-gray-600 text-[10px] uppercase italic">Select a company node to analyze financials, energy usage, and personnel.</div>
+            <!-- RIGHT: FUNDAMENTALS & MACRO -->
+            <aside class="col-span-4 flex flex-col gap-2 overflow-hidden">
+                <!-- INTELLIGENCE SILO (DYNAMIC EARNINGS) -->
+                <div id="intel-silo" class="glass-card p-3 rounded shrink-0 h-1/2 flex flex-col overflow-hidden">
+                    <div class="text-center my-auto text-[10px] text-gray-600 italic uppercase">Select Asset to Rehydrate Silo</div>
+                </div>
+
+                <!-- SECTOR & YIELD (MACRO) -->
+                <div class="glass-card p-3 rounded flex-grow flex flex-col gap-3 overflow-hidden">
+                    <!-- Expandable Sector Rotation -->
+                    <div id="sector-section" class="cursor-pointer">
+                        <div class="flex justify-between items-center mb-1" onclick="document.getElementById('sector-section').classList.toggle('sector-expanded')">
+                            <h2 class="text-[9px] font-bold text-[#ff8800] uppercase">Sector Rotation</h2>
+                            <span class="text-[8px] text-gray-600">+/-</span>
+                        </div>
+                        <div class="sector-content space-y-2 pt-2" id="sector-bars"></div>
+                    </div>
+
+                    <!-- Yield Curve -->
+                    <div class="flex-grow flex flex-col">
+                        <h2 class="text-[9px] font-bold text-blue-500 uppercase mb-1">US Yield Curve (Basis)</h2>
+                        <div class="relative flex-grow border-l border-b border-white/10 mx-2 mb-4">
+                            <div class="yield-line"></div>
+                            <div id="yield-curve-points" class="absolute inset-0"></div>
+                        </div>
+                        <div class="flex justify-between text-[7px] text-gray-500 px-1 uppercase">
+                            <span>3M</span><span>2Y</span><span>5Y</span><span>10Y</span><span>30Y</span>
+                        </div>
+                    </div>
                 </div>
             </aside>
         </div>
@@ -101,45 +107,37 @@
         const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38, -95], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        const sectorData = [
-            { n: "Tech (XLK)", v: 88 }, { n: "Energy (XLE)", v: 42 },
-            { n: "Financials (XLF)", v: 76 }, { n: "Materials (XLB)", v: 55 }
-        ];
-
-        const earningsData = [45, 62, 58, 84];
-
         const sAndP = [
-            { id: 'AAPL', n: 'Apple', c: [37.3, -122.0], emp: '161,000', rev: '$383B', oil: '3.2M Barrels (Equiv)', coms: 'Lithium, Cobalt, Gold', cash: '$162B' },
-            { id: 'XOM', n: 'Exxon Mobil', c: [30.1, -95.4], emp: '62,000', rev: '$344B', oil: 'Direct Extraction', coms: 'Crude, Gas, Polymer', cash: '$31B' },
-            { id: 'TSLA', n: 'Tesla', c: [30.2, -97.7], emp: '140,000', rev: '$96B', oil: 'Low (Renewable Focus)', coms: 'Nickel, Lithium, Steel', cash: '$26B' },
-            { id: 'CAT', n: 'Caterpillar', c: [32.9, -96.9], emp: '107,000', rev: '$67B', oil: '12M Barrels (Ops)', coms: 'Iron, Rubber, Copper', cash: '$7B' }
+            { id: 'AAPL', n: 'Apple', c: [37.3, -122.0], emp: '161k', rev: '$383B', oil: '3.2M bbl', coms: 'Lithium, Gold', earn: [82, 94, 88, 110], cash: '$162B' },
+            { id: 'NVDA', n: 'NVIDIA', c: [37.3, -121.9], emp: '29k', rev: '$60B', oil: 'Data Center Load', coms: 'Silicon, Neon', earn: [40, 65, 90, 120], cash: '$25B' },
+            { id: 'TSLA', n: 'Tesla', c: [30.2, -97.7], emp: '140k', rev: '$96B', oil: 'Neutral', coms: 'Lithium, Nickel', earn: [30, 35, 32, 45], cash: '$26B' },
+            { id: 'JPM', n: 'JPMorgan', c: [40.7, -73.9], emp: '300k', rev: '$158B', oil: 'Financing Ops', coms: 'Credit, Gold', earn: [70, 75, 80, 78], cash: '$1.4T' }
         ];
 
         function init() {
-            // Sector Bars
-            document.getElementById('sector-bars').innerHTML = sectorData.map(s => `
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[8px] uppercase font-bold"><span>${s.n}</span><span>${s.v}%</span></div>
-                    <div class="bar-container"><div class="bar-fill-orange" style="width: ${s.v}%"></div></div>
+            // Sector Bars (Initial)
+            document.getElementById('sector-bars').innerHTML = [
+                {n:"XLK", v:92}, {n:"XLF", v:78}, {n:"XLE", v:45}
+            ].map(s => `
+                <div class="text-[8px] uppercase flex justify-between mb-0.5"><span>${s.n}</span><span>${s.v}%</span></div>
+                <div class="bar-container"><div class="bar-fill" style="width:${s.v}%"></div></div>
+            `).join('');
+
+            // Yield Curve Mock
+            const yieldY = [80, 90, 70, 60, 55]; // Inverted look
+            document.getElementById('yield-curve-points').innerHTML = yieldY.map((y, i) => `
+                <div class="yield-point" style="left: ${i * 24}%; bottom: ${y}%"></div>
+            `).join('');
+
+            // Equity List
+            document.getElementById('equity-list').innerHTML = sAndP.map(e => `
+                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold" onclick="showIntel('${e.id}')">
+                    <span class="text-orange-500">${e.id}</span>
                 </div>
             `).join('');
 
-            // Earnings Chart
-            document.getElementById('earnings-chart').innerHTML = earningsData.map(v => `
-                <div class="earnings-bar" style="height: ${v}%" title="$${v}B"></div>
-            `).join('');
-
-            // Directory
-            document.getElementById('equity-directory').innerHTML = sAndP.map(e => `
-                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer" onclick="showIntel('${e.id}')">
-                    <div class="flex justify-between text-[9px] font-bold uppercase"><span class="text-orange-500">${e.id}</span><span>${e.rev}</span></div>
-                </div>
-            `).join('');
-
-            // Map Nodes
             sAndP.forEach(e => {
-                L.circleMarker(e.c, { radius: 4, color: '#ff8800', fillOpacity: 0.8 }).addTo(map)
-                 .on('click', () => showIntel(e.id));
+                L.circleMarker(e.c, { radius: 3, color: '#ff8800' }).addTo(map).on('click', () => showIntel(e.id));
             });
         }
 
@@ -148,24 +146,25 @@
             map.flyTo(co.c, 9);
             
             document.getElementById('intel-silo').innerHTML = `
-                <div class="border-b border-white/10 pb-2">
-                    <h3 class="text-lg font-bold text-white uppercase">${co.n} <span class="text-gray-500">[${co.id}]</span></h3>
+                <div class="flex justify-between items-center border-b border-white/10 pb-1 mb-2">
+                    <h3 class="text-xs font-bold text-white uppercase">${co.n} <span class="text-gray-500">[${co.id}]</span></h3>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-white/5 p-2 rounded"><div class="text-[8px] text-gray-500 uppercase">Employment</div><div class="text-xs font-bold">${co.emp}</div></div>
-                    <div class="bg-white/5 p-2 rounded"><div class="text-[8px] text-gray-500 uppercase">Cash Reserve</div><div class="text-xs font-bold text-emerald-400">${co.cash}</div></div>
+                <div class="grid grid-cols-2 gap-1 mb-3">
+                    <div class="bg-white/5 p-1 rounded"><div class="text-[7px] text-gray-500 uppercase">Revenue</div><div class="text-[10px] font-bold">${co.rev}</div></div>
+                    <div class="bg-white/5 p-1 rounded"><div class="text-[7px] text-gray-500 uppercase">Staff</div><div class="text-[10px] font-bold">${co.emp}</div></div>
                 </div>
-                <div class="bg-blue-900/20 border border-blue-500/30 p-2 rounded">
-                    <div class="text-[8px] text-blue-400 uppercase font-bold flex justify-between"><span>Energy Consumption (Oil)</span><i data-lucide="droplet"></i></div>
-                    <div class="text-xs font-bold text-blue-200">${co.oil}</div>
+                <div class="text-[8px] text-gray-500 uppercase mb-2">Quarterly Earnings Trend</div>
+                <div class="flex items-end justify-between h-16 px-4 border-b border-white/10 mb-1">
+                    ${co.earn.map(v => `<div class="w-3 bg-[#ff8800]" style="height: ${v/1.5}%"></div>`).join('')}
                 </div>
-                <div class="space-y-2">
-                    <div class="text-[8px] text-gray-500 uppercase font-bold">Key Commodities</div>
-                    <div class="text-[10px] text-orange-200 border-l-2 border-orange-500 pl-2 py-1 italic">${co.coms}</div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-white/10">
-                    <div class="text-[8px] text-gray-500 uppercase mb-2">Revenue Vital Signs</div>
-                    <div class="bar-container"><div class="bar-fill-green" style="width: 85%"></div></div>
+                <div class="flex justify-between text-[6px] text-gray-500 uppercase mb-3"><span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span></div>
+                
+                <div class="space-y-2 mt-auto">
+                    <div class="bg-blue-900/10 border border-blue-500/20 p-1.5 rounded">
+                        <div class="text-[7px] text-blue-400 uppercase font-bold">Energy/Oil Intensity</div>
+                        <div class="text-[9px] text-blue-200">${co.oil}</div>
+                    </div>
+                    <div class="text-[7px] text-gray-500 uppercase">Primary Commodities: <span class="text-white">${co.coms}</span></div>
                 </div>
             `;
         }
