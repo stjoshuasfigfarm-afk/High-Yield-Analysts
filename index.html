@@ -28,6 +28,11 @@
         .terminal-container { margin-top: 48px; height: calc(100vh - 56px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
         .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
         #map { height: 100%; width: 100%; border-radius: 4px; }
+        
+        /* Custom Map Tooltips */
+        .leaflet-tooltip { background: rgba(10, 10, 10, 0.95) !important; border: 1px solid var(--hq-orange) !important; color: white !important; font-family: 'JetBrains Mono', monospace; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .leaflet-tooltip-top:before { border-top-color: var(--hq-orange) !important; }
+
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .tab-active { color: var(--hq-orange); border-bottom: 2px solid var(--hq-orange); }
@@ -125,9 +130,54 @@
 
     <script>
         lucide.createIcons();
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
+        // Centered over the Middle East/Asia logistics corridor
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([22, 60], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
+        // --- SHIPPING ROUTES (LOGISTICS CORRIDORS) ---
+        const shippingRoutes = [
+            // Strait of Hormuz to South China Sea
+            [[26.5, 56.2], [24.0, 59.5], [14.0, 71.0], [6.0, 80.0], [5.5, 95.0], [1.2, 104.0], [10.0, 112.0]],
+            // Strait of Hormuz to Red Sea / Suez
+            [[26.5, 56.2], [14.0, 52.0], [12.0, 44.0], [15.0, 41.0], [27.0, 34.5], [29.9, 32.5]]
+        ];
+
+        shippingRoutes.forEach(route => {
+            L.polyline(route, {
+                color: '#ff8800',
+                weight: 1.5,
+                opacity: 0.3,
+                dashArray: '4, 6'
+            }).addTo(map);
+        });
+
+        // --- VESSELS (LIVE TRACKING SIMULATION) ---
+        const vessels = [
+            { name: "VLCC Titan", coords: [24.8, 57.5], type: "Crude Carrier", dest: "Shanghai" },
+            { name: "LNG Polaris", coords: [13.5, 48.0], type: "LNG Carrier", dest: "Rotterdam" },
+            { name: "MSC Vanguard", coords: [6.5, 85.0], type: "Container", dest: "Singapore" },
+            { name: "Nordic WTI", coords: [28.5, 33.5], type: "Oil Tanker", dest: "Suez" }
+        ];
+
+        const vesselIcon = L.divIcon({
+            className: 'custom-vessel',
+            html: '<div class="w-[6px] h-[6px] bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse"></div>',
+            iconSize: [6, 6],
+            iconAnchor: [3, 3]
+        });
+
+        vessels.forEach(v => {
+            const marker = L.marker(v.coords, { icon: vesselIcon }).addTo(map);
+            marker.bindTooltip(`
+                <div class="text-[9px] uppercase leading-tight">
+                    <span class="text-[#ff8800] font-bold">${v.name}</span><br/>
+                    <span class="text-gray-400">Class:</span> ${v.type}<br/>
+                    <span class="text-gray-400">Dest:</span> ${v.dest}
+                </div>
+            `, { direction: 'top', offset: [0, -5] });
+        });
+
+        // --- CORE DATA (COMMODITIES/STOCKS) ---
         const data = {
             commodities: [
                 { id: 'WTI', name: 'West Texas Crude', val: '$84.22', coords: [31.9, -102.0], ref: 'Permian' },
@@ -144,7 +194,7 @@
         };
 
         const reports = [
-            { tag: "GEOINT", head: "Hormuz Node Alert", body: "Naval density increasing in the Strait. Risk premiums rising across Brent/WTI futures." },
+            { tag: "GEOINT", head: "Hormuz Node Alert", body: "Naval density increasing in the Strait. VLCC Titan tracking active. Risk premiums rising." },
             { tag: "MACRO", head: "Tech Accumulation", body: "Institutional buying in GOOGL and MSFT signals confidence in AI infrastructure expansion." },
             { tag: "SQUAWK", head: "SPY Technicals", body: "Support verified at $700 level. High Yield Analysts portfolio parity confirmed." }
         ];
