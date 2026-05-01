@@ -21,9 +21,13 @@
         .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
         
-        .yield-point { width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; position: absolute; transform: translate(-3px, 3px); }
-        .yield-line { height: 1px; background: rgba(59, 130, 246, 0.3); position: absolute; width: 100%; top: 50%; }
+        .yield-point { width: 6px; height: 6px; border-radius: 50%; position: absolute; transform: translate(-3px, 3px); }
+        .yield-line { height: 1px; background: rgba(255, 255, 255, 0.1); position: absolute; width: 100%; top: 50%; }
         .yield-curve-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+
+        /* Custom Map Tooltip overriding Leaflet defaults */
+        .leaflet-tooltip.terminal-tooltip { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--hq-orange); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .leaflet-tooltip-top.terminal-tooltip:before { border-top-color: var(--hq-orange); }
     </style>
 </head>
 <body>
@@ -66,7 +70,7 @@
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
             
-            <!-- LEFT: DYNAMIC DATA (Company Select & Intelligence Silo) -->
+            <!-- LEFT: DYNAMIC DATA -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <!-- Tracked Assets List -->
                 <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/3 shrink-0">
@@ -74,18 +78,18 @@
                     <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
                 </div>
                 
-                <!-- Intelligence Silo (Updates on Click) -->
+                <!-- Intelligence Silo -->
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <div class="text-center my-auto text-[10px] text-gray-600 italic uppercase">Select an asset from the map or directory to initialize dynamic data.</div>
+                    <div class="text-center my-auto text-[10px] text-gray-600 italic uppercase">Hover over an HQ on the map or select an asset to initialize data.</div>
                 </div>
             </aside>
 
             <!-- CENTER: TOPOLOGY MAP -->
-            <main class="col-span-6 glass-card rounded p-1">
+            <main class="col-span-6 glass-card rounded p-1 relative z-0">
                 <div id="map"></div>
             </main>
 
-            <!-- RIGHT: STATIC MACRO DATA (Sector Rotation & Yield Curve) -->
+            <!-- RIGHT: STATIC MACRO DATA -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
                 <!-- Sector Rotation -->
                 <div class="glass-card p-3 rounded shrink-0">
@@ -93,19 +97,19 @@
                     <div class="space-y-2 pt-1" id="sector-bars"></div>
                 </div>
 
-                <!-- Yield Curve -->
+                <!-- Yield Curve (2Y vs 10Y) -->
                 <div class="glass-card p-3 rounded flex-grow flex flex-col">
-                    <h2 class="text-[9px] font-bold text-blue-500 uppercase mb-2">US Yield Curve (Basis)</h2>
-                    <div class="relative flex-grow border-l border-b border-white/10 mx-2 mt-2 mb-4">
+                    <h2 class="text-[9px] font-bold text-blue-500 uppercase mb-2">Treasury Spread (2Y / 10Y)</h2>
+                    <div class="relative flex-grow border-l border-b border-white/10 mx-4 mt-4 mb-4">
                         <div class="yield-line"></div>
-                        <!-- SVG for curved line -->
+                        <!-- SVG for the 2Y/10Y line -->
                         <svg class="yield-curve-svg" preserveAspectRatio="none" viewBox="0 0 100 100">
-                            <path id="yield-svg-path" d="" fill="none" stroke="rgba(59, 130, 246, 0.6)" stroke-width="2" />
+                            <path id="yield-svg-path" d="" fill="none" stroke="rgba(59, 130, 246, 0.8)" stroke-width="2" stroke-dasharray="4 2" />
                         </svg>
                         <div id="yield-curve-points" class="absolute inset-0"></div>
                     </div>
-                    <div class="flex justify-between text-[7px] text-gray-500 px-1 uppercase">
-                        <span>3M</span><span>2Y</span><span>5Y</span><span>10Y</span><span>30Y</span>
+                    <div class="flex justify-between text-[8px] font-bold text-gray-400 px-2 uppercase">
+                        <span>2-Year</span><span>10-Year</span>
                     </div>
                 </div>
             </aside>
@@ -116,7 +120,6 @@
         const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38, -95], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // Core Data Array with empVal for percentage calculations (Max ~1.5M for AMZN)
         const sAndP = [
             { id: 'AAPL', n: 'Apple', c: [37.3, -122.0], emp: '161k', empVal: 161, rev: '$383B', oil: '3.2M bbl', coms: 'Lithium, Gold', earn: [82, 94, 88, 110], cash: '$162B' },
             { id: 'MSFT', n: 'Microsoft', c: [47.6, -122.1], emp: '221k', empVal: 221, rev: '$211B', oil: 'Data Center Ops', coms: 'Silicon, Copper', earn: [52, 56, 61, 65], cash: '$143B' },
@@ -141,43 +144,50 @@
                 <div class="bar-container mb-2"><div class="bar-fill" style="width:${s.v}%"></div></div>
             `).join('');
 
-            // Render Static Yield Curve
+            // Render 2Y vs 10Y Yield Curve Data
             const yieldData = [
-                { x: 0, y: 80 }, { x: 25, y: 90 }, { x: 50, y: 65 }, { x: 75, y: 55 }, { x: 100, y: 50 }
+                { x: 0, y: 70, label: '4.8%' },  // 2Y representation
+                { x: 100, y: 55, label: '4.3%' }  // 10Y representation
             ];
             
             document.getElementById('yield-curve-points').innerHTML = yieldData.map(pt => `
-                <div class="yield-point" style="left: ${pt.x}%; bottom: ${pt.y}%"></div>
+                <div class="yield-point bg-blue-400" style="left: ${pt.x}%; bottom: ${pt.y}%"></div>
+                <div class="absolute text-[8px] text-white font-bold bg-black/50 px-1 rounded" style="left: ${pt.x}%; bottom: ${pt.y + 10}%; transform: translateX(-50%);">${pt.label}</div>
             `).join('');
 
-            const pathD = `M 0 ${100 - yieldData[0].y} Q 12.5 ${100 - yieldData[1].y} 25 ${100 - yieldData[1].y} T 50 ${100 - yieldData[2].y} T 75 ${100 - yieldData[3].y} T 100 ${100 - yieldData[4].y}`;
+            const pathD = `M 0 ${100 - yieldData[0].y} L 100 ${100 - yieldData[1].y}`;
             document.getElementById('yield-svg-path').setAttribute('d', pathD);
 
             // Render Dynamic Asset List on the Left
             document.getElementById('equity-list').innerHTML = sAndP.map(e => `
-                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onclick="showIntel('${e.id}')">
+                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onmouseover="showIntel('${e.id}')">
                     <span class="text-orange-500">${e.id}</span>
                     <span class="text-gray-500 font-normal">${e.n}</span>
                 </div>
             `).join('');
 
-            // Plot Map Markers
+            // Plot Map Markers with Hover Tooltips
             sAndP.forEach(e => {
-                L.circleMarker(e.c, { radius: 4, color: '#ff8800', weight: 2, fillOpacity: 0.5 })
+                const marker = L.circleMarker(e.c, { radius: 5, color: '#ff8800', weight: 2, fillOpacity: 0.5 })
                  .addTo(map)
-                 .on('click', () => showIntel(e.id));
+                 .bindTooltip(`
+                    <div class="text-center p-1">
+                        <div class="font-bold text-[#ff8800] text-[11px] uppercase tracking-wider">${e.n}</div>
+                        <div class="text-emerald-400 text-[10px] mt-1 border-t border-white/10 pt-1">Headcount: ${e.emp}</div>
+                    </div>
+                 `, { className: 'terminal-tooltip', direction: 'top', offset: [0, -10] })
+                 .on('mouseover', function() { 
+                     showIntel(e.id); // Also populates the left panel instantly on hover
+                 });
             });
         }
 
         // Render Dynamic Intelligence Silo
         function showIntel(id) {
             const co = sAndP.find(e => e.id === id);
-            map.flyTo(co.c, 7, { duration: 1.5 });
             
-            // Calculate Employment Bar width (relative to AMZN's 1.5M)
+            // Calculate Employment Bar width
             const empPercent = Math.min((co.empVal / 1500) * 100, 100);
-            
-            // Calculate Max Earnings for scale
             const maxEarn = Math.max(...co.earn);
 
             document.getElementById('intel-silo').innerHTML = `
@@ -186,7 +196,6 @@
                     <span class="text-xs font-bold text-[#ff8800] bg-[#ff8800]/10 px-1.5 py-0.5 rounded">${co.id}</span>
                 </div>
                 
-                <!-- DYNAMIC EMPLOYMENT DATA -->
                 <div class="bg-emerald-900/10 border-l-2 border-emerald-500 p-2 rounded mb-3">
                     <div class="flex justify-between text-[8px] text-emerald-400 uppercase font-bold mb-1.5">
                         <span>Global Headcount</span><span>${co.emp}</span>
@@ -207,16 +216,14 @@
                     </div>
                 </div>
 
-                <!-- DYNAMIC EARNINGS -->
                 <div class="text-[8px] text-gray-500 uppercase mb-2 font-bold tracking-widest">Quarterly Earnings</div>
                 <div class="flex items-end justify-between h-16 px-4 border-b border-white/10 mb-1 pt-2">
-                    ${co.earn.map(v => `<div class="w-4 bg-blue-500/80 rounded-t-sm hover:bg-blue-400 transition-colors" style="height: ${(v/maxEarn)*100}%" title="${v}"></div>`).join('')}
+                    ${co.earn.map(v => `<div class="w-4 bg-blue-500/80 rounded-t-sm" style="height: ${(v/maxEarn)*100}%" title="${v}"></div>`).join('')}
                 </div>
                 <div class="flex justify-between text-[7px] text-gray-500 uppercase mb-4 px-1">
                     <span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span>
                 </div>
                 
-                <!-- COMMODITIES & ENERGY -->
                 <div class="space-y-2 mt-auto">
                     <div class="bg-blue-900/10 border border-blue-500/20 p-2 rounded">
                         <div class="text-[8px] text-blue-400 uppercase font-bold mb-1">Energy Intensity</div>
