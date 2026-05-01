@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal | S&P 500 Global Edition</title>
+    <title>HY Analysts Terminal | Institutional Grade v8.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --terminal-black: #050505; --hq-orange: #ff8800; }
+        :root { --terminal-black: #050505; --hq-orange: #ff8800; --energy-blue: #00d4ff; }
         body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
         .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255,255,255,0.1); }
         .terminal-container { margin-top: 48px; height: calc(100vh - 56px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
@@ -17,7 +17,12 @@
         #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        .sector-fill { height: 100%; background: var(--hq-orange); transition: width 1s ease; }
+        
+        /* Bar Chart Styles */
+        .bar-container { height: 12px; background: rgba(255,255,255,0.05); border-radius: 2px; position: relative; overflow: hidden; }
+        .bar-fill-orange { height: 100%; background: var(--hq-orange); transition: width 1s ease; }
+        .bar-fill-green { height: 100%; background: #10b981; transition: width 1s ease; }
+        .earnings-bar { width: 14px; background: #3b82f6; border-radius: 2px 2px 0 0; min-height: 4px; }
     </style>
 </head>
 <body>
@@ -28,10 +33,10 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
             {
               "symbols": [
-                { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500 Index" },
-                { "proName": "NASDAQ:NVDA", "title": "NVDA" },
+                { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
+                { "proName": "NYMEX:CL1!", "title": "WTI CRUDE" },
                 { "proName": "NASDAQ:AAPL", "title": "AAPL" },
-                { "proName": "NASDAQ:MSFT", "title": "MSFT" }
+                { "proName": "NASDAQ:NVDA", "title": "NVDA" }
               ],
               "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
             }
@@ -42,27 +47,38 @@
     <div class="terminal-container">
         <header class="flex justify-between items-center glass-card p-3 rounded shrink-0">
             <div class="flex items-center gap-4">
-                <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">S&P 500 TOPOLOGY TERMINAL</h1>
+                <h1 class="text-xs font-bold tracking-widest text-[#ff8800]">FUNDAMENTAL TOPOLOGY</h1>
                 <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                 </a>
             </div>
-            <div class="text-[8px] font-bold text-gray-500 flex gap-4 uppercase">
-                <span class="text-emerald-500 animate-pulse">● 500 Nodes Loaded</span>
-                <span>Eastpointe, MI</span>
+            <div class="text-[8px] font-bold text-gray-500 flex gap-4">
+                <span class="text-emerald-500">● LIVE FINANCIALS</span>
+                <span class="text-blue-400">ENERGY TRACKER: ACTIVE</span>
             </div>
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            <!-- LEFT: SECTOR & SEARCH -->
+            <!-- LEFT: SECTOR CHART & EARNINGS -->
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[10px] font-bold text-[#ff8800] uppercase mb-2">Sector Rotation</h2>
-                    <div id="sector-list" class="space-y-2"></div>
+                <div class="glass-card p-4 rounded shrink-0">
+                    <h2 class="text-[10px] font-bold text-[#ff8800] uppercase mb-4">Sector Rotation Chart</h2>
+                    <div id="sector-bars" class="space-y-4"></div>
                 </div>
-                <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <h2 class="text-[10px] font-bold text-gray-500 uppercase mb-2">Equity Directory</h2>
-                    <div id="equity-list" class="flex-grow overflow-y-auto custom-scroll space-y-1"></div>
+                
+                <div class="glass-card p-4 rounded shrink-0">
+                    <h2 class="text-[10px] font-bold text-gray-400 uppercase mb-4">Quarterly Earnings ($B)</h2>
+                    <div id="earnings-chart" class="flex items-end justify-between h-24 px-2 border-b border-white/10">
+                        <!-- JS Bars -->
+                    </div>
+                    <div class="flex justify-between text-[8px] text-gray-500 mt-1 uppercase">
+                        <span>Q1 25</span><span>Q2 25</span><span>Q3 25</span><span>Q4 25</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-3 rounded flex-grow overflow-hidden">
+                    <h2 class="text-[10px] font-bold text-gray-500 uppercase mb-2">Portfolio Directory</h2>
+                    <div id="equity-directory" class="space-y-1 overflow-y-auto h-full custom-scroll pr-2"></div>
                 </div>
             </aside>
 
@@ -71,86 +87,87 @@
                 <div id="map"></div>
             </main>
 
-            <!-- RIGHT: LOGISTICS & PORTS -->
-            <aside class="col-span-3 glass-card p-3 rounded flex flex-col overflow-hidden">
-                <h2 class="text-[10px] font-bold text-gray-500 uppercase mb-2">Global Ports & Supply Chain</h2>
-                <div id="port-list" class="flex-grow overflow-y-auto custom-scroll space-y-2"></div>
+            <!-- RIGHT: FUNDAMENTALS & COMMODITIES -->
+            <aside class="col-span-3 glass-card p-4 rounded flex flex-col overflow-hidden">
+                <h2 class="text-[10px] font-bold text-[#ff8800] uppercase mb-2">Company Intelligence Silo</h2>
+                <div id="intel-silo" class="space-y-4">
+                    <div class="p-8 text-center text-gray-600 text-[10px] uppercase italic">Select a company node to analyze financials, energy usage, and personnel.</div>
+                </div>
             </aside>
         </div>
     </div>
 
     <script>
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([39.8, -98.5], 4);
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38, -95], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        const sectors = [
-            { n: "Tech (XLK)", s: 98 }, { n: "Finance (XLF)", s: 84 },
-            { n: "Energy (XLE)", s: 61 }, { n: "Health (XLV)", s: 72 }
+        const sectorData = [
+            { n: "Tech (XLK)", v: 88 }, { n: "Energy (XLE)", v: 42 },
+            { n: "Financials (XLF)", v: 76 }, { n: "Materials (XLB)", v: 55 }
         ];
 
-        // Scaled S&P 500 Dataset (Top weighted + diverse geographic nodes)
-        const equities = [
-            { id: 'AAPL', n: 'Apple', c: [37.3, -122.0], h: 'Cupertino, CA' },
-            { id: 'MSFT', n: 'Microsoft', c: [47.6, -122.1], h: 'Redmond, WA' },
-            { id: 'AMZN', n: 'Amazon', c: [47.6, -122.3], h: 'Seattle, WA' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.3, -121.9], h: 'Santa Clara, CA' },
-            { id: 'GOOGL', n: 'Alphabet', c: [37.4, -122.0], h: 'Mountain View, CA' },
-            { id: 'BRK.B', n: 'Berkshire', c: [41.2, -95.9], h: 'Omaha, NE' },
-            { id: 'LLY', n: 'Eli Lilly', c: [39.7, -86.1], h: 'Indianapolis, IN' },
-            { id: 'JPM', n: 'JPMorgan', c: [40.7, -73.9], h: 'New York, NY' },
-            { id: 'XOM', n: 'ExxonMobil', c: [30.1, -95.4], h: 'Spring, TX' },
-            { id: 'WMT', n: 'Walmart', c: [36.3, -94.2], h: 'Bentonville, AR' },
-            { id: 'MA', n: 'Mastercard', c: [41.0, -73.6], h: 'Purchase, NY' },
-            { id: 'HD', n: 'Home Depot', c: [33.9, -84.4], h: 'Atlanta, GA' },
-            { id: 'PG', n: 'Procter & Gamble', c: [39.1, -84.5], h: 'Cincinnati, OH' },
-            { id: 'KO', n: 'Coca-Cola', c: [33.7, -84.3], h: 'Atlanta, GA' },
-            { id: 'CAT', n: 'Caterpillar', c: [30.2, -97.7], h: 'Irving, TX' }
-        ];
+        const earningsData = [45, 62, 58, 84];
 
-        const ports = [
-            { id: 'LAX', n: 'Los Angeles', c: [33.7, -118.2] },
-            { id: 'SHA', n: 'Shanghai', c: [31.2, 121.5] },
-            { id: 'ROT', n: 'Rotterdam', c: [51.9, 4.1] },
-            { id: 'SIN', n: 'Singapore', c: [1.3, 103.8] }
+        const sAndP = [
+            { id: 'AAPL', n: 'Apple', c: [37.3, -122.0], emp: '161,000', rev: '$383B', oil: '3.2M Barrels (Equiv)', coms: 'Lithium, Cobalt, Gold', cash: '$162B' },
+            { id: 'XOM', n: 'Exxon Mobil', c: [30.1, -95.4], emp: '62,000', rev: '$344B', oil: 'Direct Extraction', coms: 'Crude, Gas, Polymer', cash: '$31B' },
+            { id: 'TSLA', n: 'Tesla', c: [30.2, -97.7], emp: '140,000', rev: '$96B', oil: 'Low (Renewable Focus)', coms: 'Nickel, Lithium, Steel', cash: '$26B' },
+            { id: 'CAT', n: 'Caterpillar', c: [32.9, -96.9], emp: '107,000', rev: '$67B', oil: '12M Barrels (Ops)', coms: 'Iron, Rubber, Copper', cash: '$7B' }
         ];
 
         function init() {
-            // Sectors
-            document.getElementById('sector-list').innerHTML = sectors.map(s => `
-                <div class="text-[8px] uppercase flex justify-between mb-1"><span>${s.n}</span><span>${s.s}%</span></div>
-                <div class="h-1 bg-white/5 rounded overflow-hidden mb-2"><div class="sector-fill" style="width:${s.s}%"></div></div>
-            `).join('');
-
-            // Equities
-            document.getElementById('equity-list').innerHTML = equities.map(e => `
-                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-orange-500 cursor-pointer" onclick="focusHq([${e.c}], '${e.id}', '${e.h}')">
-                    <div class="flex justify-between text-[8px] font-bold"><span class="text-orange-500">${e.id}</span></div>
-                    <div class="text-[9px] text-gray-400 uppercase">${e.n}</div>
+            // Sector Bars
+            document.getElementById('sector-bars').innerHTML = sectorData.map(s => `
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[8px] uppercase font-bold"><span>${s.n}</span><span>${s.v}%</span></div>
+                    <div class="bar-container"><div class="bar-fill-orange" style="width: ${s.v}%"></div></div>
                 </div>
             `).join('');
 
-            // Ports
-            document.getElementById('port-list').innerHTML = ports.map(p => `
-                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-emerald-500 cursor-pointer" onclick="map.flyTo([${p.c}], 8)">
-                    <div class="text-[8px] font-bold text-emerald-400 uppercase">PORT: ${p.id}</div>
-                    <div class="text-[9px] text-gray-300 uppercase">${p.n}</div>
+            // Earnings Chart
+            document.getElementById('earnings-chart').innerHTML = earningsData.map(v => `
+                <div class="earnings-bar" style="height: ${v}%" title="$${v}B"></div>
+            `).join('');
+
+            // Directory
+            document.getElementById('equity-directory').innerHTML = sAndP.map(e => `
+                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer" onclick="showIntel('${e.id}')">
+                    <div class="flex justify-between text-[9px] font-bold uppercase"><span class="text-orange-500">${e.id}</span><span>${e.rev}</span></div>
                 </div>
             `).join('');
 
-            // Map Markers
-            equities.forEach(e => {
-                L.circleMarker(e.c, { radius: 3, color: '#ff8800', fillOpacity: 0.6 }).addTo(map)
-                 .bindTooltip(`<span class="text-[10px] font-bold">${e.id}: ${e.n}</span>`);
-            });
-
-            ports.forEach(p => {
-                L.circleMarker(p.c, { radius: 4, color: '#10b981', fillOpacity: 0.8 }).addTo(map);
+            // Map Nodes
+            sAndP.forEach(e => {
+                L.circleMarker(e.c, { radius: 4, color: '#ff8800', fillOpacity: 0.8 }).addTo(map)
+                 .on('click', () => showIntel(e.id));
             });
         }
 
-        function focusHq(coords, id, hq) {
-            map.flyTo(coords, 11);
-            L.popup().setLatLng(coords).setContent(`<div class="bg-black text-white p-2 text-[10px] border border-orange-500"><b>${id} HQ</b><br>${hq}</div>`).openOn(map);
+        function showIntel(id) {
+            const co = sAndP.find(e => e.id === id);
+            map.flyTo(co.c, 9);
+            
+            document.getElementById('intel-silo').innerHTML = `
+                <div class="border-b border-white/10 pb-2">
+                    <h3 class="text-lg font-bold text-white uppercase">${co.n} <span class="text-gray-500">[${co.id}]</span></h3>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-white/5 p-2 rounded"><div class="text-[8px] text-gray-500 uppercase">Employment</div><div class="text-xs font-bold">${co.emp}</div></div>
+                    <div class="bg-white/5 p-2 rounded"><div class="text-[8px] text-gray-500 uppercase">Cash Reserve</div><div class="text-xs font-bold text-emerald-400">${co.cash}</div></div>
+                </div>
+                <div class="bg-blue-900/20 border border-blue-500/30 p-2 rounded">
+                    <div class="text-[8px] text-blue-400 uppercase font-bold flex justify-between"><span>Energy Consumption (Oil)</span><i data-lucide="droplet"></i></div>
+                    <div class="text-xs font-bold text-blue-200">${co.oil}</div>
+                </div>
+                <div class="space-y-2">
+                    <div class="text-[8px] text-gray-500 uppercase font-bold">Key Commodities</div>
+                    <div class="text-[10px] text-orange-200 border-l-2 border-orange-500 pl-2 py-1 italic">${co.coms}</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-white/10">
+                    <div class="text-[8px] text-gray-500 uppercase mb-2">Revenue Vital Signs</div>
+                    <div class="bar-container"><div class="bar-fill-green" style="width: 85%"></div></div>
+                </div>
+            `;
         }
 
         window.onload = init;
