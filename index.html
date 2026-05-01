@@ -3,156 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYA | Global Analysis Terminal</title>
+    <title>HYA | Precision Logistics Terminal</title>
+    <!-- Core Dependencies (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #050505; color: #e5e5e5; font-family: 'JetBrains Mono', monospace; }
-        .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); }
-        .map-container { position: relative; background: #0a0a0a; border-radius: 8px; overflow: hidden; border: 1px solid #1a1a1a; }
-        .shipment-line { fill: none; stroke: #3b82f6; stroke-width: 1; stroke-dasharray: 4; animation: flow 20s linear infinite; opacity: 0.4; }
-        @keyframes flow { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
-        .pulse-node { fill: #ff8800; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { r: 2; opacity: 1; } 100% { r: 6; opacity: 0; } }
-        .commodity-label { font-size: 6px; fill: #666; font-weight: bold; text-transform: uppercase; }
+        :root { --terminal-dark: #050505; --bloomberg-orange: #ff8800; }
+        body { background: var(--terminal-dark); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
+        .glass-card { background: rgba(10, 10, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+        
+        /* Map Customization */
+        #map { height: 100%; width: 100%; background: #0a0a0a; border-radius: 8px; }
+        .leaflet-container { background: #050505 !important; }
+        
+        /* Custom Scrollbar for Terminal Feeds */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        
+        .pulse-icon { animation: shadow-pulse 2s infinite; }
+        @keyframes shadow-pulse { 0% { filter: drop-shadow(0 0 2px #ff8800); } 100% { filter: drop-shadow(0 0 8px #ff8800); } }
     </style>
 </head>
 <body class="h-screen p-3 flex flex-col gap-3">
 
-    <!-- TOP NAVIGATION & GLOBAL STATUS -->
-    <header class="flex justify-between items-center glass-card p-3 rounded-lg border-b border-orange-500/30">
+    <!-- HEADER -->
+    <header class="flex justify-between items-center glass-card p-3 rounded-lg border-b border-orange-500/30 shrink-0">
         <div class="flex items-center gap-4">
-            <h1 class="text-lg font-bold tracking-tighter text-[#ff8800]">HYA GLOBAL TERMINAL</h1>
-            <div class="h-4 w-px bg-white/10"></div>
-            <div class="flex gap-4 text-[9px] font-bold text-gray-500">
-                <span>COMMODITY INDEX: <span class="text-emerald-400">184.22 ▲</span></span>
-                <span>GLOBAL SHIPPING: <span class="text-blue-400">NORMAL</span></span>
+            <h1 class="text-lg font-bold tracking-tighter text-[#ff8800]">HYA PRECISION TERMINAL</h1>
+            <div class="flex gap-4 text-[9px] font-bold text-gray-500 border-l border-white/10 pl-4">
+                <span>GEO_SYNC: <span class="text-emerald-500 font-bold">100%</span></span>
+                <span>DATA_STREAM: <span class="text-blue-500 font-bold">ACTIVE</span></span>
             </div>
         </div>
-        <div class="text-[9px] font-bold text-emerald-500 flex items-center gap-2">
-            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-            LIVE_DATA_FEED_ACTIVE
+        <div class="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
+            Node: Eastpointe_MI_48021
         </div>
     </header>
 
-    <div class="grid grid-cols-12 gap-3 flex-grow overflow-hidden">
+    <!-- MAIN INTERFACE -->
+    <main class="flex-grow grid grid-cols-12 gap-3 overflow-hidden">
         
-        <!-- LEFT: COMMODITY SHIPMENT FEED -->
-        <aside class="col-span-3 flex flex-col gap-3">
-            <div class="glass-card rounded-lg p-4 flex-grow flex flex-col">
-                <h2 class="text-xs font-bold text-gray-400 uppercase mb-4 flex items-center gap-2">
-                    <i data-lucide="anchor" class="w-3 h-3 text-blue-500"></i> Active Shipments
+        <!-- LEFT: SCROLLABLE SHIPMENT REPOSITORY -->
+        <aside class="col-span-3 flex flex-col gap-3 overflow-hidden">
+            <div class="glass-card rounded-lg p-4 flex-grow flex flex-col overflow-hidden">
+                <h2 class="text-xs font-bold text-gray-400 uppercase mb-4 flex items-center justify-between">
+                    <span>Commodity Registry</span>
+                    <i data-lucide="database" class="w-3 h-3"></i>
                 </h2>
-                <div class="space-y-3 overflow-y-auto pr-2" id="shipment-list">
-                    <!-- Injected by JS -->
+                <!-- SCROLLABLE FEED -->
+                <div id="shipment-feed" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-2">
+                    <!-- Cards Injected by JS -->
                 </div>
             </div>
-            
-            <div class="glass-card rounded-lg p-4 h-1/3">
-                <h2 class="text-xs font-bold text-gray-400 uppercase mb-2">Silo Rehydration</h2>
-                <div class="w-full bg-white/5 h-1 rounded-full mb-4 overflow-hidden">
-                    <div class="bg-orange-500 h-full w-3/4 animate-pulse"></div>
+
+            <!-- SYSTEM LOG -->
+            <div class="glass-card rounded-lg p-3 h-32 text-[9px] text-gray-500 font-bold">
+                <div class="flex items-center gap-2 text-orange-500 mb-2">
+                    <i data-lucide="terminal" class="w-3 h-3"></i>
+                    <span>INTELLIGENCE_LAYER</span>
                 </div>
-                <p class="text-[9px] text-gray-500 italic">"Global trade nodes re-mapping... cross-referencing SPY liquidity with bulk carrier routes."</p>
+                <p id="typewriter" class="italic leading-relaxed">Mapping real-time supply chain topology...</p>
             </div>
         </aside>
 
-        <!-- CENTER: GLOBAL SHIPMENT MAP -->
-        <main class="col-span-9 glass-card rounded-lg p-2 flex flex-col relative">
-            <div class="absolute top-6 left-6 z-10">
-                <h2 class="text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-black/60 p-2 border border-white/5 rounded">
-                    Supply Chain Topology: Global Overlay
-                </h2>
+        <!-- RIGHT: INTERACTIVE ACCURATE MAP -->
+        <section class="col-span-9 glass-card rounded-lg p-1 relative">
+            <div id="map"></div>
+            
+            <!-- OVERLAY TOOLS -->
+            <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+                <button onclick="flyToHub('US')" class="glass-card p-2 rounded hover:bg-white/5 text-[8px] font-bold uppercase">Focus: SPY Hub</button>
+                <button onclick="flyToHub('Global')" class="glass-card p-2 rounded hover:bg-white/5 text-[8px] font-bold uppercase">Reset View</button>
             </div>
+        </section>
+    </main>
 
-            <div class="map-container flex-grow">
-                <svg viewBox="0 0 800 400" class="w-full h-full" id="world-map">
-                    <!-- Simple World Map Outlines (Simplified for Performance) -->
-                    <path d="M150,120 L200,100 L250,110 L280,150 L260,200 L200,220 L150,180 Z" fill="#151515" /> <!-- North America -->
-                    <path d="M220,230 L260,250 L280,320 L240,350 L200,300 Z" fill="#121212" /> <!-- South America -->
-                    <path d="M380,100 L450,80 L550,90 L600,150 L550,220 L450,230 L380,180 Z" fill="#151515" /> <!-- Eurasia -->
-                    <path d="M400,200 L450,210 L480,300 L420,330 L380,280 Z" fill="#121212" /> <!-- Africa -->
-                    <path d="M600,280 L680,270 L700,320 L650,350 Z" fill="#121212" /> <!-- Australia -->
-
-                    <!-- SHIPMENT ROUTES -->
-                    <!-- Midstream / SPY HUB Nodes -->
-                    <circle cx="210" cy="150" r="3" class="pulse-node" /> <!-- US Hub -->
-                    <circle cx="500" cy="130" r="3" class="pulse-node" /> <!-- EU/Asia Hub -->
-                    
-                    <!-- Route Lines -->
-                    <path d="M210,150 Q350,100 500,130" class="shipment-line" /> <!-- North Atlantic -->
-                    <path d="M240,300 Q280,200 210,150" class="shipment-line" stroke="#10b981" /> <!-- South America to US -->
-                    <path d="M440,280 Q480,200 500,130" class="shipment-line" stroke="#ff8800" /> <!-- Africa to Europe -->
-                    <path d="M650,300 Q600,200 500,130" class="shipment-line" stroke="#34d399" /> <!-- Australia to Asia -->
-
-                    <!-- Labels -->
-                    <text x="180" y="140" class="commodity-label">SPY_HUB_A</text>
-                    <text x="240" y="340" class="commodity-label" fill="#10b981">Copper / Iron</text>
-                    <text x="440" y="320" class="commodity-label" fill="#ff8800">Crude Oil</text>
-                    <text x="650" y="340" class="commodity-label" fill="#34d399">Lithium</text>
-                </svg>
-            </div>
-
-            <!-- BOTTLENECK ALERT OVERLAY -->
-            <div class="absolute bottom-6 right-6 p-3 bg-red-900/20 border border-red-500/40 rounded flex items-center gap-3">
-                <i data-lucide="alert-octagon" class="w-4 h-4 text-red-500 animate-bounce"></i>
-                <div class="text-[8px] font-bold">
-                    <span class="text-red-500 block uppercase">Critical Node Congestion</span>
-                    <span class="text-gray-400">Panama Canal Throughput: -12.4%</span>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- FOOTER STATS -->
-    <footer class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-2 uppercase tracking-widest">
-        <div class="flex gap-6">
-            <span>TERMINAL_ID: HYA-LOGISTICS-7928</span>
-            <span>Logic: MULTI_SITE_MITIGATION</span>
+    <!-- FOOTER -->
+    <footer class="flex justify-between items-center text-[9px] text-gray-600 font-bold px-2 uppercase shrink-0">
+        <div class="flex gap-4">
+            <span>Silo: Operational</span>
+            <span>Uptime: 100%</span>
         </div>
-        <div class="flex gap-4 items-center">
-            <span class="text-emerald-500">SYSTEMS: 100% UPTIME</span>
-            <span class="text-blue-400 border-l border-white/10 pl-4">Eastpointe Node Online</span>
+        <div class="text-emerald-500">
+            Phase A-E Systems Verified
         </div>
     </footer>
 
     <script>
         lucide.createIcons();
 
-        const shipmentData = [
-            { id: "TX-902", origin: "Brazil", cargo: "Iron Ore", status: "Transit", eta: "4d" },
-            { id: "OIL-77", origin: "Nigeria", cargo: "Brent Crude", status: "Loading", eta: "12d" },
-            { id: "LI-22", origin: "Australia", cargo: "Lithium", status: "Delayed", eta: "8d" },
-            { id: "CHIP-X", origin: "Taiwan", cargo: "Semiconductors", status: "Priority", eta: "2d" }
+        // 1. Initialize Map (Border Accurate)
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20, 0], 2);
+
+        // Dark Matter Tiles (Clean & Accurate)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // 2. Shipment Data
+        const shipments = [
+            { id: 'FE-MI', name: 'Iron Ore', start: [-23.5, -46.6], end: [42.3, -83.0], status: 'Transit' },
+            { id: 'LI-CH', name: 'Lithium', start: [-23.5, -70.4], end: [31.2, 121.4], status: 'Priority' },
+            { id: 'OIL-ER', name: 'Crude Oil', start: [26.2, 50.1], end: [51.5, 0.12], status: 'Loading' },
+            { id: 'AG-BR', name: 'Grain Bulk', start: [44.8, -93.2], end: [34.0, 118.2], status: 'Transit' },
+            { id: 'X-7928', name: 'Semiconductors', start: [25.0, 121.5], end: [42.4, -83.0], status: 'En Route' }
         ];
 
-        function renderShipments() {
-            const container = document.getElementById('shipment-list');
-            container.innerHTML = shipmentData.map(s => `
-                <div class="p-2 border border-white/5 bg-white/5 rounded hover:border-blue-500/50 transition-all cursor-pointer group">
-                    <div class="flex justify-between text-[10px] font-bold mb-1">
-                        <span class="${s.status === 'Delayed' ? 'text-red-400' : 'text-emerald-400'}">${s.id}</span>
-                        <span class="text-gray-500">${s.eta}</span>
-                    </div>
-                    <div class="text-[9px] uppercase tracking-tighter">
-                        <span class="text-gray-300">${s.cargo}</span>
-                        <span class="text-gray-600 mx-1">/</span>
-                        <span class="text-gray-500">${s.origin}</span>
-                    </div>
+        // 3. Render Shipment Feed (Scrolling enabled via CSS)
+        const feed = document.getElementById('shipment-feed');
+        shipments.forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'p-3 border border-white/5 bg-white/5 rounded hover:border-orange-500/50 cursor-pointer transition-all';
+            card.innerHTML = `
+                <div class="flex justify-between text-[10px] font-bold mb-1">
+                    <span class="text-orange-400">${s.id}</span>
+                    <span class="text-[8px] text-gray-600 uppercase">${s.status}</span>
                 </div>
-            `).join('');
+                <div class="text-[10px] text-gray-300 font-bold">${s.name}</div>
+            `;
+            card.onclick = () => map.flyTo(s.start, 5);
+            feed.appendChild(card);
+
+            // Add Marker to Map
+            L.circleMarker(s.start, {
+                radius: 4,
+                fillColor: "#ff8800",
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup(`<b style="color:#000">${s.name} Origin</b>`);
+
+            // Add Route Polyline
+            L.polyline([s.start, s.end], {
+                color: '#3b82f6',
+                weight: 1,
+                dashArray: '5, 10',
+                opacity: 0.4
+            }).addTo(map);
+        });
+
+        // 4. Map Control Logic
+        function flyToHub(type) {
+            if(type === 'US') map.flyTo([39.8, -98.5], 4);
+            else map.flyTo([20, 0], 2);
         }
 
-        renderShipments();
-
-        // Simulate real-time updates
+        // 5. Intelligence Layer (Typewriter Effect)
+        const messages = [
+            "Syncing global trade routes with SPY technicals...",
+            "Analyzing bottleneck at Panama Canal Node...",
+            "Predictive maintenance loop: 100% uptime confirmed.",
+            "Synthesizing high-yield dividend payouts for Q2."
+        ];
+        let i = 0;
         setInterval(() => {
-            const first = shipmentData.shift();
-            shipmentData.push(first);
-            renderShipments();
-        }, 8000);
+            document.getElementById('typewriter').innerText = messages[i % messages.length];
+            i++;
+        }, 6000);
     </script>
 </body>
 </html>
