@@ -17,12 +17,8 @@
         #map { height: 100%; width: 100%; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; }
-        
         .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
-        
-        .macro-chart-container { height: 80px; position: relative; margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        
         .leaflet-tooltip-own {
             background: rgba(0, 0, 0, 0.9) !important;
             border: 1px solid var(--tv-green) !important;
@@ -32,6 +28,7 @@
             padding: 4px 8px !important;
             box-shadow: 0 0 15px rgba(34, 171, 148, 0.2);
         }
+        .vessel-icon { transition: transform 2s linear; }
     </style>
 </head>
 <body>
@@ -44,17 +41,11 @@
               "symbols": [
                 { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
                 { "proName": "NASDAQ:NVDA", "title": "NVDA" },
-                { "proName": "NASDAQ:AMD", "title": "AMD" },
                 { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
-                { "proName": "NASDAQ:MSFT", "title": "MSFT" },
-                { "proName": "NYSE:V", "title": "Visa" },
-                { "proName": "NYSE:WMT", "title": "Walmart" },
                 { "proName": "NYSE:XOM", "title": "Exxon" },
-                { "proName": "NYSE:JPM", "title": "JP Morgan" },
-                { "proName": "NYSE:LLY", "title": "LLY" },
-                { "proName": "BITSTAMP:BTCUSD", "title": "BTC/USD" },
+                { "proName": "TVC:USOIL", "title": "Crude Oil" },
                 { "proName": "TVC:GOLD", "title": "GOLD" },
-                { "proName": "TVC:US10Y", "title": "US 10Y Yield" }
+                { "proName": "COMEX:HG1!", "title": "Copper" }
               ],
               "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
             }
@@ -71,7 +62,7 @@
                 </a>
             </div>
             <div class="text-[8px] font-bold flex gap-4 uppercase overflow-hidden">
-                <span class="text-emerald-500 shrink-0">● LIVE TERMINAL</span>
+                <span class="text-emerald-500 shrink-0">● AIS MARITIME LIVE</span>
                 <span id="headline-ticker" class="text-blue-400 transition-opacity duration-500 opacity-100">INITIALIZING FEED...</span>
             </div>
         </header>
@@ -83,9 +74,9 @@
                     <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
                 </div>
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Company Intelligence</h2>
+                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Supply Chain Intelligence</h2>
                     <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
-                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Hover for workforce. Click for financials.</div>
+                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Track physical commodity flow.</div>
                     </div>
                 </div>
             </aside>
@@ -96,32 +87,20 @@
 
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden overflow-y-auto custom-scroll pr-1">
                 <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Sector Rotation (Macro)</h2>
-                    <div class="space-y-2 pt-1" id="sector-bars"></div>
-                </div>
-
-                <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-blue-500 uppercase flex justify-between">
-                        <span>Treasury Yields (12M)</span>
-                        <span class="text-[7px] text-gray-500">10Y <span class="text-white/40">──</span> 2Y <span class="text-blue-400">──</span></span>
-                    </h2>
-                    <div class="macro-chart-container">
-                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,20 Q25,15 50,25 T100,18" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                            <path d="M0,25 Q25,28 50,15 T100,10" fill="none" stroke="#3b82f6" stroke-width="1.5" />
-                        </svg>
+                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Vessel Tracking Density</h2>
+                    <div id="maritime-stats" class="text-[8px] space-y-2">
+                        <div class="flex justify-between"><span>TANKERS (CRUDE/LNG)</span><span id="stat-tanker" class="text-orange-400">0</span></div>
+                        <div class="flex justify-between"><span>BULK (METALS/AGRI)</span><span id="stat-bulk" class="text-emerald-400">0</span></div>
+                        <div class="flex justify-between"><span>CONTAINERS (TECH)</span><span id="stat-container" class="text-blue-400">0</span></div>
                     </div>
                 </div>
 
                 <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-red-500 uppercase flex justify-between">
-                        <span>Fed Funds Rate</span>
-                        <span class="text-[7px] text-gray-500">Current: 3.50%</span>
-                    </h2>
-                    <div class="macro-chart-container">
-                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,35 L20,35 L40,25 L60,10 L80,10 L100,10" fill="none" stroke="#ef4444" stroke-width="1.5" />
-                        </svg>
+                    <h2 class="text-[9px] font-bold text-emerald-500 uppercase mb-3">Live Metals Index</h2>
+                    <div class="text-[8px] space-y-1">
+                        <div class="flex justify-between"><span>Lithium</span><span class="text-white">+1.43%</span></div>
+                        <div class="flex justify-between"><span>Copper</span><span class="text-white">+0.10%</span></div>
+                        <div class="flex justify-between"><span>Cobalt</span><span class="text-white">-0.02%</span></div>
                     </div>
                 </div>
             </aside>
@@ -129,112 +108,115 @@
     </div>
 
     <script>
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38, -95], 4);
+        // --- 1. CORE MAP & ASSETS ---
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, -20], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        const headlines = [
-            "FED: Interest Rates held steady at 3.50% despite 8-4 vote pressure",
-            "CONFLICT: Israel-Iran ceasefire extended; Strait of Hormuz remains restricted",
-            "MARKET: S&P 500 maintains bullish trajectory amid technical breakouts",
-            "GEOPOLITICS: Global trade routes stabilize following recent resolution",
-            "MACRO: Treasury yields flatten as inflation data meets analyst targets"
+        const assets = [
+            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', rev: '$383B', earn: [82, 94, 88, 110], cash: '$162B', color: '#10b981' },
+            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', rev: '$60.9B', earn: [12, 18, 25, 32], cash: '$25.9B', color: '#22ab94' },
+            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], emp: '62k', rev: '$344B', earn: [80, 85, 90, 89], cash: '$31.5B', color: '#f97316' },
+            { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], emp: '2.1M', rev: '$611B', earn: [145, 150, 155, 161], cash: '$14.7B', color: '#3b82f6' }
         ];
 
-        let currentHeadline = 0;
-        const tickerEl = document.getElementById('headline-ticker');
+        const vesselClasses = {
+            'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', cargo: ['Crude Oil', 'Brent Oil', 'Natural Gas', 'LNG JKM'] },
+            'BULK': { color: '#10b981', icon: 'M3 3h18v18H3V3z', cargo: ['Lithium', 'Copper', 'Cobalt', 'Silicon', 'Iron Ore'] },
+            'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', cargo: ['Semiconductors', 'Retail Goods', 'HRC Steel'] }
+        };
 
-        function cycleHeadlines() {
-            tickerEl.style.opacity = 0;
-            setTimeout(() => {
-                tickerEl.innerText = headlines[currentHeadline];
-                tickerEl.style.opacity = 1;
-                currentHeadline = (currentHeadline + 1) % headlines.length;
-            }, 500);
+        const maritimeLayer = L.layerGroup().addTo(map);
+        let activeVessels = {};
+
+        // --- 2. MARITIME ENGINE ---
+        const getVesselIcon = (heading, typeInfo) => {
+            return L.divIcon({
+                className: 'vessel-icon',
+                html: `<svg style="transform: rotate(${heading}deg); width: 14px; height: 14px;" viewBox="0 0 24 24" fill="${typeInfo.color}80" stroke="${typeInfo.color}" stroke-width="1.5"><path d="${typeInfo.icon}"/></svg>`,
+                iconSize: [14, 14], iconAnchor: [7, 7]
+            });
+        };
+
+        function updateVessel(mmsi, lat, lon, heading, vClass) {
+            const typeInfo = vesselClasses[vClass];
+            const cargo = typeInfo.cargo[Math.floor(Math.random() * typeInfo.cargo.length)];
+            
+            if (activeVessels[mmsi] && activeVessels[mmsi].marker) {
+                activeVessels[mmsi].marker.setLatLng([lat, lon]);
+                activeVessels[mmsi].marker.setIcon(getVesselIcon(heading, typeInfo));
+            } else {
+                const marker = L.marker([lat, lon], { icon: getVesselIcon(heading, typeInfo) }).addTo(maritimeLayer);
+                marker.bindTooltip(`<strong style="color:${typeInfo.color}">${vClass} CLASS</strong><br>Cargo: ${cargo}`, { className: 'leaflet-tooltip-own' });
+                activeVessels[mmsi] = { marker, vClass };
+            }
         }
 
-        const assets = [
-            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', rev: '$383B', earn: [82, 94, 88, 110], cash: '$162B' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', rev: '$60.9B', earn: [12, 18, 25, 32], cash: '$25.9B' },
-            { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '221k', rev: '$211B', earn: [52, 56, 61, 65], cash: '$143B' },
-            { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], emp: '182k', rev: '$307B', earn: [70, 75, 82, 86], cash: '$110B' },
-            { id: 'JPM', n: 'JP Morgan', c: [40.75, -73.97], emp: '300k', rev: '$158B', earn: [40, 42, 45, 48], cash: '$1.4T' },
-            { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], emp: '2.1M', rev: '$611B', earn: [145, 150, 155, 161], cash: '$14.7B' },
-            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], emp: '62k', rev: '$344B', earn: [80, 85, 90, 89], cash: '$31.5B' },
-            { id: 'TSLA', n: 'Tesla', c: [30.26, -97.74], emp: '140k', rev: '$96B', earn: [30, 35, 32, 45], cash: '$26B' }
-        ];
+        // --- 3. TRADE ROUTE SIMULATION ---
+        function startMaritimeSimulation() {
+            const corridors = [
+                { lat: 25, lon: -90, head: 120, class: 'TANKER' },  // Gulf/Energy
+                { lat: -25, lon: -70, head: 330, class: 'BULK' },   // S. America/Metals
+                { lat: 10, lon: 110, head: 45, class: 'CONTAINER' } // Asia/Tech
+            ];
+
+            corridors.forEach((c, i) => {
+                for(let j=0; j<10; j++) {
+                    let mmsi = `VESSEL_${i}_${j}`;
+                    let lat = c.lat + (Math.random() * 10 - 5);
+                    let lon = c.lon + (Math.random() * 10 - 5);
+                    activeVessels[mmsi] = { lat, lon, head: c.head, class: c.class, speed: 0.02 + Math.random()*0.03 };
+                    updateVessel(mmsi, lat, lon, c.head, c.class);
+                }
+            });
+
+            setInterval(() => {
+                let stats = { TANKER: 0, BULK: 0, CONTAINER: 0 };
+                for(let id in activeVessels) {
+                    let v = activeVessels[id];
+                    if(!v.speed) continue;
+                    let rad = (v.head - 90) * (Math.PI / 180);
+                    v.lat += Math.sin(rad) * v.speed;
+                    v.lon += Math.cos(rad) * v.speed;
+                    updateVessel(id, v.lat, v.lon, v.head, v.class);
+                    stats[v.class]++;
+                }
+                document.getElementById('stat-tanker').innerText = stats.TANKER;
+                document.getElementById('stat-bulk').innerText = stats.BULK;
+                document.getElementById('stat-container').innerText = stats.CONTAINER;
+            }, 1000);
+        }
+
+        // --- 4. UI LOGIC ---
+        function selectCompany(id) {
+            const co = assets.find(e => e.id === id);
+            map.flyTo(co.c, 6);
+            document.getElementById('company-content').innerHTML = `
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-bold text-white">${co.n}</span>
+                        <span class="text-xs font-bold px-2 py-1 rounded" style="color:${co.color}; background:${co.color}20;">${co.id}</span>
+                    </div>
+                    <div class="bg-white/5 p-2 rounded border border-white/5 mb-4">
+                        <div class="text-[7px] text-gray-500 uppercase mb-1">Total Workforce</div>
+                        <div class="text-xs font-bold text-emerald-400">${co.emp}</div>
+                    </div>
+                </div>
+            `;
+        }
 
         function init() {
-            setInterval(cycleHeadlines, 4000);
-            cycleHeadlines();
-
-            document.getElementById('sector-bars').innerHTML = [
-                {n:"Technology (XLK)", v:94}, 
-                {n:"Financials (XLF)", v:76}, 
-                {n:"Energy (XLE)", v:62},
-                {n:"Consumer Disc (XLY)", v:58},
-                {n:"Industrial (XLI)", v:52},
-                {n:"Utilities (XLU)", v:41}
-            ].map(s => `
-                <div class="text-[8px] uppercase flex justify-between mb-0.5 text-gray-300"><span>${s.n}</span><span>${s.v}%</span></div>
-                <div class="bar-container mb-2"><div class="bar-fill" style="width:${s.v}%"></div></div>
-            `).join('');
-
             document.getElementById('equity-list').innerHTML = assets.map(e => `
-                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onclick="selectCompany('${e.id}')">
-                    <span class="text-orange-500">${e.id}</span>
+                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between" onclick="selectCompany('${e.id}')">
+                    <span style="color:${e.color}">${e.id}</span>
                     <span class="text-gray-500 font-normal">${e.n}</span>
                 </div>
             `).join('');
 
             assets.forEach(e => {
-                const marker = L.circleMarker(e.c, { radius: 6, color: '#ff8800', weight: 2, fillOpacity: 0.5 }).addTo(map);
-                marker.bindTooltip(`<strong>${e.n}</strong><br>Workforce: ${e.emp}`, { 
-                    direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] 
-                });
-                marker.on('click', () => selectCompany(e.id));
+                L.circleMarker(e.c, { radius: 5, color: '#fff', fillColor: e.color, fillOpacity: 1 }).addTo(map);
             });
-        }
 
-        function selectCompany(id) {
-            const co = assets.find(e => e.id === id);
-            map.flyTo(co.c, 10, { animate: true, duration: 2.5 });
-            
-            const maxEarn = Math.max(...co.earn);
-
-            document.getElementById('company-content').innerHTML = `
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-bold text-white">${co.n}</span>
-                        <span class="text-xs font-bold text-[#ff8800] bg-[#ff8800]/10 px-2 py-1 rounded">${co.id}</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <div class="bg-white/5 p-2 rounded border border-white/5">
-                            <div class="text-[7px] text-gray-500 uppercase mb-0.5">Gross Revenue</div>
-                            <div class="text-xs font-bold text-gray-200">${co.rev}</div>
-                        </div>
-                        <div class="bg-white/5 p-2 rounded border border-white/5">
-                            <div class="text-[7px] text-gray-500 uppercase mb-0.5">Cash Position</div>
-                            <div class="text-xs font-bold text-green-400">${co.cash}</div>
-                        </div>
-                    </div>
-
-                    <div class="text-[8px] text-gray-400 uppercase mb-1 font-bold tracking-widest">Revenue Momentum</div>
-                    <div class="flex items-end justify-between h-12 px-2 border-b border-white/10 mb-1 pt-2">
-                        ${co.earn.map(v => `<div class="w-3 bg-blue-500/60 rounded-t-sm" style="height: ${(v/maxEarn)*100}%"></div>`).join('')}
-                    </div>
-                    <div class="flex justify-between text-[6px] text-gray-500 uppercase mb-6">
-                        <span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span>
-                    </div>
-
-                    <h3 class="text-[8px] font-bold text-emerald-500 uppercase mb-2 italic">Labor Data</h3>
-                    <div class="bg-emerald-900/10 border-l-2 border-emerald-500 p-2 rounded">
-                        <div class="flex justify-between text-[7px] text-emerald-400 uppercase font-bold mb-1">
-                            <span>Total Workforce</span><span>${co.emp}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
+            startMaritimeSimulation();
         }
 
         window.onload = init;
