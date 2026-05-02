@@ -1,105 +1,304 @@
-// --- 1. CORE MAP SETUP ---
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([25, -40], 3);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HY Analysts Terminal | Integrated Stack</title>
+    
+    <!-- Dependencies: Leaflet for Maps, Chart.js for Macro Data, Tailwind for UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --terminal-black: #050505; --tv-green: #22ab94; --tv-red: #f23645; }
+        body { 
+            background: var(--terminal-black); 
+            color: #e5e5e5; 
+            font-family: 'JetBrains Mono', monospace; 
+            margin: 0; 
+            overflow: hidden; 
+        }
+        #map { height: 100vh; width: 100vw; z-index: 0; }
+        
+        /* UI Overlays */
+        .glass-panel { 
+            background: rgba(10, 10, 10, 0.85); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(8px); 
+            border-radius: 4px;
+        }
+
+        .search-container {
+            position: absolute; top: 20px; left: 20px; z-index: 1000; width: 320px;
+        }
+        
+        #ticker-search {
+            width: 100%; padding: 12px; background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #333; color: var(--tv-green); outline: none; font-size: 12px;
+        }
+
+        #suggestions {
+            background: #0a0a0a; border: 1px solid #333; max-height: 250px; 
+            overflow-y: auto; display: none; margin-top: 2px;
+        }
+
+        .suggestion-item {
+            padding: 10px; border-bottom: 1px solid #222; cursor: pointer; font-size: 11px;
+        }
+        .suggestion-item:hover { background: #1a1a1a; }
+
+        .macro-corridor {
+            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+            width: 360px; padding: 15px; max-height: 80vh; overflow-y: auto;
+        }
+
+        .leaflet-tooltip-own {
+            background: #000 !important; border: 1px solid #333 !important;
+            color: #fff !important; font-family: 'JetBrains Mono' !important; font-size: 10px !important;
+        }
+
+        /* Scrollbar for Macro Panel */
+        .macro-corridor::-webkit-scrollbar { width: 4px; }
+        .macro-corridor::-webkit-scrollbar-thumb { background: #333; }
+    </style>
+</head>
+<body>
+
+    <!-- Search Overlay -->
+    <div class="search-container">
+        <input type="text" id="ticker-search" placeholder="SEARCH TICKERS / COMMANDS..." autocomplete="off">
+        <div id="suggestions" class="glass-panel"></div>
+    </div>
+
+    <!-- Map Canvas -->
+    <div id="map"></div>
+
+    <!-- Macro Corridor Panel -->
+    <div class="macro-corridor glass-panel">
+        <h2 class="text-[10px] font-bold text-gray-500 mb-4 tracking-[0.2em] border-b border-white/10 pb-2">MACRO CORRIDOR (2026.Q2)</h2>
+        <div class="space-y-6">
+            <div>
+                <p class="text-[9px] text-orange-400 mb-1">US 2Y TREASURY YIELD</p>
+                <canvas id="chart2Y"></canvas>
+            </div>
+            <div>
+                <p class="text-[9px] text-red-500 mb-1">US 10Y TREASURY YIELD</p>
+                <canvas id="chart10Y"></canvas>
+            </div>
+            <div>
+                <p class="text-[9px] text-blue-400 mb-1">US UNEMPLOYMENT RATE (%)</p>
+                <canvas id="chartUnemployment"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CORE MAP SETUP ---
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([30, -20], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         const hqLayer = L.layerGroup().addTo(map);
         const maritimeLayer = L.layerGroup().addTo(map);
 
-        // --- 2. ASSET & COMMODITY DATA ---
+        // --- 2. ASSET DATA ---
+        // Integrated the extended list requested
         const assets = [
-            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], color: '#10b981', type: 'Tech' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], color: '#22ab94', type: 'Tech' },
-            { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], color: '#3b82f6', type: 'Retail' },
-            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], color: '#f97316', type: 'Energy' }
-        ];
+            { id: 'MPC', n: 'Marathon Petroleum', c: [41.04, -83.65], color: '#f59e0b' },
+            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], color: '#e5e7eb' },
+            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], color: '#22ab94' },
+            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], color: '#ef4444' },
+            { id: 'TSLA', n: 'Tesla', c: [30.22, -97.61], color: '#cc0000' },
+            { id: 'F', n: 'Ford Motor', c: [42.31, -83.21], color: '#003478' },
+            { id: 'GM', n: 'General Motors', c: [42.32, -83.04], color: '#22559e' },
+            { id: 'PLTR', n: 'Palantir', c: [39.73, -104.99], color: '#3b82f6' }
+            { id: 'AMD', n: 'Advanced Micro Devices', c: [37.38, -121.97], emp: '26k', rev: '$22.7B', earn: [5.4, 5.8, 6.1, 6.5], cash: '$5.8B', color: '#ed1c24' },
+    { id: 'TSM', n: 'TSMC', c: [24.77, 121.01], emp: '73k', rev: '$70B', earn: [16, 18, 17, 21], cash: '$48B', color: '#005a9c' },
+    { id: 'ASML', n: 'ASML Holding', c: [51.40, 5.41], emp: '42k', rev: '$29B', earn: [6, 7, 8, 9], cash: '$7.5B', color: '#00a1e2' },
+    { id: 'INTC', n: 'Intel Corp', c: [37.38, -121.96], emp: '124k', rev: '$54B', earn: [12, 13, 14, 15], cash: '$25B', color: '#0071c5' },
+    { id: 'JNJ', n: 'Johnson & Johnson', c: [40.49, -74.44], emp: '131k', rev: '$85B', earn: [21, 22, 20, 23], cash: '$22B', color: '#d51900' },
+    { id: 'PFE', n: 'Pfizer', c: [40.75, -73.97], emp: '83k', rev: '$58B', earn: [12, 14, 13, 15], cash: '$12B', color: '#007cc3' },
+    { id: 'MRK', n: 'Merck & Co.', c: [40.66, -74.27], emp: '72k', rev: '$60B', earn: [14, 15, 15, 16], cash: '$8B', color: '#00857c' },
+    { id: 'LLY', n: 'Eli Lilly', c: [39.76, -86.16], emp: '43k', rev: '$34B', earn: [8, 9, 10, 11], cash: '$3B', color: '#ec1c24' },
+    { id: 'GS', n: 'Goldman Sachs', c: [40.71, -74.01], emp: '45k', rev: '$46B', earn: [12, 11, 13, 15], cash: '$150B', color: '#7399C6' },
+    { id: 'MS', n: 'Morgan Stanley', c: [40.76, -73.98], emp: '80k', rev: '$54B', earn: [14, 13, 15, 16], cash: '$110B', color: '#004a8e' },
+    { id: 'WFC', n: 'Wells Fargo', c: [37.79, -122.40], emp: '226k', rev: '$82B', earn: [20, 21, 19, 22], cash: '$160B', color: '#d11241' },
+    { id: 'SCHW', n: 'Charles Schwab', c: [30.31, -97.71], emp: '35k', rev: '$18B', earn: [4, 5, 4, 6], cash: '$45B', color: '#00a0e0' },
+    { id: 'PYPL', n: 'PayPal', c: [37.29, -121.92], emp: '27k', rev: '$29B', earn: [7, 7, 8, 8], cash: '$14B', color: '#003087' },
+    { id: 'AXP', n: 'American Express', c: [40.71, -74.01], emp: '77k', rev: '$60B', earn: [15, 16, 14, 17], cash: '$47B', color: '#006fcf' },
+    { id: 'NKE', n: 'Nike', c: [45.49, -122.82], emp: '83k', rev: '$51B', earn: [12, 13, 11, 14], cash: '$10B', color: '#000000' },
+    { id: 'MCD', n: 'McDonalds', c: [41.88, -87.65], emp: '150k', rev: '$25B', earn: [6, 6, 7, 7], cash: '$2B', color: '#ffbc0d' },
+    { id: 'SBUX', n: 'Starbucks', c: [47.58, -122.33], emp: '381k', rev: '$36B', earn: [8, 9, 9, 10], cash: '$3.5B', color: '#00704a' },
+    { id: 'LOW', n: 'Lowes', c: [35.53, -80.85], emp: '300k', rev: '$86B', earn: [21, 23, 19, 22], cash: '$3B', color: '#004990' },
+    { id: 'TGT', n: 'Target', c: [44.97, -93.27], emp: '415k', rev: '$107B', earn: [25, 27, 24, 29], cash: '$2B', color: '#cc0000' },
+    { id: 'FDX', n: 'FedEx', c: [35.14, -90.04], emp: '500k', rev: '$87B', earn: [21, 22, 20, 23], cash: '$5B', color: '#4d148c' },
+    { id: 'HON', n: 'Honeywell', c: [35.22, -80.84], emp: '95k', rev: '$36B', earn: [9, 10, 9, 10], cash: '$8B', color: '#e01e26' },
+    { id: 'DE', n: 'John Deere', c: [41.48, -90.43], emp: '82k', rev: '$61B', earn: [15, 17, 14, 16], cash: '$6B', color: '#367c2b' },
+    { id: 'MMM', n: '3M Company', c: [44.95, -92.99], emp: '85k', rev: '$32B', earn: [8, 8, 7, 9], cash: '$4B', color: '#ff0000' },
+    { id: 'NSC', n: 'Norfolk Southern', c: [33.75, -84.38], emp: '19k', rev: '$12B', earn: [3, 3, 2, 4], cash: '$1B', color: '#000000' },
+    { id: 'CSX', n: 'CSX Corp', c: [30.33, -81.65], emp: '22k', rev: '$14B', earn: [3, 4, 3, 4], cash: '$1.5B', color: '#004a80' },
+    { id: 'TM', n: 'Toyota', c: [35.08, 137.15], emp: '375k', rev: '$270B', earn: [60, 65, 70, 75], cash: '$40B', color: '#eb0a1e' },
+    { id: 'HMC', n: 'Honda', c: [35.66, 139.72], emp: '197k', rev: '$120B', earn: [28, 30, 29, 32], cash: '$20B', color: '#e40521' },
+    { id: 'RACE', n: 'Ferrari', c: [44.53, 10.86], emp: '5k', rev: '$6B', earn: [1, 1, 2, 2], cash: '$1.5B', color: '#ff2800' },
+    { id: 'AIR', n: 'Airbus', c: [43.60, 1.44], emp: '134k', rev: '$65B', earn: [15, 17, 16, 18], cash: '$15B', color: '#00205b' },
+    { id: 'BP', n: 'BP PLC', c: [51.50, -0.12], emp: '67k', rev: '$210B', earn: [50, 55, 52, 58], cash: '$25B', color: '#00aa39' },
+    { id: 'SHEL', n: 'Shell PLC', c: [51.50, -0.11], emp: '93k', rev: '$316B', earn: [75, 80, 78, 85], cash: '$40B', color: '#fbce07' },
+    { id: 'TTE', n: 'TotalEnergies', c: [48.89, 2.24], emp: '101k', rev: '$237B', earn: [55, 60, 58, 62], cash: '$30B', color: '#00a1e2' },
+    { id: 'SLB', n: 'Schlumberger', c: [29.76, -95.36], emp: '103k', rev: '$33B', earn: [8, 9, 8, 10], cash: '$4B', color: '#004b8d' },
+    { id: 'FCX', n: 'Freeport-McMoRan', c: [33.44, -112.07], emp: '25k', rev: '$22B', earn: [5, 6, 5, 7], cash: '$6B', color: '#004a99' },
+    { id: 'RIO', n: 'Rio Tinto', c: [51.51, -0.13], emp: '52k', rev: '$54B', earn: [12, 14, 13, 15], cash: '$10B', color: '#ed1c24' },
+    { id: 'VALE', n: 'Vale S.A.', c: [-22.90, -43.17], emp: '64k', rev: '$41B', earn: [10, 11, 9, 12], cash: '$5B', color: '#007e7a' },
+    { id: 'NEE', n: 'NextEra Energy', c: [26.88, -80.11], emp: '15k', rev: '$28B', earn: [6, 7, 7, 8], cash: '$2B', color: '#005da4' },
+    { id: 'DUK', n: 'Duke Energy', c: [35.22, -80.84], emp: '27k', rev: '$29B', earn: [7, 7, 7, 8], cash: '$1B', color: '#005f52' },
+    { id: 'SO', n: 'Southern Co', c: [33.74, -84.38], emp: '27k', rev: '$25B', earn: [6, 6, 6, 7], cash: '$2B', color: '#cc0000' },
+    { id: 'ADBE', n: 'Adobe', c: [37.33, -121.89], emp: '29k', rev: '$19B', earn: [4, 5, 5, 5], cash: '$7B', color: '#ff0000' },
+    { id: 'CRM', n: 'Salesforce', c: [37.78, -122.39], emp: '72k', rev: '$34B', earn: [8, 9, 8, 10], cash: '$12B', color: '#00a1e0' },
+    { id: 'ORCL', n: 'Oracle', c: [30.26, -97.74], emp: '164k', rev: '$50B', earn: [12, 13, 12, 14], cash: '$10B', color: '#f00000' },
+    { id: 'CSCO', n: 'Cisco Systems', c: [37.40, -121.95], emp: '84k', rev: '$57B', earn: [14, 15, 14, 16], cash: '$25B', color: '#049fd9' },
+    { id: 'ACN', n: 'Accenture', c: [53.34, -6.26], emp: '733k', rev: '$64B', earn: [15, 16, 17, 18], cash: '$9B', color: '#a100ff' },
+    { id: 'IBM', n: 'IBM Corp', c: [41.10, -73.71], emp: '288k', rev: '$61B', earn: [14, 15, 16, 17], cash: '$13B', color: '#006699' },
+    { id: 'TXN', n: 'Texas Instruments', c: [32.90, -96.75], emp: '33k', rev: '$17B', earn: [4, 4, 4, 5], cash: '$9B', color: '#cc0000' },
+    { id: 'QCOM', n: 'Qualcomm', c: [32.89, -117.19], emp: '50k', rev: '$35B', earn: [8, 9, 9, 10], cash: '$12B', color: '#3253dc' },
+    { id: 'MU', n: 'Micron Tech', c: [43.60, -116.21], emp: '43k', rev: '$15B', earn: [3, 4, 4, 5], cash: '$9B', color: '#007cc3' },
+    { id: 'AMAT', n: 'Applied Materials', c: [37.38, -121.96], emp: '33k', rev: '$26B', earn: [6, 7, 7, 7], cash: '$6B', color: '#004a99' },
+    { id: 'LRCX', n: 'Lam Research', c: [37.49, -121.93], emp: '17k', rev: '$14B', earn: [3, 4, 4, 4], cash: '$5B', color: '#00a1e0' }
+];    
 
-        // Map your new commodities to vessel types
         const vesselClasses = {
-            'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', cargo: ['Crude Oil', 'LNG', 'Heating Oil'] },
-            'BULK': { color: '#eab308', icon: 'M3 3h18v18H3V3z', cargo: ['Lithium', 'Copper', 'Iron Ore', 'Soybeans'] },
-            'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', cargo: ['Processed Silicon', 'Retail Electronics', 'Auto Parts'] }
+            'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', cargo: ['Crude Oil', 'LNG'] },
+            'BULK': { color: '#eab308', icon: 'M3 3h18v18H3V3z', cargo: ['Lithium', 'Copper'] },
+            'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', cargo: ['Electronics', 'Auto Parts'] }
         };
 
-        // --- 3. UPGRADED MARITIME LOGIC ---
+        // --- 3. SEARCH & AUTO-COMPLETE ---
+        const searchInput = document.getElementById('ticker-search');
+        const suggestionsBox = document.getElementById('suggestions');
+
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toUpperCase();
+            suggestionsBox.innerHTML = '';
+            if (!val) { suggestionsBox.style.display = 'none'; return; }
+
+            const matches = assets.filter(a => a.id.includes(val) || a.n.toUpperCase().includes(val));
+            
+            if (matches.length > 0) {
+                suggestionsBox.style.display = 'block';
+                matches.forEach(match => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerHTML = `<span style="color:${match.color}; font-weight:bold;">${match.id}</span> <span class="text-gray-500">|</span> ${match.n}`;
+                    div.onclick = () => {
+                        map.flyTo(match.c, 7);
+                        searchInput.value = match.id;
+                        suggestionsBox.style.display = 'none';
+                    };
+                    suggestionsBox.appendChild(div);
+                });
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        // --- 4. MARITIME SIMULATION ---
         let activeVessels = {};
 
-        const getVesselIcon = (heading, typeInfo) => {
+        function getVesselIcon(heading, typeInfo) {
             return L.divIcon({
                 className: 'vessel-icon',
-                html: `<svg style="transform: rotate(${heading}deg); width: 14px; height: 14px; drop-shadow: 0 0 5px ${typeInfo.color};" viewBox="0 0 24 24" fill="${typeInfo.color}80" stroke="${typeInfo.color}" stroke-width="1.5"><path d="${typeInfo.icon}"/></svg>`,
-                iconSize: [14, 14],
-                iconAnchor: [7, 7]
+                html: `<svg style="transform: rotate(${heading}deg); width: 14px; height: 14px;" viewBox="0 0 24 24" fill="${typeInfo.color}80" stroke="${typeInfo.color}" stroke-width="1.5"><path d="${typeInfo.icon}"/></svg>`,
+                iconSize: [14, 14], iconAnchor: [7, 7]
             });
-        };
+        }
 
         function updateVessel(mmsi, lat, lon, heading, vClass) {
             const typeInfo = vesselClasses[vClass];
-            const randomCargo = typeInfo.cargo[Math.floor(Math.random() * typeInfo.cargo.length)];
-            
             if (activeVessels[mmsi] && activeVessels[mmsi].marker) {
                 activeVessels[mmsi].marker.setLatLng([lat, lon]);
                 activeVessels[mmsi].marker.setIcon(getVesselIcon(heading, typeInfo));
             } else {
                 const marker = L.marker([lat, lon], { icon: getVesselIcon(heading, typeInfo) }).addTo(maritimeLayer);
-                
-                marker.bindTooltip(`
-                    <strong style="color:${typeInfo.color}; font-size:10px;">${vClass} CLASS</strong><br>
-                    <span style="color:#aaa;">Est. Cargo:</span> ${randomCargo}<br>
-                    <span style="color:#aaa;">Heading:</span> ${Math.round(heading)}°
-                `, { direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] });
-                
-                activeVessels[mmsi] = { marker, vClass };
+                marker.bindTooltip(`<strong>${vClass} CLASS</strong>`, { direction: 'top', className: 'leaflet-tooltip-own' });
+                activeVessels[mmsi] = { marker };
             }
         }
 
-        // ==========================================
-        // ADVANCED SIMULATION ENGINE (Trade Routes)
-        // ==========================================
-        function startSimulationFallback() {
-            // Defined strategic trade corridors based on your commodities
+        function startSimulation() {
             const routes = [
-                { lat: 24, lon: -90, head: 120, class: 'TANKER' },    // US Gulf Coast (Crude/LNG)
-                { lat: -20, lon: -70, head: 320, class: 'BULK' },     // Chile/Peru Coast (Lithium/Copper)
-                { lat: 15, lon: 115, head: 60, class: 'CONTAINER' },  // South China Sea (Tech/Retail)
-                { lat: 50, lon: -10, head: 220, class: 'TANKER' }     // North Sea (Brent Crude)
+                { lat: 25, lon: -90, head: 110, class: 'TANKER' },
+                { lat: 35, lon: 130, head: 250, class: 'CONTAINER' },
+                { lat: -15, lon: -75, head: 330, class: 'BULK' }
             ];
 
             routes.forEach((r, i) => {
-                for(let j=0; j<8; j++) {
-                    let mmsi = `SIM_${i}_${j}`;
-                    let lat = r.lat + (Math.random() * 8 - 4);
-                    let lon = r.lon + (Math.random() * 8 - 4);
-                    activeVessels[mmsi] = { lat, lon, head: r.head, class: r.class, speed: 0.03 + Math.random()*0.04 };
-                    updateVessel(mmsi, lat, lon, r.head, r.class);
+                for(let j=0; j<5; j++) {
+                    let mmsi = `V_${i}_${j}`;
+                    let v = { 
+                        lat: r.lat + (Math.random()*10), 
+                        lon: r.lon + (Math.random()*10), 
+                        head: r.head, 
+                        class: r.class, 
+                        speed: 0.02 + Math.random()*0.02 
+                    };
+                    activeVessels[mmsi] = v;
+                    updateVessel(mmsi, v.lat, v.lon, v.head, v.class);
                 }
             });
 
             setInterval(() => {
-                for(let mmsi in activeVessels) {
-                    let v = activeVessels[mmsi];
-                    if(!v.speed) continue; 
-                    
+                for(let m in activeVessels) {
+                    let v = activeVessels[m];
+                    if(!v.speed) continue;
                     let rad = (v.head - 90) * (Math.PI / 180);
                     v.lat += Math.sin(rad) * v.speed;
                     v.lon += Math.cos(rad) * v.speed;
-                    v.head += (Math.random() * 2 - 1); // Drift
-                    
-                    updateVessel(mmsi, v.lat, v.lon, v.head, v.class);
+                    updateVessel(m, v.lat, v.lon, v.head, v.class);
                 }
             }, 1000);
         }
 
-        // --- 4. UI INITIALIZATION ---
-        function init() {
-            // Plot HQs
-            assets.forEach(e => {
-                const marker = L.circleMarker(e.c, { radius: 5, color: '#fff', weight: 1, fillColor: e.color, fillOpacity: 0.8 }).addTo(hqLayer);
-                marker.bindTooltip(`<strong>${e.n} HQ</strong>`, { 
-                    direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] 
-                });
+        // --- 5. MACRO CHARTS (DATED AXIS) ---
+        function initCharts() {
+            const labels = ['Jan 26', 'Feb 26', 'Mar 26', 'Apr 26', 'May 26'];
+            const cfg = (color) => ({
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#555', font: { size: 9 } }, grid: { display: false } },
+                    y: { ticks: { color: '#555', font: { size: 9 } }, grid: { color: '#1a1a1a' } }
+                }
             });
 
-            startSimulationFallback();
+            new Chart(document.getElementById('chart2Y'), {
+                type: 'line',
+                data: { labels, datasets: [{ data: [4.1, 4.3, 4.2, 4.5, 4.4], borderColor: '#f59e0b', tension: 0.4, pointRadius: 0 }] },
+                options: cfg()
+            });
+
+            new Chart(document.getElementById('chart10Y'), {
+                type: 'line',
+                data: { labels, datasets: [{ data: [3.9, 4.0, 4.2, 4.1, 4.0], borderColor: '#ef4444', tension: 0.4, pointRadius: 0 }] },
+                options: cfg()
+            });
+
+            new Chart(document.getElementById('chartUnemployment'), {
+                type: 'bar',
+                data: { labels, datasets: [{ data: [3.7, 3.8, 3.8, 3.9, 4.0], backgroundColor: '#3b82f6' }] },
+                options: cfg()
+            });
         }
 
-        window.onload = init;
+        // --- 6. INITIALIZATION ---
+        window.onload = () => {
+            assets.forEach(e => {
+                L.circleMarker(e.c, { radius: 5, color: '#fff', weight: 1, fillColor: e.color, fillOpacity: 0.8 })
+                 .addTo(hqLayer)
+                 .bindTooltip(`<strong>${e.n} HQ</strong>`, { direction: 'top', className: 'leaflet-tooltip-own' });
+            });
+            startSimulation();
+            initCharts();
+        };
+    </script>
+</body>
+</html>
