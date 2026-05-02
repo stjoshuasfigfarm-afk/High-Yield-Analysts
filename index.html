@@ -1,225 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --terminal-black: #050505; --hq-orange: #ff8800; --tv-green: #22ab94; }
-        body { background: var(--terminal-black); color: #e5e5e5; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
-        .ticker-fixed-top { position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 9999; background: var(--terminal-black); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .terminal-container { margin-top: 56px; height: calc(100vh - 64px); display: flex; flex-direction: column; gap: 8px; padding: 4px; }
-        .glass-card { background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
-        #map { height: 100%; width: 100%; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar { width: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; }
-        .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
-        .leaflet-tooltip-own {
-            background: rgba(0, 0, 0, 0.9) !important;
-            border: 1px solid var(--tv-green) !important;
-            color: #fff !important;
-            font-family: 'JetBrains Mono', monospace !important;
-            font-size: 9px !important;
-            padding: 4px 8px !important;
-            box-shadow: 0 0 15px rgba(34, 171, 148, 0.2);
+<!-- Inside your right sidebar (aside), replace the maritime-stats div with this -->
+<div class="glass-card p-3 rounded shrink-0">
+    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Maritime Command Console</h2>
+    <div id="vessel-controls" class="space-y-2">
+        <button onclick="toggleLayer('TANKER')" id="btn-TANKER" class="w-full text-left p-2 border border-[#f97316] bg-[#f97316]/20 rounded text-[8px] font-bold flex justify-between">
+            <span>TANKERS (ENERGY)</span>
+            <span id="stat-tanker">0</span>
+        </button>
+        <button onclick="toggleLayer('BULK')" id="btn-BULK" class="w-full text-left p-2 border border-[#10b981] bg-[#10b981]/20 rounded text-[8px] font-bold flex justify-between">
+            <span>BULK (METALS/AGRI)</span>
+            <span id="stat-bulk">0</span>
+        </button>
+        <button onclick="toggleLayer('CONTAINER')" id="btn-CONTAINER" class="w-full text-left p-2 border border-[#3b82f6] bg-[#3b82f6]/20 rounded text-[8px] font-bold flex justify-between">
+            <span>CONTAINERS (RETAIL)</span>
+            <span id="stat-container">0</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, -20], 3);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+    // Asset and Vessel definitions remain the same...
+    const vesselClasses = {
+        'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', layer: L.layerGroup().addTo(map) },
+        'BULK': { color: '#10b981', icon: 'M3 3h18v18H3V3z', layer: L.layerGroup().addTo(map) },
+        'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', layer: L.layerGroup().addTo(map) }
+    };
+
+    let activeVessels = {};
+    let visibleLayers = { TANKER: true, BULK: true, CONTAINER: true };
+
+    // --- BUTTON TOGGLE LOGIC ---
+    function toggleLayer(vClass) {
+        const layer = vesselClasses[vClass].layer;
+        const btn = document.getElementById(`btn-${vClass}`);
+        
+        if (map.hasLayer(layer)) {
+            map.removeLayer(layer);
+            btn.style.opacity = "0.3";
+            visibleLayers[vClass] = false;
+        } else {
+            map.addLayer(layer);
+            btn.style.opacity = "1";
+            visibleLayers[vClass] = true;
         }
-        .vessel-icon { transition: transform 2s linear; }
-    </style>
-</head>
-<body>
+    }
 
-    <div class="ticker-fixed-top">
-        <div class="tradingview-widget-container">
-            <div class="tradingview-widget-container__widget"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-            {
-              "symbols": [
-                { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
-                { "proName": "NASDAQ:NVDA", "title": "NVDA" },
-                { "proName": "NASDAQ:GOOGL", "title": "GOOGL" },
-                { "proName": "NYSE:XOM", "title": "Exxon" },
-                { "proName": "TVC:USOIL", "title": "Crude Oil" },
-                { "proName": "TVC:GOLD", "title": "GOLD" },
-                { "proName": "COMEX:HG1!", "title": "Copper" }
-              ],
-              "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "locale": "en"
-            }
-            </script>
-        </div>
-    </div>
+    // --- UPDATED AIS ENGINE ---
+    function updateVessel(mmsi, lat, lon, heading, vClass) {
+        const typeInfo = vesselClasses[vClass];
+        
+        if (activeVessels[mmsi] && activeVessels[mmsi].marker) {
+            activeVessels[mmsi].marker.setLatLng([lat, lon]);
+            activeVessels[mmsi].marker.setIcon(getVesselIcon(heading, typeInfo));
+        } else {
+            const marker = L.marker([lat, lon], { 
+                icon: getVesselIcon(heading, typeInfo) 
+            }).addTo(typeInfo.layer); // ADDS TO SPECIFIC CLASS LAYER
+            
+            activeVessels[mmsi] = { marker, vClass };
+        }
+    }
 
-    <div class="terminal-container">
-        <header class="flex justify-between items-center glass-card p-2 rounded shrink-0">
-            <div class="flex items-center gap-4">
-                <h1 class="text-xs font-bold tracking-widest text-[#22ab94]">HY Analysts Terminal</h1>
-                <a href="https://www.youtube.com/channel/UC6MSjEFQbyoh0oOozQgGEyA" target="_blank">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-            </div>
-            <div class="text-[8px] font-bold flex gap-4 uppercase overflow-hidden">
-                <span class="text-emerald-500 shrink-0">● AIS MARITIME LIVE</span>
-                <span id="headline-ticker" class="text-blue-400 transition-opacity duration-500 opacity-100">INITIALIZING FEED...</span>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
-            <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
-                    <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
-                    <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
-                </div>
-                <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Supply Chain Intelligence</h2>
-                    <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
-                        <div class="text-center my-auto pt-20 text-[10px] text-gray-600 italic uppercase">Track physical commodity flow.</div>
-                    </div>
-                </div>
-            </aside>
-
-            <main class="col-span-6 glass-card rounded p-1 relative z-0">
-                <div id="map"></div>
-            </main>
-
-            <aside class="col-span-3 flex flex-col gap-2 overflow-hidden overflow-y-auto custom-scroll pr-1">
-                <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Vessel Tracking Density</h2>
-                    <div id="maritime-stats" class="text-[8px] space-y-2">
-                        <div class="flex justify-between"><span>TANKERS (CRUDE/LNG)</span><span id="stat-tanker" class="text-orange-400">0</span></div>
-                        <div class="flex justify-between"><span>BULK (METALS/AGRI)</span><span id="stat-bulk" class="text-emerald-400">0</span></div>
-                        <div class="flex justify-between"><span>CONTAINERS (TECH)</span><span id="stat-container" class="text-blue-400">0</span></div>
-                    </div>
-                </div>
-
-                <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-emerald-500 uppercase mb-3">Live Metals Index</h2>
-                    <div class="text-[8px] space-y-1">
-                        <div class="flex justify-between"><span>Lithium</span><span class="text-white">+1.43%</span></div>
-                        <div class="flex justify-between"><span>Copper</span><span class="text-white">+0.10%</span></div>
-                        <div class="flex justify-between"><span>Cobalt</span><span class="text-white">-0.02%</span></div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-    </div>
-
-    <script>
-        // --- 1. CORE MAP & ASSETS ---
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, -20], 3);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-        const assets = [
-            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], emp: '161k', rev: '$383B', earn: [82, 94, 88, 110], cash: '$162B', color: '#10b981' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], emp: '29k', rev: '$60.9B', earn: [12, 18, 25, 32], cash: '$25.9B', color: '#22ab94' },
-            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], emp: '62k', rev: '$344B', earn: [80, 85, 90, 89], cash: '$31.5B', color: '#f97316' },
-            { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], emp: '2.1M', rev: '$611B', earn: [145, 150, 155, 161], cash: '$14.7B', color: '#3b82f6' }
+    // Include your simulation and init functions here...
+    function startMaritimeSimulation() {
+        const corridors = [
+            { lat: 25, lon: -90, head: 120, class: 'TANKER' },
+            { lat: -25, lon: -70, head: 330, class: 'BULK' },
+            { lat: 10, lon: 110, head: 45, class: 'CONTAINER' }
         ];
 
-        const vesselClasses = {
-            'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', cargo: ['Crude Oil', 'Brent Oil', 'Natural Gas', 'LNG JKM'] },
-            'BULK': { color: '#10b981', icon: 'M3 3h18v18H3V3z', cargo: ['Lithium', 'Copper', 'Cobalt', 'Silicon', 'Iron Ore'] },
-            'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', cargo: ['Semiconductors', 'Retail Goods', 'HRC Steel'] }
-        };
-
-        const maritimeLayer = L.layerGroup().addTo(map);
-        let activeVessels = {};
-
-        // --- 2. MARITIME ENGINE ---
-        const getVesselIcon = (heading, typeInfo) => {
-            return L.divIcon({
-                className: 'vessel-icon',
-                html: `<svg style="transform: rotate(${heading}deg); width: 14px; height: 14px;" viewBox="0 0 24 24" fill="${typeInfo.color}80" stroke="${typeInfo.color}" stroke-width="1.5"><path d="${typeInfo.icon}"/></svg>`,
-                iconSize: [14, 14], iconAnchor: [7, 7]
-            });
-        };
-
-        function updateVessel(mmsi, lat, lon, heading, vClass) {
-            const typeInfo = vesselClasses[vClass];
-            const cargo = typeInfo.cargo[Math.floor(Math.random() * typeInfo.cargo.length)];
-            
-            if (activeVessels[mmsi] && activeVessels[mmsi].marker) {
-                activeVessels[mmsi].marker.setLatLng([lat, lon]);
-                activeVessels[mmsi].marker.setIcon(getVesselIcon(heading, typeInfo));
-            } else {
-                const marker = L.marker([lat, lon], { icon: getVesselIcon(heading, typeInfo) }).addTo(maritimeLayer);
-                marker.bindTooltip(`<strong style="color:${typeInfo.color}">${vClass} CLASS</strong><br>Cargo: ${cargo}`, { className: 'leaflet-tooltip-own' });
-                activeVessels[mmsi] = { marker, vClass };
+        corridors.forEach((c, i) => {
+            for(let j=0; j<12; j++) {
+                let mmsi = `VESSEL_${i}_${j}`;
+                let lat = c.lat + (Math.random() * 10 - 5);
+                let lon = c.lon + (Math.random() * 10 - 5);
+                activeVessels[mmsi] = { lat, lon, head: c.head, class: c.class, speed: 0.02 + Math.random()*0.03 };
+                updateVessel(mmsi, lat, lon, c.head, c.class);
             }
-        }
+        });
 
-        // --- 3. TRADE ROUTE SIMULATION ---
-        function startMaritimeSimulation() {
-            const corridors = [
-                { lat: 25, lon: -90, head: 120, class: 'TANKER' },  // Gulf/Energy
-                { lat: -25, lon: -70, head: 330, class: 'BULK' },   // S. America/Metals
-                { lat: 10, lon: 110, head: 45, class: 'CONTAINER' } // Asia/Tech
-            ];
-
-            corridors.forEach((c, i) => {
-                for(let j=0; j<10; j++) {
-                    let mmsi = `VESSEL_${i}_${j}`;
-                    let lat = c.lat + (Math.random() * 10 - 5);
-                    let lon = c.lon + (Math.random() * 10 - 5);
-                    activeVessels[mmsi] = { lat, lon, head: c.head, class: c.class, speed: 0.02 + Math.random()*0.03 };
-                    updateVessel(mmsi, lat, lon, c.head, c.class);
-                }
-            });
-
-            setInterval(() => {
-                let stats = { TANKER: 0, BULK: 0, CONTAINER: 0 };
-                for(let id in activeVessels) {
-                    let v = activeVessels[id];
-                    if(!v.speed) continue;
-                    let rad = (v.head - 90) * (Math.PI / 180);
-                    v.lat += Math.sin(rad) * v.speed;
-                    v.lon += Math.cos(rad) * v.speed;
-                    updateVessel(id, v.lat, v.lon, v.head, v.class);
-                    stats[v.class]++;
-                }
-                document.getElementById('stat-tanker').innerText = stats.TANKER;
-                document.getElementById('stat-bulk').innerText = stats.BULK;
-                document.getElementById('stat-container').innerText = stats.CONTAINER;
-            }, 1000);
-        }
-
-        // --- 4. UI LOGIC ---
-        function selectCompany(id) {
-            const co = assets.find(e => e.id === id);
-            map.flyTo(co.c, 6);
-            document.getElementById('company-content').innerHTML = `
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-bold text-white">${co.n}</span>
-                        <span class="text-xs font-bold px-2 py-1 rounded" style="color:${co.color}; background:${co.color}20;">${co.id}</span>
-                    </div>
-                    <div class="bg-white/5 p-2 rounded border border-white/5 mb-4">
-                        <div class="text-[7px] text-gray-500 uppercase mb-1">Total Workforce</div>
-                        <div class="text-xs font-bold text-emerald-400">${co.emp}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function init() {
-            document.getElementById('equity-list').innerHTML = assets.map(e => `
-                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between" onclick="selectCompany('${e.id}')">
-                    <span style="color:${e.color}">${e.id}</span>
-                    <span class="text-gray-500 font-normal">${e.n}</span>
-                </div>
-            `).join('');
-
-            assets.forEach(e => {
-                L.circleMarker(e.c, { radius: 5, color: '#fff', fillColor: e.color, fillOpacity: 1 }).addTo(map);
-            });
-
-            startMaritimeSimulation();
-        }
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+        setInterval(() => {
+            let stats = { TANKER: 0, BULK: 0, CONTAINER: 0 };
+            for(let id in activeVessels) {
+                let v = activeVessels[id];
+                let rad = (v.head - 90) * (Math.PI / 180);
+                v.lat += Math.sin(rad) * v.speed;
+                v.lon += Math.cos(rad) * v.speed;
+                updateVessel(id, v.lat, v.lon, v.head, v.class);
+                stats[v.class]++;
+            }
+            document.getElementById('stat-tanker').innerText = stats.TANKER;
+            document.getElementById('stat-bulk').innerText = stats.BULK;
+            document.getElementById('stat-container').innerText = stats.CONTAINER;
+        }, 1000);
+    }
+</script>
