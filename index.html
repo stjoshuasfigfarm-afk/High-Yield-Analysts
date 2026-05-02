@@ -1,256 +1,105 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal | Integrated Stack</title>
-    
-    <!-- Dependencies: Leaflet for Maps, Chart.js for Macro Data, Tailwind for UI -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root { --terminal-black: #050505; --tv-green: #22ab94; --tv-red: #f23645; }
-        body { 
-            background: var(--terminal-black); 
-            color: #e5e5e5; 
-            font-family: 'JetBrains Mono', monospace; 
-            margin: 0; 
-            overflow: hidden; 
-        }
-        #map { height: 100vh; width: 100vw; z-index: 0; }
-        
-        /* UI Overlays */
-        .glass-panel { 
-            background: rgba(10, 10, 10, 0.85); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(8px); 
-            border-radius: 4px;
-        }
-
-        .search-container {
-            position: absolute; top: 20px; left: 20px; z-index: 1000; width: 320px;
-        }
-        
-        #ticker-search {
-            width: 100%; padding: 12px; background: rgba(20, 20, 20, 0.9);
-            border: 1px solid #333; color: var(--tv-green); outline: none; font-size: 12px;
-        }
-
-        #suggestions {
-            background: #0a0a0a; border: 1px solid #333; max-height: 250px; 
-            overflow-y: auto; display: none; margin-top: 2px;
-        }
-
-        .suggestion-item {
-            padding: 10px; border-bottom: 1px solid #222; cursor: pointer; font-size: 11px;
-        }
-        .suggestion-item:hover { background: #1a1a1a; }
-
-        .macro-corridor {
-            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
-            width: 360px; padding: 15px; max-height: 80vh; overflow-y: auto;
-        }
-
-        .leaflet-tooltip-own {
-            background: #000 !important; border: 1px solid #333 !important;
-            color: #fff !important; font-family: 'JetBrains Mono' !important; font-size: 10px !important;
-        }
-
-        /* Scrollbar for Macro Panel */
-        .macro-corridor::-webkit-scrollbar { width: 4px; }
-        .macro-corridor::-webkit-scrollbar-thumb { background: #333; }
-    </style>
-</head>
-<body>
-
-    <!-- Search Overlay -->
-    <div class="search-container">
-        <input type="text" id="ticker-search" placeholder="SEARCH TICKERS / COMMANDS..." autocomplete="off">
-        <div id="suggestions" class="glass-panel"></div>
-    </div>
-
-    <!-- Map Canvas -->
-    <div id="map"></div>
-
-    <!-- Macro Corridor Panel -->
-    <div class="macro-corridor glass-panel">
-        <h2 class="text-[10px] font-bold text-gray-500 mb-4 tracking-[0.2em] border-b border-white/10 pb-2">MACRO CORRIDOR (2026.Q2)</h2>
-        <div class="space-y-6">
-            <div>
-                <p class="text-[9px] text-orange-400 mb-1">US 2Y TREASURY YIELD</p>
-                <canvas id="chart2Y"></canvas>
-            </div>
-            <div>
-                <p class="text-[9px] text-red-500 mb-1">US 10Y TREASURY YIELD</p>
-                <canvas id="chart10Y"></canvas>
-            </div>
-            <div>
-                <p class="text-[9px] text-blue-400 mb-1">US UNEMPLOYMENT RATE (%)</p>
-                <canvas id="chartUnemployment"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- 1. CORE MAP SETUP ---
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([30, -20], 3);
+// --- 1. CORE MAP SETUP ---
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([25, -40], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         const hqLayer = L.layerGroup().addTo(map);
         const maritimeLayer = L.layerGroup().addTo(map);
 
-        // --- 2. ASSET DATA ---
-        // Integrated the extended list requested
+        // --- 2. ASSET & COMMODITY DATA ---
         const assets = [
-            { id: 'MPC', n: 'Marathon Petroleum', c: [41.04, -83.65], color: '#f59e0b' },
-            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], color: '#e5e7eb' },
-            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], color: '#22ab94' },
-            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], color: '#ef4444' },
-            { id: 'TSLA', n: 'Tesla', c: [30.22, -97.61], color: '#cc0000' },
-            { id: 'F', n: 'Ford Motor', c: [42.31, -83.21], color: '#003478' },
-            { id: 'GM', n: 'General Motors', c: [42.32, -83.04], color: '#22559e' },
-            { id: 'PLTR', n: 'Palantir', c: [39.73, -104.99], color: '#3b82f6' }
-            };
-   
-];    
+            { id: 'AAPL', n: 'Apple', c: [37.33, -122.03], color: '#10b981', type: 'Tech' },
+            { id: 'NVDA', n: 'NVIDIA', c: [37.37, -121.97], color: '#22ab94', type: 'Tech' },
+            { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], color: '#3b82f6', type: 'Retail' },
+            { id: 'XOM', n: 'ExxonMobil', c: [32.89, -96.94], color: '#f97316', type: 'Energy' }
+        ];
 
+        // Map your new commodities to vessel types
         const vesselClasses = {
-            'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', cargo: ['Crude Oil', 'LNG'] },
-            'BULK': { color: '#eab308', icon: 'M3 3h18v18H3V3z', cargo: ['Lithium', 'Copper'] },
-            'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', cargo: ['Electronics', 'Auto Parts'] }
+            'TANKER': { color: '#f97316', icon: 'M12 2L22 20L12 17L2 20L12 2Z', cargo: ['Crude Oil', 'LNG', 'Heating Oil'] },
+            'BULK': { color: '#eab308', icon: 'M3 3h18v18H3V3z', cargo: ['Lithium', 'Copper', 'Iron Ore', 'Soybeans'] },
+            'CONTAINER': { color: '#3b82f6', icon: 'M4 6h16v12H4z', cargo: ['Processed Silicon', 'Retail Electronics', 'Auto Parts'] }
         };
 
-        // --- 3. SEARCH & AUTO-COMPLETE ---
-        const searchInput = document.getElementById('ticker-search');
-        const suggestionsBox = document.getElementById('suggestions');
-
-        searchInput.addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase();
-            suggestionsBox.innerHTML = '';
-            if (!val) { suggestionsBox.style.display = 'none'; return; }
-
-            const matches = assets.filter(a => a.id.includes(val) || a.n.toUpperCase().includes(val));
-            
-            if (matches.length > 0) {
-                suggestionsBox.style.display = 'block';
-                matches.forEach(match => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerHTML = `<span style="color:${match.color}; font-weight:bold;">${match.id}</span> <span class="text-gray-500">|</span> ${match.n}`;
-                    div.onclick = () => {
-                        map.flyTo(match.c, 7);
-                        searchInput.value = match.id;
-                        suggestionsBox.style.display = 'none';
-                    };
-                    suggestionsBox.appendChild(div);
-                });
-            } else {
-                suggestionsBox.style.display = 'none';
-            }
-        });
-
-        // --- 4. MARITIME SIMULATION ---
+        // --- 3. UPGRADED MARITIME LOGIC ---
         let activeVessels = {};
 
-        function getVesselIcon(heading, typeInfo) {
+        const getVesselIcon = (heading, typeInfo) => {
             return L.divIcon({
                 className: 'vessel-icon',
-                html: `<svg style="transform: rotate(${heading}deg); width: 14px; height: 14px;" viewBox="0 0 24 24" fill="${typeInfo.color}80" stroke="${typeInfo.color}" stroke-width="1.5"><path d="${typeInfo.icon}"/></svg>`,
-                iconSize: [14, 14], iconAnchor: [7, 7]
+                html: `<svg style="transform: rotate(${heading}deg); width: 14px; height: 14px; drop-shadow: 0 0 5px ${typeInfo.color};" viewBox="0 0 24 24" fill="${typeInfo.color}80" stroke="${typeInfo.color}" stroke-width="1.5"><path d="${typeInfo.icon}"/></svg>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
             });
-        }
+        };
 
         function updateVessel(mmsi, lat, lon, heading, vClass) {
             const typeInfo = vesselClasses[vClass];
+            const randomCargo = typeInfo.cargo[Math.floor(Math.random() * typeInfo.cargo.length)];
+            
             if (activeVessels[mmsi] && activeVessels[mmsi].marker) {
                 activeVessels[mmsi].marker.setLatLng([lat, lon]);
                 activeVessels[mmsi].marker.setIcon(getVesselIcon(heading, typeInfo));
             } else {
                 const marker = L.marker([lat, lon], { icon: getVesselIcon(heading, typeInfo) }).addTo(maritimeLayer);
-                marker.bindTooltip(`<strong>${vClass} CLASS</strong>`, { direction: 'top', className: 'leaflet-tooltip-own' });
-                activeVessels[mmsi] = { marker };
+                
+                marker.bindTooltip(`
+                    <strong style="color:${typeInfo.color}; font-size:10px;">${vClass} CLASS</strong><br>
+                    <span style="color:#aaa;">Est. Cargo:</span> ${randomCargo}<br>
+                    <span style="color:#aaa;">Heading:</span> ${Math.round(heading)}°
+                `, { direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] });
+                
+                activeVessels[mmsi] = { marker, vClass };
             }
         }
 
-        function startSimulation() {
+        // ==========================================
+        // ADVANCED SIMULATION ENGINE (Trade Routes)
+        // ==========================================
+        function startSimulationFallback() {
+            // Defined strategic trade corridors based on your commodities
             const routes = [
-                { lat: 25, lon: -90, head: 110, class: 'TANKER' },
-                { lat: 35, lon: 130, head: 250, class: 'CONTAINER' },
-                { lat: -15, lon: -75, head: 330, class: 'BULK' }
+                { lat: 24, lon: -90, head: 120, class: 'TANKER' },    // US Gulf Coast (Crude/LNG)
+                { lat: -20, lon: -70, head: 320, class: 'BULK' },     // Chile/Peru Coast (Lithium/Copper)
+                { lat: 15, lon: 115, head: 60, class: 'CONTAINER' },  // South China Sea (Tech/Retail)
+                { lat: 50, lon: -10, head: 220, class: 'TANKER' }     // North Sea (Brent Crude)
             ];
 
             routes.forEach((r, i) => {
-                for(let j=0; j<5; j++) {
-                    let mmsi = `V_${i}_${j}`;
-                    let v = { 
-                        lat: r.lat + (Math.random()*10), 
-                        lon: r.lon + (Math.random()*10), 
-                        head: r.head, 
-                        class: r.class, 
-                        speed: 0.02 + Math.random()*0.02 
-                    };
-                    activeVessels[mmsi] = v;
-                    updateVessel(mmsi, v.lat, v.lon, v.head, v.class);
+                for(let j=0; j<8; j++) {
+                    let mmsi = `SIM_${i}_${j}`;
+                    let lat = r.lat + (Math.random() * 8 - 4);
+                    let lon = r.lon + (Math.random() * 8 - 4);
+                    activeVessels[mmsi] = { lat, lon, head: r.head, class: r.class, speed: 0.03 + Math.random()*0.04 };
+                    updateVessel(mmsi, lat, lon, r.head, r.class);
                 }
             });
 
             setInterval(() => {
-                for(let m in activeVessels) {
-                    let v = activeVessels[m];
-                    if(!v.speed) continue;
+                for(let mmsi in activeVessels) {
+                    let v = activeVessels[mmsi];
+                    if(!v.speed) continue; 
+                    
                     let rad = (v.head - 90) * (Math.PI / 180);
                     v.lat += Math.sin(rad) * v.speed;
                     v.lon += Math.cos(rad) * v.speed;
-                    updateVessel(m, v.lat, v.lon, v.head, v.class);
+                    v.head += (Math.random() * 2 - 1); // Drift
+                    
+                    updateVessel(mmsi, v.lat, v.lon, v.head, v.class);
                 }
             }, 1000);
         }
 
-        // --- 5. MACRO CHARTS (DATED AXIS) ---
-        function initCharts() {
-            const labels = ['Jan 26', 'Feb 26', 'Mar 26', 'Apr 26', 'May 26'];
-            const cfg = (color) => ({
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#555', font: { size: 9 } }, grid: { display: false } },
-                    y: { ticks: { color: '#555', font: { size: 9 } }, grid: { color: '#1a1a1a' } }
-                }
+        // --- 4. UI INITIALIZATION ---
+        function init() {
+            // Plot HQs
+            assets.forEach(e => {
+                const marker = L.circleMarker(e.c, { radius: 5, color: '#fff', weight: 1, fillColor: e.color, fillOpacity: 0.8 }).addTo(hqLayer);
+                marker.bindTooltip(`<strong>${e.n} HQ</strong>`, { 
+                    direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] 
+                });
             });
 
-            new Chart(document.getElementById('chart2Y'), {
-                type: 'line',
-                data: { labels, datasets: [{ data: [4.1, 4.3, 4.2, 4.5, 4.4], borderColor: '#f59e0b', tension: 0.4, pointRadius: 0 }] },
-                options: cfg()
-            });
-
-            new Chart(document.getElementById('chart10Y'), {
-                type: 'line',
-                data: { labels, datasets: [{ data: [3.9, 4.0, 4.2, 4.1, 4.0], borderColor: '#ef4444', tension: 0.4, pointRadius: 0 }] },
-                options: cfg()
-            });
-
-            new Chart(document.getElementById('chartUnemployment'), {
-                type: 'bar',
-                data: { labels, datasets: [{ data: [3.7, 3.8, 3.8, 3.9, 4.0], backgroundColor: '#3b82f6' }] },
-                options: cfg()
-            });
+            startSimulationFallback();
         }
 
-        // --- 6. INITIALIZATION ---
-        window.onload = () => {
-            assets.forEach(e => {
-                L.circleMarker(e.c, { radius: 5, color: '#fff', weight: 1, fillColor: e.color, fillOpacity: 0.8 })
-                 .addTo(hqLayer)
-                 .bindTooltip(`<strong>${e.n} HQ</strong>`, { direction: 'top', className: 'leaflet-tooltip-own' });
-            });
-            startSimulation();
-            initCharts();
-        };
-    </script>
-</body>
-</html>
+        window.onload = init;
