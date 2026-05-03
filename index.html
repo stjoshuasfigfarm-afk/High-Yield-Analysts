@@ -808,7 +808,7 @@
             var co = assets.find(function(e) { return e.id === id; });
             if (!co) return;
             var maxEarn = Math.max.apply(null, co.earn.map(Math.abs)) || 1;
-            var qDates = ['Q1 '24', 'Q2 '24', 'Q3 '24', 'Q4 '24'];
+            var qDates = ["Q1 2024", "Q2 2024", "Q3 2024", "Q4 2024"];
             var earningRows = co.earn.map(function(v, i) {
                 var sign = v >= 0 ? '+' : '';
                 var color = v >= 0 ? '#60a5fa' : '#f87171';
