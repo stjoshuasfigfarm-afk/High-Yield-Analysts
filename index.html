@@ -19,6 +19,7 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; }
         .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
+        .macro-chart-container { height: 80px; position: relative; margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .leaflet-tooltip-own {
             background: rgba(0, 0, 0, 0.95) !important;
             border: 1px solid var(--tv-green) !important;
@@ -29,7 +30,72 @@
             box-shadow: 0 0 20px rgba(34, 171, 148, 0.25);
         }
         .vessel-icon { transition: transform 2s linear; }
-        .yield-block { border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); border-radius: 3px; padding: 10px 12px; }
+        #terminal-search {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-right: none;
+            color: #e5e5e5;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+            flex: 1;
+            border-radius: 3px 0 0 3px;
+            padding: 6px 8px;
+            min-width: 0;
+        }
+        #terminal-search:focus { border-color: var(--hq-orange); }
+        #terminal-search.error { border-color: #f87171 !important; animation: shake 0.3s ease; }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        #terminal-search::placeholder { color: #444; }
+        #execute-btn {
+            background: var(--hq-orange);
+            border: none;
+            border-radius: 0 3px 3px 0;
+            padding: 6px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            flex-shrink: 0;
+            letter-spacing: 0.5px;
+            transition: background 0.15s;
+        }
+        #execute-btn:hover { background: #ffaa33; }
+        #search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #0d0d0d;
+            border: 1px solid rgba(255,136,0,0.35);
+            border-top: none;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .search-result-item {
+            padding: 6px 10px;
+            font-size: 9px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            user-select: none;
+        }
+        .search-result-item:hover { background: rgba(255,136,0,0.12); }
+        .yield-block {
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.03);
+            border-radius: 3px;
+            padding: 10px 12px;
+        }
         .yield-label { font-size: 7px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
         .yield-value { font-size: 22px; font-weight: 700; letter-spacing: -1px; }
         .yield-change { font-size: 8px; margin-top: 3px; }
@@ -77,13 +143,26 @@
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <!-- TRACKED ASSETS (Expanded slightly now that search is gone) -->
-                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/3 shrink-0">
+
+                <!-- MASTER CONTROLLER SEARCH -->
+                <div class="glass-card p-2 rounded shrink-0">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <h2 class="text-[9px] font-bold text-gray-500 uppercase">Terminal Search</h2>
+                        <span id="active-asset-label" style="font-size:8px;font-weight:700;color:var(--hq-orange);letter-spacing:1px;">── SELECT ASSET ──</span>
+                    </div>
+                    <div style="display:flex;position:relative;">
+                        <input id="terminal-search" type="text" placeholder="Ticker or company..." autocomplete="off" />
+                        <button id="execute-btn">EXECUTE</button>
+                        <div id="search-results" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- TRACKED ASSETS -->
+                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
                     <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
                     <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
                 </div>
 
-                <!-- COMPANY INTELLIGENCE (Main Sidebar focus) -->
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
                     <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Company Intelligence</h2>
                     <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
@@ -102,10 +181,12 @@
                     <div class="space-y-2 pt-1" id="sector-bars"></div>
                 </div>
 
+                <!-- TRADINGVIEW MINI CHART -->
                 <div class="glass-card rounded shrink-0 overflow-hidden" style="height:160px;">
                     <div id="tradingview_chart" style="width:100%;height:100%;"></div>
                 </div>
 
+                <!-- 2Y / 10Y YIELD PANEL -->
                 <div class="glass-card p-3 rounded shrink-0">
                     <h2 class="text-[9px] font-bold text-blue-500 uppercase mb-3 flex justify-between items-center">
                         <span>US Treasury Yields</span>
@@ -308,20 +389,6 @@
                 `, { direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5] });
                 activeVessels[mmsi] = { marker, companyId };
             }
-            updateVesselStats();
-        }
-
-        function updateVesselStats() {
-            const counts = { 'XOM': 0, 'WMT': 0, 'AAPL': 0 };
-            let total = 0;
-            for (let mmsi in activeVessels) {
-                if (counts[activeVessels[mmsi].companyId] !== undefined) counts[activeVessels[mmsi].companyId]++;
-                total++;
-            }
-            document.getElementById('active-vessels-count').innerText = `${total} Tracked`;
-            document.getElementById('xom-count').innerText = counts['XOM'];
-            document.getElementById('wmt-count').innerText = counts['WMT'];
-            document.getElementById('aapl-count').innerText = counts['AAPL'];
         }
 
         function connectLiveAIS() {
@@ -426,6 +493,225 @@
                 </div>`;
         }
 
+        function initNewsFeed() {
+            const headlines = [
+                "FED HOLDS RATES STEADY — POWELL SIGNALS DATA-DEPENDENT PATH FORWARD",
+                "NVIDIA SURPASSES $3T MARKET CAP ON RECORD DATA CENTER DEMAND",
+                "US 10Y YIELD CLIMBS TO 4.58% AS JOBS DATA BEATS ESTIMATES",
+                "OPEC+ CUTS OUTPUT BY 500K BPD — CRUDE FUTURES JUMP 2.4%",
+                "AMAZON Q1 REVENUE TOPS $145B, AWS GROWTH ACCELERATES TO 17%",
+                "CHINA PMI CONTRACTS FOR SECOND CONSECUTIVE MONTH — YUAN WEAKENS",
+                "MICROSOFT AZURE REVENUE SURGES 33% — AI WORKLOADS DRIVE DEMAND",
+                "GOLD HITS ALL-TIME HIGH AS DOLLAR INDEX SLIDES TO 3-MONTH LOW",
+                "JPMORGAN REPORTS RECORD NET INCOME OF $14.7B IN Q1 2025",
+                "CONSUMER CONFIDENCE INDEX DROPS TO 97.2 — BELOW CONSENSUS OF 101.5",
+                "ARAMCO EXPANDS LNG PORTFOLIO WITH $3.2B ACQUISITION IN EAST AFRICA",
+                "TSMC GUIDES Q2 REVENUE ABOVE CONSENSUS — AI CHIP DEMAND ROBUST",
+                "EUROZONE CPI FALLS TO 2.2% — ECB RATE CUT NOW EXPECTED IN JUNE",
+                "WALMART RAISES FULL-YEAR GUIDANCE ON STRONG GROCERY & E-COMMERCE SALES",
+                "S&P 500 VOLATILITY INDEX (VIX) SPIKES TO 22 ON TARIFF UNCERTAINTY",
+            ];
+            let idx = 0;
+            const el = document.getElementById('headline-ticker');
+            el.style.transition = 'opacity 0.5s ease';
+            function cycleHeadline() {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.textContent = headlines[idx % headlines.length];
+                    el.style.opacity = '1';
+                    idx++;
+                }, 500);
+            }
+            cycleHeadline();
+            setInterval(cycleHeadline, 6000);
+        }
+
+        function initYieldPanel() {
+            const yieldData = {
+                '2y': { value: 3.97, prev: 4.02 },
+                '10y': { value: 4.58, prev: 4.52 }
+            };
+            function renderYields(data) {
+                const y2 = data['2y'].value;
+                const y10 = data['10y'].value;
+                const d2 = (y2 - data['2y'].prev).toFixed(2);
+                const d10 = (y10 - data['10y'].prev).toFixed(2);
+                const spread = ((y10 - y2) * 100).toFixed(1);
+                const bar2 = Math.min(100, (y2 / 6) * 100).toFixed(1);
+                const bar10 = Math.min(100, (y10 / 6) * 100).toFixed(1);
+                document.getElementById('yield-2y').textContent = y2.toFixed(2) + '%';
+                document.getElementById('yield-10y').textContent = y10.toFixed(2) + '%';
+                const fmt = v => (v >= 0 ? '+' : '') + v + ' bps';
+                const col2 = d2 >= 0 ? '#f87171' : '#4ade80';
+                const col10 = d10 >= 0 ? '#f87171' : '#4ade80';
+                document.getElementById('yield-2y-change').style.color = col2;
+                document.getElementById('yield-2y-change').textContent = fmt(Math.round(d2 * 100));
+                document.getElementById('yield-10y-change').style.color = col10;
+                document.getElementById('yield-10y-change').textContent = fmt(Math.round(d10 * 100));
+                document.getElementById('yield-2y-bar').style.width = bar2 + '%';
+                document.getElementById('yield-10y-bar').style.width = bar10 + '%';
+                const spreadColor = parseFloat(spread) >= 0 ? '#4ade80' : '#f87171';
+                document.getElementById('yield-spread').style.color = spreadColor;
+                document.getElementById('yield-spread').textContent = (parseFloat(spread) >= 0 ? '+' : '') + spread + ' bps';
+                document.getElementById('yield-timestamp').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            }
+            renderYields(yieldData);
+            setInterval(() => {
+                yieldData['2y'].prev = yieldData['2y'].value;
+                yieldData['10y'].prev = yieldData['10y'].value;
+                yieldData['2y'].value = Math.max(0.5, yieldData['2y'].value + (Math.random() * 0.06 - 0.03));
+                yieldData['10y'].value = Math.max(0.5, yieldData['10y'].value + (Math.random() * 0.06 - 0.03));
+                renderYields(yieldData);
+            }, 8000);
+        }
+
+        // ── MASTER CONTROLLER ───────────────────────────────────────────────────
+        // ── MASTER CONTROLLER ───────────────────────────────────────────────────
+        // Chart rebuild — uses iframe src swap (the only cross-browser safe method
+        // for dynamically changing TradingView widgets in a single HTML file).
+        // The script.src + script.innerHTML approach is blocked by browsers because
+        // external scripts ignore their innerHTML; this iframe method is reliable.
+        function rebuildChart(assetId) {
+            var tvSym = tvSymbols[assetId] || ('NASDAQ:' + assetId);
+            var config = JSON.stringify({
+                symbol: tvSym,
+                width: '100%',
+                height: '100%',
+                locale: 'en',
+                dateRange: '1M',
+                colorTheme: 'dark',
+                isTransparent: true,
+                autosize: true
+            });
+            var container = document.getElementById('tradingview_chart');
+            container.innerHTML = '';
+            var iframe = document.createElement('iframe');
+            iframe.style.cssText = 'width:100%;height:100%;border:none;';
+            iframe.setAttribute('allowtransparency', 'true');
+            iframe.src = 'https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#' + encodeURIComponent(config);
+            container.appendChild(iframe);
+        }
+
+        function searchAsset(ticker) {
+            // Requirement 2: sanitize
+            var id = ticker.toString().trim().toUpperCase();
+            console.log('Searching for:', id);
+
+            // Requirement 3 (logic): exact match first, then prefix, then name
+            var asset = assets.find(function(a) { return a.id === id; })
+                     || assets.find(function(a) { return a.id.indexOf(id) === 0; })
+                     || assets.find(function(a) { return a.n.toUpperCase().indexOf(id) !== -1; });
+
+            // Requirement 5: error handling
+            if (!asset) {
+                console.warn('Asset not found in current inventory:', id);
+                alert('Asset not found in current inventory.');
+                var inp = document.getElementById('terminal-search');
+                inp.classList.add('error');
+                setTimeout(function() { inp.classList.remove('error'); }, 1200);
+                return;
+            }
+
+            console.log('Asset found:', asset);
+
+            // Requirement — Map sync: fly to HQ
+            map.flyTo(asset.c, 8, { animate: true, duration: 1.5 });
+
+            // Requirement — Chart sync: rebuild iframe
+            rebuildChart(asset.id);
+
+            // UI: update active asset label
+            document.getElementById('active-asset-label').textContent = asset.id + ' — ' + asset.n;
+
+            // Company intelligence panel
+            selectCompany(asset.id);
+        }
+
+        // Keep executeSynthesis as alias so tracked assets + map markers still work
+        function executeSynthesis(ticker) { searchAsset(ticker); }
+
+        function initSearch() {
+            // Requirement 4: bind inside DOMContentLoaded-equivalent
+            // (window.onload already fired by the time init() calls this,
+            //  so all elements guaranteed to exist)
+            var input = document.getElementById('terminal-search');
+            var results = document.getElementById('search-results');
+
+            if (!input || !results) {
+                console.warn('Search elements not found in DOM — initSearch aborted');
+                return;
+            }
+
+            function renderDropdown(q) {
+                if (!q) { results.style.display = 'none'; return; }
+                var matches = assets.filter(function(a) {
+                    return a.id.indexOf(q) === 0 || a.n.toUpperCase().indexOf(q) !== -1;
+                }).slice(0, 10);
+                if (!matches.length) { results.style.display = 'none'; return; }
+                results.innerHTML = '';
+                matches.forEach(function(a) {
+                    var item = document.createElement('div');
+                    item.className = 'search-result-item';
+                    var tickerEl = document.createElement('span');
+                    tickerEl.style.cssText = 'color:' + a.color + ';font-weight:700;min-width:60px;';
+                    tickerEl.textContent = a.id;
+                    var nameEl = document.createElement('span');
+                    nameEl.style.color = '#555';
+                    nameEl.textContent = a.n;
+                    item.appendChild(tickerEl);
+                    item.appendChild(nameEl);
+                    // mousedown fires BEFORE blur — prevents dropdown closing before click lands
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var selected = a.id;
+                        input.value = '';
+                        results.style.display = 'none';
+                        searchAsset(selected);
+                    });
+                    results.appendChild(item);
+                });
+                results.style.display = 'block';
+            }
+
+            // Live dropdown as user types
+            input.addEventListener('input', function() {
+                renderDropdown(input.value.trim().toUpperCase());
+            });
+
+            // Requirement 1: prevent reload, handle Enter
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // no page reload
+                    var q = input.value.trim();
+                    if (!q) return;
+                    input.value = '';
+                    results.style.display = 'none';
+                    searchAsset(q);
+                }
+                if (e.key === 'Escape') {
+                    results.style.display = 'none';
+                    input.value = '';
+                }
+            });
+
+            // Close dropdown on blur with delay so mousedown can fire first
+            input.addEventListener('blur', function() {
+                setTimeout(function() { results.style.display = 'none'; }, 180);
+            });
+
+            // EXECUTE button — Requirement 1: no form so no reload risk
+            document.getElementById('execute-btn').addEventListener('click', function() {
+                var q = input.value.trim();
+                if (!q) return;
+                input.value = '';
+                results.style.display = 'none';
+                searchAsset(q);
+            });
+
+            console.log('Search engine initialised. Assets indexed:', assets.length);
+        }
+
         function init() {
             document.getElementById('sector-bars').innerHTML = [
                 {n:"Technology (XLK)", v:94}, {n:"Financials (XLF)", v:76}, {n:"Energy (XLE)", v:62},
@@ -436,7 +722,7 @@
             `).join('');
 
             document.getElementById('equity-list').innerHTML = assets.map(e => `
-                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onclick="selectCompany('${e.id}')">
+                <div class="p-1.5 border border-white/5 bg-white/5 rounded hover:border-[#ff8800] cursor-pointer text-[9px] font-bold flex justify-between transition-colors" onclick="executeSynthesis('${e.id}')">
                     <span style="color:${e.color}">${e.id}</span>
                     <span class="text-gray-500 font-normal">${e.n}</span>
                 </div>
@@ -447,37 +733,68 @@
                 marker.bindTooltip(buildTooltip(e), {
                     direction: 'top', className: 'leaflet-tooltip-own', offset: [0, -5]
                 });
-                marker.on('click', () => selectCompany(e.id));
+                marker.on('click', () => executeSynthesis(e.id));
             });
 
             connectLiveAIS();
+            initYieldPanel();
+            initSearch();
+            initNewsFeed();
         }
 
+        const tvSymbols = {
+            'META':'NASDAQ:META','V':'NYSE:V','MA':'NYSE:MA','PG':'NYSE:PG','HD':'NYSE:HD',
+            'UNH':'NYSE:UNH','BAC':'NYSE:BAC','KO':'NYSE:KO','PEP':'NASDAQ:PEP','AVGO':'NASDAQ:AVGO',
+            'ABBV':'NYSE:ABBV','TMO':'NYSE:TMO','CAT':'NYSE:CAT','GE':'NYSE:GE','BA':'NYSE:BA',
+            'F':'NYSE:F','GM':'NYSE:GM','RTX':'NYSE:RTX','DIS':'NYSE:DIS','NFLX':'NASDAQ:NFLX',
+            'MSFT':'NASDAQ:MSFT','AMZN':'NASDAQ:AMZN','GOOGL':'NASDAQ:GOOGL','JPM':'NYSE:JPM',
+            'WMT':'NYSE:WMT','CVX':'NYSE:CVX','LLY':'NYSE:LLY','COST':'NASDAQ:COST','ORCL':'NYSE:ORCL',
+            'TSM':'NYSE:TSM','TM':'NYSE:TM','GS':'NYSE:GS','NKE':'NYSE:NKE','INTC':'NASDAQ:INTC',
+            'PFE':'NYSE:PFE','UPS':'NYSE:UPS','IBM':'NYSE:IBM','HON':'NASDAQ:HON','MS':'NYSE:MS',
+            'LMT':'NYSE:LMT','ASML':'NASDAQ:ASML','LVMH':'EURONEXT:MC','SAP':'NYSE:SAP',
+            'NESN':'SIX:NESN','ROCHE':'SIX:ROG','NOVO':'NYSE:NVO','BP':'NYSE:BP','SHEL':'NYSE:SHEL',
+            'HSBA':'LSE:HSBA','AZN':'NASDAQ:AZN','ULVR':'LSE:ULVR','SIE':'XETR:SIE','AIR':'EURONEXT:AIR',
+            'BAYN':'XETR:BAYN','TOTF':'EURONEXT:TTE','BNP':'EURONEXT:BNP','ABBN':'SIX:ABBN',
+            'GLENX':'LSE:GLEN','RIO':'NYSE:RIO','BHP':'NYSE:BHP','BABA':'NYSE:BABA','TCEHY':'OTC:TCEHY',
+            'SONY':'NYSE:SONY','SMSN':'KRX:005930','SK':'KRX:000660','INFY':'NYSE:INFY','TCS':'BSE:TCS',
+            'RELIANCE':'BSE:RELIANCE','HDFC':'NYSE:HDB','ICICI':'NYSE:IBN','ANZ':'ASX:ANZ',
+            'CBA':'ASX:CBA','MUFG':'NYSE:MUFG','SFT':'OTC:SFTBY','HMC':'NYSE:HMC','PDDH':'NASDAQ:PDD',
+            'JD':'NASDAQ:JD','BIDU':'NASDAQ:BIDU','NIO':'NYSE:NIO','BYDDF':'OTC:BYDDF',
+            'ARAMCO':'TADAWUL:2222','SABIC':'TADAWUL:2010','FAB':'ADX:FAB','EMAAR':'DFM:EMAAR',
+            'MTN':'JSE:MTN','NASPERS':'JSE:NPN','STND':'JSE:SBK','SANLAM':'JSE:SLM',
+            'VALE':'NYSE:VALE','PETRO':'NYSE:PBR','ITUB':'NYSE:ITUB','BBAS3':'BMFBOVESPA:BBAS3',
+            'AMXL':'NYSE:AMX','CEMEX':'NYSE:CX','RY':'NYSE:RY','TD':'NYSE:TD','CNQ':'NYSE:CNQ',
+            'SU':'NYSE:SU','SHOP':'NYSE:SHOP','BBD':'NYSE:BBD','UBER':'NYSE:UBER','ABNB':'NASDAQ:ABNB',
+            'CRM':'NYSE:CRM','ADBE':'NASDAQ:ADBE','PYPL':'NASDAQ:PYPL','COIN':'NASDAQ:COIN',
+            'PLTR':'NYSE:PLTR','SNOW':'NYSE:SNOW','NET':'NYSE:NET','DDOG':'NASDAQ:DDOG',
+            'SQ':'NYSE:SQ','SPOT':'NYSE:SPOT','LYFT':'NASDAQ:LYFT','RBLX':'NYSE:RBLX',
+            'RIVN':'NASDAQ:RIVN','HAL':'NYSE:HAL','SLB':'NYSE:SLB','MCD':'NYSE:MCD',
+            'SBUX':'NASDAQ:SBUX','T':'NYSE:T','VZ':'NYSE:VZ','MRK':'NYSE:MRK','JNJ':'NYSE:JNJ',
+            'AMT':'NYSE:AMT','BLK':'NYSE:BLK','SPG':'NYSE:SPG','DE':'NYSE:DE','MMM':'NYSE:MMM',
+            'SPGI':'NYSE:SPGI','CME':'NASDAQ:CME','SEA':'NYSE:SE','GRAB':'NASDAQ:GRAB',
+            'GOTO':'IDX:GOTO','TLKM':'IDX:TLKM','MBB':'KLSE:MAYBANK',
+            'IAG':'TASE:TASE','XOM':'NYSE:XOM'
+        };
+
+        // Company intel panel — called by executeSynthesis
         function selectCompany(id) {
-            const co = assets.find(e => e.id === id);
-            map.flyTo(co.c, 6, { animate: true, duration: 1.5 });
-            const maxEarn = Math.max(...co.earn.map(Math.abs)) || 1;
-            document.getElementById('company-content').innerHTML = `
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-bold text-white">${co.n}</span>
-                        <span class="text-xs font-bold px-2 py-1 rounded" style="color:${co.color}; background:${co.color}20;">${co.id}</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <div class="bg-white/5 p-2 rounded border border-white/5">
-                            <div class="text-[7px] text-gray-500 uppercase mb-0.5">Gross Revenue</div>
-                            <div class="text-xs font-bold text-gray-200">${co.rev}</div>
-                        </div>
-                        <div class="bg-white/5 p-2 rounded border border-white/5">
-                            <div class="text-[7px] text-gray-500 uppercase mb-0.5">Cash Position</div>
-                            <div class="text-xs font-bold text-green-400">${co.cash}</div>
-                        </div>
-                    </div>
-                    <div class="text-[8px] text-gray-400 uppercase mb-1 font-bold tracking-widest">Revenue Momentum</div>
-                    <div class="flex items-end justify-between h-12 px-2 border-b border-white/10 mb-1 pt-2">
-                        ${co.earn.map(v => `<div class="w-3 rounded-t-sm" style="background:${co.color}80; height: ${(Math.max(0,v)/maxEarn)*100}%"></div>`).join('')}
-                    </div>
-                </div>`;
+            var co = assets.find(function(e) { return e.id === id; });
+            if (!co) return;
+            var maxEarn = Math.max.apply(null, co.earn.map(Math.abs)) || 1;
+            document.getElementById('company-content').innerHTML =
+                '<div class="mb-4">' +
+                '<div class="flex justify-between items-center mb-4">' +
+                '<span class="text-sm font-bold text-white">' + co.n + '</span>' +
+                '<span class="text-xs font-bold px-2 py-1 rounded" style="color:' + co.color + ';background:' + co.color + '20;">' + co.id + '</span>' +
+                '</div>' +
+                '<div class="grid grid-cols-2 gap-2 mb-4">' +
+                '<div class="bg-white/5 p-2 rounded border border-white/5"><div class="text-[7px] text-gray-500 uppercase mb-0.5">Gross Revenue</div><div class="text-xs font-bold text-gray-200">' + co.rev + '</div></div>' +
+                '<div class="bg-white/5 p-2 rounded border border-white/5"><div class="text-[7px] text-gray-500 uppercase mb-0.5">Cash Position</div><div class="text-xs font-bold text-green-400">' + co.cash + '</div></div>' +
+                '</div>' +
+                '<div class="text-[8px] text-gray-400 uppercase mb-1 font-bold tracking-widest">Revenue Momentum</div>' +
+                '<div class="flex items-end justify-between h-12 px-2 border-b border-white/10 mb-1 pt-2">' +
+                co.earn.map(function(v) { return '<div class="w-3 rounded-t-sm" style="background:' + co.color + '80;height:' + (Math.max(0,v)/maxEarn*100) + '%"></div>'; }).join('') +
+                '</div></div>';
         }
 
         window.onload = init;
