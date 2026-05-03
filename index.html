@@ -19,7 +19,6 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #333; }
         .bar-container { height: 8px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--hq-orange); transition: width 0.6s ease; }
-        .macro-chart-container { height: 80px; position: relative; margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .leaflet-tooltip-own {
             background: rgba(0, 0, 0, 0.95) !important;
             border: 1px solid var(--tv-green) !important;
@@ -30,6 +29,12 @@
             box-shadow: 0 0 20px rgba(34, 171, 148, 0.25);
         }
         .vessel-icon { transition: transform 2s linear; }
+        .yield-block { border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); border-radius: 3px; padding: 10px 12px; }
+        .yield-label { font-size: 7px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .yield-value { font-size: 22px; font-weight: 700; letter-spacing: -1px; }
+        .yield-change { font-size: 8px; margin-top: 3px; }
+        .yield-bar-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 1px; margin-top: 8px; }
+        .yield-bar-fill { height: 100%; border-radius: 1px; transition: width 0.8s ease; }
     </style>
 </head>
 <body>
@@ -66,16 +71,19 @@
             </div>
             <div class="text-[8px] font-bold flex gap-4 uppercase overflow-hidden">
                 <span class="text-emerald-500 shrink-0">● LIVE FEED</span>
-                <span id="headline-ticker" class="text-gray-300 transition-opacity duration-500 opacity-100">INITIALIZING FEED...</span>
+                <span id="headline-ticker" class="text-gray-300 transition-opacity duration-500 opacity-100">LOADING...</span>
             </div>
         </header>
 
         <div class="grid grid-cols-12 gap-2 flex-grow overflow-hidden">
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden">
-                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
+                <!-- TRACKED ASSETS (Expanded slightly now that search is gone) -->
+                <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/3 shrink-0">
                     <h2 class="text-[9px] font-bold text-gray-500 uppercase mb-2">Tracked Assets</h2>
                     <div id="equity-list" class="space-y-1 overflow-y-auto custom-scroll pr-1 flex-grow"></div>
                 </div>
+
+                <!-- COMPANY INTELLIGENCE (Main Sidebar focus) -->
                 <div id="intel-silo" class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
                     <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3 tracking-widest border-b border-white/10 pb-1">Company Intelligence</h2>
                     <div id="company-content" class="overflow-y-auto custom-scroll flex-grow pr-1">
@@ -93,15 +101,37 @@
                     <h2 class="text-[9px] font-bold text-[#ff8800] uppercase mb-3">Sector Rotation (Macro)</h2>
                     <div class="space-y-2 pt-1" id="sector-bars"></div>
                 </div>
+
+                <div class="glass-card rounded shrink-0 overflow-hidden" style="height:160px;">
+                    <div id="tradingview_chart" style="width:100%;height:100%;"></div>
+                </div>
+
                 <div class="glass-card p-3 rounded shrink-0">
-                    <h2 class="text-[9px] font-bold text-blue-500 uppercase flex justify-between">
-                        <span>Vessel Density</span>
-                        <span class="text-[7px] text-gray-500" id="active-vessels-count">0 Tracked</span>
+                    <h2 class="text-[9px] font-bold text-blue-500 uppercase mb-3 flex justify-between items-center">
+                        <span>US Treasury Yields</span>
+                        <span class="text-[7px] text-gray-600" id="yield-timestamp">LIVE</span>
                     </h2>
-                    <div class="text-[8px] text-gray-400 mt-2 space-y-1">
-                        <div class="flex justify-between"><span class="text-orange-500">■ XOM (Tankers)</span><span id="xom-count">0</span></div>
-                        <div class="flex justify-between"><span class="text-blue-500">■ WMT (Cargo)</span><span id="wmt-count">0</span></div>
-                        <div class="flex justify-between"><span class="text-emerald-500">■ AAPL (Tech)</span><span id="aapl-count">0</span></div>
+                    <div class="space-y-3">
+                        <div class="yield-block">
+                            <div class="yield-label">2-Year Yield</div>
+                            <div class="yield-value" id="yield-2y" style="color:#22ab94;">--%</div>
+                            <div class="yield-change" id="yield-2y-change" style="color:#555;">Loading...</div>
+                            <div class="yield-bar-track">
+                                <div class="yield-bar-fill" id="yield-2y-bar" style="width:0%;background:#22ab94;"></div>
+                            </div>
+                        </div>
+                        <div class="yield-block">
+                            <div class="yield-label">10-Year Yield</div>
+                            <div class="yield-value" id="yield-10y" style="color:#ff8800;">--%</div>
+                            <div class="yield-change" id="yield-10y-change" style="color:#555;">Loading...</div>
+                            <div class="yield-bar-track">
+                                <div class="yield-bar-fill" id="yield-10y-bar" style="width:0%;background:#ff8800;"></div>
+                            </div>
+                        </div>
+                        <div class="text-[7px] text-gray-600 border-t border-white/5 pt-2 flex justify-between">
+                            <span>SPREAD (10Y-2Y)</span>
+                            <span id="yield-spread" class="font-bold text-gray-400">-- bps</span>
+                        </div>
                     </div>
                 </div>
             </aside>
