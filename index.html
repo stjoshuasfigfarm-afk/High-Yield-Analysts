@@ -106,6 +106,40 @@
         .bs-sub { font-size: 7px; margin-top: 2px; color: #555; }
         .bs-bar-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 1px; margin-top: 6px; }
         .bs-bar-fill { height: 100%; border-radius: 1px; transition: width 0.8s ease; }
+        #news-feed-btn:hover { background: rgba(255,136,0,0.1); box-shadow: 0 0 12px rgba(255,136,0,0.2); }
+        #news-feed-btn.active { background: rgba(255,136,0,0.12); box-shadow: 0 0 16px rgba(255,136,0,0.3); border-color: #ffaa33; }
+        @keyframes dotPulse { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+        #news-btn-dot.live { background: var(--hq-orange); animation: dotPulse 1.2s ease-in-out infinite; }
+        @keyframes cardFadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+        #news-card { animation: cardFadeIn 0.3s ease; }
+
+        /* Crosshair animations */
+        @keyframes chDotPulse {
+            0%,100% { opacity:0.9; r:2.5px; }
+            50%      { opacity:0.3; r:1px; }
+        }
+        @keyframes chRingPulse {
+            0%   { opacity:0.7; stroke-width:0.8px; }
+            50%  { opacity:0.15; stroke-width:0.4px; }
+            100% { opacity:0.7; stroke-width:0.8px; }
+        }
+        @keyframes scanMove {
+            0%   { transform: translateY(0%); opacity:0.18; }
+            49%  { opacity:0.18; }
+            50%  { opacity:0; transform: translateY(100%); }
+            51%  { opacity:0; transform: translateY(0%); }
+            52%  { opacity:0.18; }
+            100% { transform: translateY(100%); opacity:0.18; }
+        }
+        @keyframes dashFlow {
+            to { stroke-dashoffset: -14; }
+        }
+        #ch-dot       { animation: chDotPulse   1.8s ease-in-out infinite; }
+        #ch-ring-inner{ animation: chRingPulse  1.8s ease-in-out infinite; }
+        #ch-scan      { animation: scanMove 3s linear infinite; }
+        #ch-h-left, #ch-h-right, #ch-v-top, #ch-v-bot {
+            animation: dashFlow 0.6s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -190,6 +224,103 @@
 
             <main class="col-span-6 glass-card rounded p-1 relative z-0">
                 <div id="map"></div>
+
+                <!-- NEWS FEED BUTTON — top-left of map -->
+                <button id="news-feed-btn" onclick="window.toggleNewsFeed()"
+                    style="position:absolute;top:10px;left:10px;z-index:999;
+                           background:#0a0a0a;border:1px solid var(--hq-orange);
+                           color:var(--hq-orange);font-family:'JetBrains Mono',monospace;
+                           font-size:8px;font-weight:700;letter-spacing:1.5px;
+                           padding:5px 10px;border-radius:3px;cursor:pointer;
+                           text-transform:uppercase;display:flex;align-items:center;gap:6px;
+                           transition:background 0.2s,box-shadow 0.2s;">
+                    <span id="news-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#555;display:inline-block;flex-shrink:0;"></span>
+                    News Feed
+                </button>
+
+                <!-- CROSSHAIR / TARGETING OVERLAY -->
+                <svg id="crosshair-svg" xmlns="http://www.w3.org/2000/svg"
+                    style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;
+                           pointer-events:none;z-index:997;overflow:visible;">
+                    <!-- Full-length crosshair lines -->
+                    <!-- Horizontal left arm -->
+                    <line id="ch-h-left"  x1="0" y1="50%" x2="50%" y2="50%"
+                          stroke="white" stroke-width="0.75" opacity="0.7"
+                          stroke-dasharray="4 3"/>
+                    <!-- Horizontal right arm -->
+                    <line id="ch-h-right" x1="50%" y1="50%" x2="100%" y2="50%"
+                          stroke="white" stroke-width="0.75" opacity="0.7"
+                          stroke-dasharray="4 3"/>
+                    <!-- Vertical top arm -->
+                    <line id="ch-v-top"   x1="50%" y1="0"   x2="50%" y2="50%"
+                          stroke="white" stroke-width="0.75" opacity="0.7"
+                          stroke-dasharray="4 3"/>
+                    <!-- Vertical bottom arm -->
+                    <line id="ch-v-bot"   x1="50%" y1="50%" x2="50%" y2="100%"
+                          stroke="white" stroke-width="0.75" opacity="0.7"
+                          stroke-dasharray="4 3"/>
+
+                    <!-- Center dot -->
+                    <circle id="ch-dot" cx="50%" cy="50%" r="2.5"
+                            fill="white" opacity="0.9"/>
+                    <!-- Inner ring at center -->
+                    <circle id="ch-ring-inner" cx="50%" cy="50%" r="6"
+                            fill="none" stroke="white" stroke-width="0.8" opacity="0.6"/>
+
+                    <!-- Shrinking corner brackets — top-left -->
+                    <g id="ch-corner-tl">
+                        <line x1="0" y1="0" x2="24" y2="0"  stroke="white" stroke-width="1.5"/>
+                        <line x1="0" y1="0" x2="0"  y2="24" stroke="white" stroke-width="1.5"/>
+                    </g>
+                    <!-- top-right -->
+                    <g id="ch-corner-tr">
+                        <line x1="100%" y1="0" x2="100%" y2="24"  stroke="white" stroke-width="1.5"/>
+                        <!-- horizontal goes leftward -->
+                        <line id="ch-tr-h" stroke="white" stroke-width="1.5"/>
+                    </g>
+                    <!-- bottom-left -->
+                    <g id="ch-corner-bl">
+                        <line id="ch-bl-v" stroke="white" stroke-width="1.5"/>
+                        <line x1="0" y1="100%" x2="24" y2="100%" stroke="white" stroke-width="1.5"/>
+                    </g>
+                    <!-- bottom-right -->
+                    <g id="ch-corner-br">
+                        <line id="ch-br-v" stroke="white" stroke-width="1.5"/>
+                        <line id="ch-br-h" stroke="white" stroke-width="1.5"/>
+                    </g>
+
+                    <!-- Scan line -->
+                    <line id="ch-scan" x1="0" y1="0" x2="100%" y2="0"
+                          stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+                </svg>
+
+                <!-- NEWS CARD OVERLAY — bottom of map -->
+                <div id="news-card" style="display:none;position:absolute;bottom:14px;left:10px;right:10px;z-index:998;
+                     background:#000;border:1px solid rgba(255,255,255,0.15);border-radius:4px;
+                     padding:14px 16px;box-shadow:0 4px 32px rgba(0,0,0,0.8);">
+                    <!-- Progress bar -->
+                    <div style="position:absolute;top:0;left:0;height:2px;background:var(--hq-orange);border-radius:4px 4px 0 0;
+                                transition:width 0.1s linear;" id="news-progress"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                        <div style="flex:1;min-width:0;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                                <span id="news-card-tag" style="font-size:7px;font-weight:700;letter-spacing:1.5px;
+                                      text-transform:uppercase;padding:2px 7px;border-radius:2px;
+                                      background:var(--hq-orange);color:#000;flex-shrink:0;">MARKETS</span>
+                                <span id="news-card-loc" style="font-size:7px;color:#666;letter-spacing:0.5px;
+                                      text-transform:uppercase;font-weight:700;"></span>
+                                <span style="margin-left:auto;font-size:7px;color:#444;" id="news-card-counter"></span>
+                            </div>
+                            <div id="news-card-headline" style="font-size:12px;font-weight:700;color:#fff;
+                                 line-height:1.45;letter-spacing:0.2px;"></div>
+                            <div id="news-card-body" style="font-size:9px;color:#888;margin-top:5px;
+                                 line-height:1.55;"></div>
+                        </div>
+                        <button onclick="window.toggleNewsFeed()" style="background:none;border:none;color:#444;
+                                font-size:14px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;
+                                font-family:monospace;">✕</button>
+                    </div>
+                </div>
             </main>
 
             <aside class="col-span-3 flex flex-col gap-2 overflow-hidden overflow-y-auto custom-scroll pr-1">
@@ -813,7 +944,7 @@
         const tvSymbols = {
             'AAPL':'NASDAQ:AAPL','NVDA':'NASDAQ:NVDA','MSFT':'NASDAQ:MSFT','AMZN':'NASDAQ:AMZN',
             'GOOGL':'NASDAQ:GOOGL','META':'NASDAQ:META','TSLA':'NASDAQ:TSLA','BRKB':'NYSE:BRK.B',
-            'JPM':'NYSE:JPM','V':'NYSE:V','MA':'NYSE:MA','WMT':'NASDAQ:WMT','XOM':'NYSE:XOM',
+            'JPM':'NYSE:JPM','V':'NYSE:V','MA':'NYSE:MA','WMT':'NYSE:WMT','XOM':'NYSE:XOM',
             'LLY':'NYSE:LLY','UNH':'NYSE:UNH','AVGO':'NASDAQ:AVGO','COST':'NASDAQ:COST',
             'PG':'NYSE:PG','HD':'NYSE:HD','ABBV':'NYSE:ABBV','BAC':'NYSE:BAC','KO':'NYSE:KO',
             'PEP':'NASDAQ:PEP','MRK':'NYSE:MRK','TMO':'NYSE:TMO','CAT':'NYSE:CAT','GE':'NYSE:GE',
@@ -828,7 +959,7 @@
             'SMSN':'KRX:005930','INFY':'NYSE:INFY','RELIANCE':'BSE:RELIANCE','ANZ':'ASX:ANZ',
             'MUFG':'NYSE:MUFG','VALE':'NYSE:VALE','PETRO':'NYSE:PBR','ITUB':'NYSE:ITUB','RY':'NYSE:RY',
             'TD':'NYSE:TD','SHOP':'NYSE:SHOP','UBER':'NYSE:UBER','ABNB':'NASDAQ:ABNB','CRM':'NYSE:CRM',
-            'ADBE':'NASDAQ:ADBE','PYPL':'NASDAQ:PYPL','COIN':'NASDAQ:COIN','PLTR':'NASDAQ:PLTR',
+            'ADBE':'NASDAQ:ADBE','PYPL':'NASDAQ:PYPL','COIN':'NASDAQ:COIN','PLTR':'NYSE:PLTR',
             'SNOW':'NYSE:SNOW','NET':'NYSE:NET','DDOG':'NASDAQ:DDOG','SQ':'NYSE:SQ','SPOT':'NYSE:SPOT',
             'RIVN':'NASDAQ:RIVN','HAL':'NYSE:HAL','SLB':'NYSE:SLB','MCD':'NYSE:MCD','SBUX':'NASDAQ:SBUX',
             'T':'NYSE:T','VZ':'NYSE:VZ','JNJ':'NYSE:JNJ','AMT':'NYSE:AMT','BLK':'NYSE:BLK',
@@ -1026,6 +1157,332 @@
             initSearch();
             initNewsFeed();
         }
+
+        // ── NEWS FEED ENGINE ─────────────────────────────────────────────────
+        // Each story has: tag, loc (display), coords [lat,lon], zoom, headline, body
+        var NEWS_STORIES = [
+            {
+                tag: 'AI / TECH', loc: 'Santa Clara, CA',
+                coords: [37.37, -121.96], zoom: 9,
+                headline: 'NVIDIA Q1 FY2026 Revenue $44B — Data Center Up 73% YoY',
+                body: 'AI demand remains insatiable as hyperscalers accelerate GPU procurement. Blackwell architecture orders fully booked through Q3 FY2026. NVDA raises full-year guidance above consensus.'
+            },
+            {
+                tag: 'EARNINGS', loc: 'Cupertino, CA',
+                coords: [37.33, -122.03], zoom: 10,
+                headline: 'Apple Q2 FY2025 Revenue $95.4B — Services Hit Record $26.6B',
+                body: 'iPhone revenue stabilizes at $46.8B despite China headwinds. Apple Intelligence features driving upgrade cycle. Services margin expands to 75.7%, highest on record.'
+            },
+            {
+                tag: 'CLOUD', loc: 'Redmond, WA',
+                coords: [47.67, -122.12], zoom: 9,
+                headline: 'Microsoft Q3 FY2025 Revenue $70.1B — Azure Re-Accelerates to 35%',
+                body: 'Copilot seat adoption reaches 20M+ enterprise users. Azure AI workloads now represent 16 points of total Azure growth. Operating margin expands to 45.6%.'
+            },
+            {
+                tag: 'ADVERTISING', loc: 'Menlo Park, CA',
+                coords: [37.48, -122.14], zoom: 10,
+                headline: 'Meta Q1 2025 Revenue $42.3B — AI Capex Guided $64–72B FY2025',
+                body: 'Ad impressions up 5% globally. Llama 4 deployment cutting inference costs. Reality Labs operating loss narrows to $4.2B. Threads reaches 350M monthly active users.'
+            },
+            {
+                tag: 'SEARCH / CLOUD', loc: 'Mountain View, CA',
+                coords: [37.42, -122.08], zoom: 10,
+                headline: 'Alphabet Q1 2025 Revenue $90.2B — Google Cloud Hits $12.3B',
+                body: 'Search revenue grows 10% YoY as AI Overviews drive monetization. YouTube ad revenue $8.9B. Cloud operating profit reaches $2.2B, up 142% YoY.'
+            },
+            {
+                tag: 'E-COMMERCE', loc: 'Seattle, WA',
+                coords: [47.61, -122.33], zoom: 9,
+                headline: 'Amazon Q1 2025 Revenue $155.7B — AWS Operating Profit $11.5B',
+                body: 'AWS growth re-accelerates to 17% YoY. Advertising revenue hits $13.9B, up 19%. Operating margin expands to 11.8%. Prime membership crosses 230M globally.'
+            },
+            {
+                tag: 'MACRO / FED', loc: 'Washington, D.C.',
+                coords: [38.89, -77.03], zoom: 8,
+                headline: 'Federal Reserve Holds at 4.25–4.50% — Tariff Uncertainty Cited',
+                body: 'Powell signals patience amid trade policy uncertainty. Core PCE at 2.8% in March, above 2% target. Market pricing in 2 cuts by year-end; Fed dots show only 1. Next meeting June 18.'
+            },
+            {
+                tag: 'BANKING', loc: 'New York, NY',
+                coords: [40.75, -73.97], zoom: 10,
+                headline: 'JPMorgan Q1 2025 Net Income $14.6B — NII Guidance Raised to $94.5B',
+                body: 'Investment banking fees surge 49% YoY on deal revival. Markets revenue up 21%. CEO Dimon warns of geopolitical risks but raises full-year NII guidance to $94.5B.'
+            },
+            {
+                tag: 'RETAIL', loc: 'Bentonville, AR',
+                coords: [36.37, -94.20], zoom: 9,
+                headline: 'Walmart Q1 FY2026 Revenue $165.6B — E-Commerce Up 21%',
+                body: 'US comparable sales +4.6%. Advertising revenue grows 50% YoY to $1.4B. Walmart+ membership provides steady recurring revenue. International segment outperforms on Mexico and India strength.'
+            },
+            {
+                tag: 'PHARMA', loc: 'Indianapolis, IN',
+                coords: [39.76, -86.16], zoom: 9,
+                headline: 'Eli Lilly Q1 2025 Revenue $12.7B — GLP-1 Sales Exceed $7B',
+                body: 'Mounjaro and Zepbound combined sales $7.2B, up 113% YoY. Manufacturing capacity expansion on track for 2025. Orforglipron oral GLP-1 Phase 3 data expected Q3 2025.'
+            },
+            {
+                tag: 'SEMICONDUCTORS', loc: 'Hsinchu, Taiwan',
+                coords: [24.77, 121.02], zoom: 9,
+                headline: 'TSMC Q1 2025 Revenue $25.5B — Advanced Nodes Fully Booked Through 2026',
+                body: '3nm and 5nm utilization at near-100%. CoWoS advanced packaging capacity tripling. Arizona fab N4 process achieving yields above Taiwan benchmarks. AI chip demand structurally elevated.'
+            },
+            {
+                tag: 'ENERGY / OIL', loc: 'Dhahran, Saudi Arabia',
+                coords: [26.31, 50.11], zoom: 6,
+                headline: 'Saudi Aramco Maintains $31B Q1 Profit — Dividend Commitments Intact',
+                body: 'Free cash flow covers $31.7B dividend despite lower crude prices. OPEC+ production increase surprise pushes Brent toward $72. Aramco gas expansion program on track for 2030 targets.'
+            },
+            {
+                tag: 'COMMODITIES', loc: 'Global Markets',
+                coords: [25.0, -30.0], zoom: 3,
+                headline: 'Gold Trades Above $3,200/oz — Central Bank Accumulation Persists',
+                body: 'Central banks net buyers for 15th consecutive quarter. China, India, Turkey top accumulators. Real yields still positive but geopolitical risk premium supports elevated gold prices. ETF inflows resuming.'
+            },
+            {
+                tag: 'EV / AUTOS', loc: 'Austin, TX',
+                coords: [30.22, -97.62], zoom: 9,
+                headline: 'Tesla Q1 2025 Deliveries 336K — Brand Risk Pressures Volumes',
+                body: 'Deliveries miss consensus of 390K. European sales down 45% YoY amid brand controversy. Cybertruck ramp slower than guided. Full Self-Driving 13 delayed to Q3. Model Y refresh driving US stabilization.'
+            },
+            {
+                tag: 'EV / CHINA', loc: 'Shenzhen, China',
+                coords: [22.55, 114.06], zoom: 9,
+                headline: 'BYD Q1 2025 NEV Sales 1M Units — International Push Accelerates',
+                body: 'BYD overtakes Tesla globally in battery-electric vehicles. Seagull model drives volume in EM markets. EU tariffs at 27% slow European expansion; Southeast Asia and South America filling gap.'
+            },
+            {
+                tag: 'TRADE / MACRO', loc: 'Pacific Ocean',
+                coords: [20.0, -150.0], zoom: 3,
+                headline: 'OPEC+ May Production Surprise Sends Brent to $72 — Supply Fears Ease',
+                body: 'OPEC+ adds 411K barrels/day in May, well above consensus. Saudi Arabia signals frustration with quota non-compliance. IEA raises 2025 demand growth forecast to 1.1M bpd. Energy sector underperforms.'
+            },
+            {
+                tag: 'SEMICONDUCTORS', loc: 'San Jose, CA',
+                coords: [37.44, -122.14], zoom: 10,
+                headline: 'Broadcom Q2 FY2025 Revenue $14.9B — AI ASIC Revenue Tracking $4B+',
+                body: 'Custom AI silicon for Google, Meta hyperscaler deployments driving upside. VMware integration ahead of schedule with $8.5B cost synergy target raised. Networking revenue inflecting on AI cluster buildout.'
+            },
+            {
+                tag: 'PHARMA / OBESITY', loc: 'Bagsværd, Denmark',
+                coords: [55.77, 12.33], zoom: 8,
+                headline: 'Novo Nordisk Q1 2025 Wegovy Supply Constrained — US Share Held',
+                body: 'Semaglutide weekly demand outpaces manufacturing capacity. US market share holds at 53% despite Eli Lilly competition. Oral semaglutide launch in select EU markets. 2025 revenue guidance maintained.'
+            },
+            {
+                tag: 'FIXED INCOME', loc: 'New York, NY',
+                coords: [40.71, -74.01], zoom: 10,
+                headline: 'US 10Y Treasury Yield 4.58% — Term Premium Rising on Fiscal Concerns',
+                body: 'Debt ceiling negotiations adding uncertainty. CBO projects $1.9T 2025 deficit. Foreign demand at Treasury auctions softening. Real yields remain above 2%, historically restrictive for equities.'
+            },
+            {
+                tag: 'AI INFRASTRUCTURE', loc: 'Global',
+                coords: [35.0, 20.0], zoom: 3,
+                headline: 'Global AI Infrastructure Spend Hits $320B in 2025 — Buildout Accelerates',
+                body: 'Microsoft, Google, Amazon, Meta collectively guiding $300B+ combined capex in 2025. Power constraints emerging as binding factor. Nuclear energy deals with data centers multiplying. Cooling tech demand surges.'
+            },
+        ];
+
+        var newsFeedActive = false;
+        var newsFeedIndex = 0;
+        var newsFeedTimer = null;
+        var newsProgressTimer = null;
+        var newsProgressStart = null;
+        var NEWS_INTERVAL = 15000; // 15 seconds per story
+
+        // ── CROSSHAIR ENGINE ─────────────────────────────────────────────────
+        var chAnimFrame = null;
+        var chAnimStart = null;
+        var CH_SHRINK_DURATION = 2200; // ms to shrink corners to center
+
+        function showCrosshair() {
+            var svg = document.getElementById('crosshair-svg');
+            if (!svg) return;
+            svg.style.display = 'block';
+            svg.style.opacity = '0';
+            // Fade in
+            var t0 = Date.now();
+            (function fadeIn() {
+                var p = Math.min(1, (Date.now() - t0) / 300);
+                svg.style.opacity = p;
+                if (p < 1) requestAnimationFrame(fadeIn);
+            })();
+            startCornerShrink();
+        }
+
+        function hideCrosshair() {
+            if (chAnimFrame) { cancelAnimationFrame(chAnimFrame); chAnimFrame = null; }
+            var svg = document.getElementById('crosshair-svg');
+            if (svg) svg.style.display = 'none';
+        }
+
+        function startCornerShrink() {
+            if (chAnimFrame) { cancelAnimationFrame(chAnimFrame); chAnimFrame = null; }
+            chAnimStart = null;
+
+            function frame(ts) {
+                if (!chAnimStart) chAnimStart = ts;
+                var svg = document.getElementById('crosshair-svg');
+                if (!svg || svg.style.display === 'none') return;
+
+                var W = svg.clientWidth  || svg.parentElement.clientWidth;
+                var H = svg.clientHeight || svg.parentElement.clientHeight;
+                var cx = W / 2, cy = H / 2;
+
+                // progress 0→1 over CH_SHRINK_DURATION — runs ONCE, stops at 1
+                var elapsed = ts - chAnimStart;
+                var raw  = Math.min(1, elapsed / CH_SHRINK_DURATION);
+                var prog = easeInOutCubic(raw);
+
+                var ARM    = 28;
+                var maxOffX = cx - 12;
+                var maxOffY = cy - 12;
+                var ox = maxOffX * (1 - prog);
+                var oy = maxOffY * (1 - prog);
+
+                // Top-left bracket
+                var tl = document.getElementById('ch-corner-tl');
+                if (tl) {
+                    var x = cx - ox, y = cy - oy;
+                    tl.children[0].setAttribute('x1', x);       tl.children[0].setAttribute('y1', y);
+                    tl.children[0].setAttribute('x2', x + ARM); tl.children[0].setAttribute('y2', y);
+                    tl.children[1].setAttribute('x1', x);       tl.children[1].setAttribute('y1', y);
+                    tl.children[1].setAttribute('x2', x);       tl.children[1].setAttribute('y2', y + ARM);
+                }
+
+                // Top-right bracket
+                var trH = document.getElementById('ch-tr-h');
+                var tr  = document.getElementById('ch-corner-tr');
+                if (tr && trH) {
+                    var x = cx + ox, y = cy - oy;
+                    tr.children[0].setAttribute('x1', x); tr.children[0].setAttribute('y1', y);
+                    tr.children[0].setAttribute('x2', x); tr.children[0].setAttribute('y2', y + ARM);
+                    trH.setAttribute('x1', x - ARM); trH.setAttribute('y1', y);
+                    trH.setAttribute('x2', x);        trH.setAttribute('y2', y);
+                }
+
+                // Bottom-left bracket
+                var blV = document.getElementById('ch-bl-v');
+                var bl  = document.getElementById('ch-corner-bl');
+                if (bl && blV) {
+                    var x = cx - ox, y = cy + oy;
+                    blV.setAttribute('x1', x); blV.setAttribute('y1', y - ARM);
+                    blV.setAttribute('x2', x); blV.setAttribute('y2', y);
+                    bl.children[1].setAttribute('x1', x);       bl.children[1].setAttribute('y1', y);
+                    bl.children[1].setAttribute('x2', x + ARM); bl.children[1].setAttribute('y2', y);
+                }
+
+                // Bottom-right bracket
+                var brV = document.getElementById('ch-br-v');
+                var brH = document.getElementById('ch-br-h');
+                if (brV && brH) {
+                    var x = cx + ox, y = cy + oy;
+                    brV.setAttribute('x1', x); brV.setAttribute('y1', y - ARM);
+                    brV.setAttribute('x2', x); brV.setAttribute('y2', y);
+                    brH.setAttribute('x1', x - ARM); brH.setAttribute('y1', y);
+                    brH.setAttribute('x2', x);        brH.setAttribute('y2', y);
+                }
+
+                // Continue only while not yet complete
+                if (raw < 1) {
+                    chAnimFrame = requestAnimationFrame(frame);
+                } else {
+                    chAnimFrame = null; // done — brackets locked at center
+                }
+            }
+
+            chAnimFrame = requestAnimationFrame(frame);
+        }
+
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // Track whether a moveend listener is already bound to avoid stacking
+        var _moveendBound = false;
+        var _moveendHandler = null;
+
+        function renderNewsCard(idx) {
+            var story = NEWS_STORIES[idx % NEWS_STORIES.length];
+            document.getElementById('news-card-tag').textContent      = story.tag;
+            document.getElementById('news-card-loc').textContent      = '📍 ' + story.loc;
+            document.getElementById('news-card-headline').textContent = story.headline;
+            document.getElementById('news-card-body').textContent     = story.body;
+            document.getElementById('news-card-counter').textContent  =
+                (idx % NEWS_STORIES.length + 1) + ' / ' + NEWS_STORIES.length;
+
+            // Hide crosshair immediately while map is moving
+            hideCrosshair();
+
+            // Remove any previous moveend listener before binding a new one
+            if (_moveendHandler) {
+                map.off('moveend', _moveendHandler);
+                _moveendHandler = null;
+            }
+
+            // Fly map to story location
+            map.flyTo(story.coords, story.zoom, { animate: true, duration: 1.4, easeLinearity: 0.35 });
+
+            // Show crosshair exactly when map stops, plus a short 250 ms settle pause
+            _moveendHandler = function() {
+                map.off('moveend', _moveendHandler);
+                _moveendHandler = null;
+                if (!newsFeedActive) return;
+                setTimeout(function() {
+                    if (!newsFeedActive) return;
+                    showCrosshair();
+                }, 250);
+            };
+            map.on('moveend', _moveendHandler);
+
+            // Reset progress bar
+            document.getElementById('news-progress').style.width = '0%';
+            newsProgressStart = Date.now();
+            if (newsProgressTimer) clearInterval(newsProgressTimer);
+            newsProgressTimer = setInterval(function() {
+                if (!newsFeedActive) { clearInterval(newsProgressTimer); return; }
+                var elapsed = Date.now() - newsProgressStart;
+                var pct = Math.min(100, (elapsed / NEWS_INTERVAL) * 100);
+                document.getElementById('news-progress').style.width = pct + '%';
+                if (pct >= 100) clearInterval(newsProgressTimer);
+            }, 50);
+        }
+
+        function startNewsCycle() {
+            renderNewsCard(newsFeedIndex);
+            newsFeedTimer = setInterval(function() {
+                newsFeedIndex = (newsFeedIndex + 1) % NEWS_STORIES.length;
+                renderNewsCard(newsFeedIndex);
+            }, NEWS_INTERVAL);
+        }
+
+        function stopNewsCycle() {
+            if (newsFeedTimer)    { clearInterval(newsFeedTimer);    newsFeedTimer    = null; }
+            if (newsProgressTimer){ clearInterval(newsProgressTimer); newsProgressTimer = null; }
+            if (_moveendHandler)  { map.off('moveend', _moveendHandler); _moveendHandler = null; }
+        }
+
+        window.toggleNewsFeed = function() {
+            newsFeedActive = !newsFeedActive;
+            var btn = document.getElementById('news-feed-btn');
+            var dot = document.getElementById('news-btn-dot');
+            var card = document.getElementById('news-card');
+
+            if (newsFeedActive) {
+                btn.classList.add('active');
+                dot.classList.add('live');
+                card.style.display = 'block';
+                startNewsCycle();
+            } else {
+                btn.classList.remove('active');
+                dot.classList.remove('live');
+                card.style.display = 'none';
+                stopNewsCycle();
+                hideCrosshair();
+                // Return map to world view
+                map.flyTo([25, -40], 3, { animate: true, duration: 1.5 });
+            }
+        };
 
         window.onload = init;
     </script>
