@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal | Full Asset List + Floating News Box</title>
+    <title>HY Analysts Terminal | Full 2026 Asset List + Earnings Bar Chart</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -28,6 +28,23 @@
             padding: 8px 10px !important;
             box-shadow: 0 0 20px rgba(34, 171, 148, 0.25);
         }
+        .news-popup .leaflet-popup-content-wrapper {
+            background: rgba(0,0,0,0.95);
+            border-radius: 8px;
+            border: 1px solid #ff8800;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            width: 400px;
+        }
+        .news-popup .leaflet-popup-content {
+            margin: 12px 16px;
+            width: 368px !important;
+            font-family: 'JetBrains Mono', monospace;
+            color: #e5e5e5;
+        }
+        .news-popup .leaflet-popup-tip {
+            background: rgba(0,0,0,0.95);
+            border: 1px solid #ff8800;
+        }
         .vessel-icon { transition: transform 2s linear; }
         .news-scroll-wrap { overflow: hidden; flex: 1; min-width: 0; position: relative; }
         .news-scroll-inner { display: flex; gap: 60px; white-space: nowrap; will-change: transform; }
@@ -47,9 +64,9 @@
             padding: 6px 8px;
             min-width: 0;
         }
-        #terminal-search:focus { border-color: var(--hq-orange); }
+        #terminal-search:focus { border-color: var(--tv-green); }
         #execute-btn {
-            background: var(--hq-orange);
+            background: #22ab94;
             border: none;
             border-radius: 0 3px 3px 0;
             padding: 6px 10px;
@@ -60,9 +77,9 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        #execute-btn:hover { background: #ffaa33; }
+        #execute-btn:hover { background: #1a8f7a; }
         .search-result-item { padding: 6px 10px; font-size: 9px; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .search-result-item:hover { background: rgba(255,136,0,0.12); }
+        .search-result-item:hover { background: rgba(34,171,148,0.12); }
         .bs-block { border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); border-radius: 3px; padding: 8px 10px; }
         .bs-label { font-size: 7px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
         .bs-value { font-size: 16px; font-weight: 700; letter-spacing: -0.5px; }
@@ -75,8 +92,10 @@
         .supply-toggle-buttons button[data-layer="midstream"] { color: #facc15; }
         .supply-toggle-buttons button[data-layer="downstream"] { color: #ef4444; }
         #crosshair-svg { pointer-events: none; z-index: 997; }
-        #news-card { z-index: 1001; background: rgba(0,0,0,0.9); border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); width: 280px; }
         .tv-chart-container { width: 100%; height: 100%; background: #131722; }
+        .earn-bar-container { background: rgba(255,255,255,0.05); border-radius: 2px; margin: 2px 0; }
+        .earn-bar { height: 12px; border-radius: 2px; transition: width 0.3s ease; }
+        .earn-label { display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px; color: #aaa; }
     </style>
 </head>
 <body>
@@ -124,8 +143,8 @@
                 <div class="flex justify-between mb-1"><h2 class="text-[9px] font-bold text-gray-500">Terminal Search</h2><span id="active-asset-label" class="text-[8px] text-[#ff8800]">── SELECT ASSET ──</span></div>
                 <div class="flex relative">
                     <input id="terminal-search" type="text" placeholder="Ticker or company..." class="bg-white/5 border border-white/10 border-r-0 text-[10px] p-1 flex-1 rounded-l" />
-                    <button id="execute-btn" onclick="window.runSearch()">EXECUTE</button>
-                    <div id="search-results" class="absolute top-full left-0 right-0 bg-black border border-orange-500/30 hidden z-50 max-h-60 overflow-auto"></div>
+                    <button id="execute-btn" onclick="window.runSearch()">SEARCH</button>
+                    <div id="search-results" class="absolute top-full left-0 right-0 bg-black border border-green-500/30 hidden z-50 max-h-60 overflow-auto"></div>
                 </div>
             </div>
             <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
@@ -143,25 +162,10 @@
             <button id="news-feed-btn" onclick="window.toggleNewsFeed()" class="absolute top-2 left-2 z-20 bg-black/80 border border-orange-500 text-orange-500 text-[8px] px-2 py-1 rounded flex items-center gap-1">
                 <span id="news-btn-dot" class="w-1.5 h-1.5 rounded-full bg-gray-500"></span> News Feed
             </button>
-            <!-- Toggle buttons visible from start -->
             <div id="supply-toggle-buttons" class="supply-toggle-buttons">
                 <button data-layer="upstream" class="active">⬆ Upstream</button>
                 <button data-layer="midstream" class="active">🔄 Midstream</button>
                 <button data-layer="downstream" class="active">⬇ Downstream</button>
-            </div>
-            <!-- News card (floating, positioned near crosshair) -->
-            <div id="news-card" class="hidden absolute bg-black border border-white/20 p-3 rounded z-30" style="width:280px;">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span id="news-card-tag" class="text-[10px] bg-orange-500 text-black px-1 rounded">MARKET</span>
-                        <span id="news-card-loc" class="text-[8px] text-gray-400 ml-2"></span>
-                    </div>
-                    <button onclick="window.toggleNewsFeed()" class="text-gray-400 hover:text-white">✕</button>
-                </div>
-                <div id="news-card-headline" class="text-sm font-bold mt-2"></div>
-                <div id="news-card-body" class="text-[9px] text-gray-400 mt-1"></div>
-                <div id="news-progress" class="h-0.5 bg-orange-500 w-0 mt-2 rounded"></div>
-                <div class="text-right text-[7px] text-gray-500 mt-1" id="news-card-counter"></div>
             </div>
         </main>
 
@@ -203,7 +207,7 @@
     const midstreamLayer = L.layerGroup().addTo(map);
     const downstreamLayer = L.layerGroup().addTo(map);
 
-    // ---------- FULL ASSETS LIST (exactly as provided) ----------
+    // ---------- FULL ASSETS LIST (EXACTLY AS PROVIDED - 2026 DATA) ----------
     const assets = [
         { id: 'AAPL', n: 'Apple Inc', c: [37.33, -122.03], emp: '154k', rev: '$412B', earn: [24,18,38,28], cash: '$31B', color: '#888888',
           bs: { assets: 385, debt: 98, cash: 31, equity: 86, fy: 'Q2 2026' } },
@@ -521,7 +525,7 @@
           bs: { assets: 305, debt: 58, cash: 26, equity: 30, fy: 'FY2025' } }
     ];
 
-    // ---------- SUPPLY CHAIN LOGIC ----------
+    // ---------- SUPPLY CHAIN GENERATOR (unchanged) ----------
     function getSupplyChainForCompany(company) {
         const sector = detectSector(company);
         const upstream = [], midstream = [], downstream = [];
@@ -541,7 +545,6 @@
         } else {
             add('TSM', upstream); add('UPS', midstream); add('WMT', downstream);
         }
-        // Add some fallbacks for missing tickers (like FDX, ET, KMI) – they are defined in the full list.
         return { upstream, midstream, downstream };
     }
     function detectSector(company) {
@@ -608,7 +611,7 @@
         });
     }
 
-    // ---------- UNIFIED TOOLTIP WITH FULL FINANCIALS ----------
+    // ---------- UNIFIED TOOLTIP ----------
     function buildCompanyTooltip(asset) {
         const rel = getSupplyChainForCompany(asset);
         const up = (rel.upstream || []).map(t => `<span class="text-green-400">${t}</span>`).join(', ') || 'None';
@@ -639,7 +642,32 @@
         `;
     }
 
-    // ---------- UI UPDATE ----------
+    // ---------- BAR CHART FOR EARNINGS (in Company Intelligence) ----------
+    function renderEarningsBarChart(earnArray) {
+        const maxAbs = Math.max(...earnArray.map(Math.abs)) || 1;
+        const quarterLabels = ['Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026'];
+        let html = '<div class="mt-2 text-[8px] font-semibold">Net Income (Q2 2025 – Q1 2026)</div>';
+        for (let i = 0; i < earnArray.length; i++) {
+            const val = earnArray[i];
+            const percent = (Math.abs(val) / maxAbs) * 100;
+            const color = val >= 0 ? '#4ade80' : '#f87171';
+            const sign = val >= 0 ? '+' : '';
+            html += `
+                <div style="margin-top:4px;">
+                    <div class="flex justify-between text-[7px]">
+                        <span>${quarterLabels[i]}</span>
+                        <span style="color:${color}">${sign}$${val}B</span>
+                    </div>
+                    <div class="earn-bar-container">
+                        <div class="earn-bar" style="width:${percent}%; background-color:${color};"></div>
+                    </div>
+                </div>
+            `;
+        }
+        return html;
+    }
+
+    // ---------- UI UPDATE (balance sheet, chart, etc.) ----------
     function renderBalanceSheet(asset) {
         if (!asset.bs) return;
         document.getElementById('bs-no-asset').style.display = 'none';
@@ -692,7 +720,7 @@
         const upstreamHtml = (rel.upstream || []).map(pid => `<span class="text-green-400">${pid}</span>`).join(', ') || 'None';
         const midstreamHtml = (rel.midstream || []).map(pid => `<span class="text-yellow-400">${pid}</span>`).join(', ') || 'None';
         const downstreamHtml = (rel.downstream || []).map(pid => `<span class="text-red-400">${pid}</span>`).join(', ') || 'None';
-        const earnHtml = co.earn.map((v,i) => `<div class="flex justify-between text-[8px]"><span>Q${i+2} 2025</span><span style="color:${v>=0?'#4ade80':'#f87171'}">${v>=0?'+':''}$${v}B</span></div>`).join('');
+        const earningsChartHtml = renderEarningsBarChart(co.earn);
         document.getElementById('company-content').innerHTML = `
             <div class="font-bold text-[11px]">${co.n} (${co.id})</div>
             <div class="grid grid-cols-2 gap-1 mt-2 text-[8px]"><span>Revenue</span><span>${co.rev}</span><span>Cash</span><span>${co.cash}</span><span>Emp.</span><span>${co.emp}</span></div>
@@ -700,8 +728,7 @@
             <div class="text-[8px]"><span class="text-green-400">↑ Upstream:</span> ${upstreamHtml}</div>
             <div class="text-[8px]"><span class="text-yellow-400">↔ Midstream:</span> ${midstreamHtml}</div>
             <div class="text-[8px]"><span class="text-red-400">↓ Downstream:</span> ${downstreamHtml}</div>
-            <div class="mt-2 text-[8px] font-semibold">Net Income (Q2'25–Q1'26)</div>
-            ${earnHtml}
+            ${earningsChartHtml}
         `;
         updateTradingViewChart(co.id);
         document.getElementById('active-asset-label').innerText = `${co.id} — ${co.n}`;
@@ -731,7 +758,7 @@
         listDiv.appendChild(row);
     });
 
-    // ---------- SEARCH ----------
+    // ---------- SEARCH (with dropdown) ----------
     window.runSearch = function() {
         const input = document.getElementById('terminal-search');
         const val = input.value.trim().toUpperCase();
@@ -755,7 +782,7 @@
     });
     document.addEventListener('click', (e) => { if (!resultsDiv.contains(e.target) && e.target !== searchInput) resultsDiv.style.display = 'none'; });
 
-    // ---------- NEWS FEED WITH FLOATING BOX ----------
+    // ---------- NEWS FEED (landscape popups attached to map location) ----------
     const headlines = [
         "NVIDIA Q1 FY2027 REVENUE $58B – DATA CENTER +91%",
         "APPLE Q2 2026 SERVICES HIT $31B – IPHONE 17e CYCLE",
@@ -777,53 +804,68 @@
         { tag: 'DEFENSE', loc: 'Persian Gulf', coords: [27.0, 52.0], zoom: 6, headline: 'US Navy Escorts 15 Vessels Through Hormuz', body: 'Carrier strike group deployed after drone attacks. Oil flows disrupted for 12 hours.' }
     ];
     let newsActive = false, newsIdx = 0, newsTimer, progTimer;
-    const newsCard = document.getElementById('news-card');
+    let currentNewsMarker = null;
 
-    function positionNearCenter() {
-        const mapContainer = document.getElementById('map');
-        const rect = mapContainer.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        newsCard.style.left = (centerX - 140) + 'px'; // half width
-        newsCard.style.top = (centerY - 80) + 'px';
-        newsCard.style.position = 'fixed';
+    function createNewsPopup(story) {
+        const content = `
+            <div style="width:380px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="background:#ff8800; color:#000; font-size:7px; font-weight:700; padding:2px 6px; border-radius:2px;">${story.tag}</span>
+                    <span style="color:#888; font-size:7px;">${story.loc}</span>
+                </div>
+                <div style="font-size:12px; font-weight:700; margin-bottom:6px;">${story.headline}</div>
+                <div style="font-size:9px; color:#aaa; margin-bottom:8px;">${story.body}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div id="news-progress-bar" style="height:2px; background:#ff8800; width:0%; transition:width 0.1s linear;"></div>
+                    <span id="news-counter" style="font-size:7px; color:#555;">${(newsIdx % newsStories.length)+1}/${newsStories.length}</span>
+                </div>
+            </div>
+        `;
+        return L.popup({ className: 'news-popup', offset: [0, -20], autoPan: false, closeButton: false })
+            .setLatLng(story.coords)
+            .setContent(content);
     }
 
-    function showNewsCard(idx) {
-        const s = newsStories[idx % newsStories.length];
-        document.getElementById('news-card-tag').innerText = s.tag;
-        document.getElementById('news-card-loc').innerText = s.loc;
-        document.getElementById('news-card-headline').innerText = s.headline;
-        document.getElementById('news-card-body').innerText = s.body;
-        document.getElementById('news-card-counter').innerText = `${(idx%newsStories.length)+1}/${newsStories.length}`;
-        positionNearCenter();
-        newsCard.style.display = 'block';
-        const prog = document.getElementById('news-progress');
-        prog.style.width = '0%';
+    function updateProgressBar(percent) {
+        const progressDiv = document.querySelector('#news-progress-bar');
+        if (progressDiv) progressDiv.style.width = percent + '%';
+        const counterSpan = document.querySelector('#news-counter');
+        if (counterSpan) counterSpan.innerText = `${(newsIdx % newsStories.length)+1}/${newsStories.length}`;
+    }
+
+    function showNewsPopup(idx) {
+        const story = newsStories[idx % newsStories.length];
+        if (currentNewsMarker) {
+            map.closePopup(currentNewsMarker.getPopup());
+            map.removeLayer(currentNewsMarker);
+            currentNewsMarker = null;
+        }
+        const popup = createNewsPopup(story);
+        currentNewsMarker = L.marker(story.coords, { interactive: false }).addTo(map);
+        currentNewsMarker.bindPopup(popup).openPopup();
+        const progDiv = document.querySelector('#news-progress-bar');
+        if (progDiv) progDiv.style.width = '0%';
+        const counterSpan = document.querySelector('#news-counter');
+        if (counterSpan) counterSpan.innerText = `${(idx % newsStories.length)+1}/${newsStories.length}`;
         if (progTimer) clearInterval(progTimer);
         const start = Date.now();
         progTimer = setInterval(() => {
             if (!newsActive) { clearInterval(progTimer); return; }
-            const p = Math.min(100, ((Date.now()-start)/15000)*100);
-            prog.style.width = p+'%';
-            if(p>=100) clearInterval(progTimer);
-        }, 100);
-    }
-
-    function hideNewsCard() {
-        newsCard.style.display = 'none';
+            const elapsed = Date.now() - start;
+            const pct = Math.min(100, (elapsed / 15000) * 100);
+            updateProgressBar(pct);
+            if (pct >= 100) clearInterval(progTimer);
+        }, 50);
     }
 
     function startNewsCycle() {
         newsActive = true;
-        const story = newsStories[newsIdx % newsStories.length];
-        map.flyTo(story.coords, story.zoom, { animate: true, duration: 1.4 });
+        const firstStory = newsStories[newsIdx % newsStories.length];
+        map.flyTo(firstStory.coords, firstStory.zoom, { animate: true, duration: 1.4 });
         if (window.flyEndHandler) map.off('moveend', window.flyEndHandler);
         window.flyEndHandler = () => {
             map.off('moveend', window.flyEndHandler);
-            setTimeout(() => {
-                if (newsActive) showNewsCard(newsIdx);
-            }, 2400); // wait for crosshair shrink
+            setTimeout(() => { if (newsActive) showNewsPopup(newsIdx); }, 2400);
         };
         map.on('moveend', window.flyEndHandler);
         newsTimer = setInterval(() => {
@@ -833,9 +875,7 @@
             if (window.flyEndHandler) map.off('moveend', window.flyEndHandler);
             window.flyEndHandler = () => {
                 map.off('moveend', window.flyEndHandler);
-                setTimeout(() => {
-                    if (newsActive) showNewsCard(newsIdx);
-                }, 2400);
+                setTimeout(() => { if (newsActive) showNewsPopup(newsIdx); }, 2400);
             };
             map.on('moveend', window.flyEndHandler);
         }, 15000);
@@ -846,7 +886,11 @@
         if (newsTimer) clearInterval(newsTimer);
         if (progTimer) clearInterval(progTimer);
         if (window.flyEndHandler) map.off('moveend', window.flyEndHandler);
-        hideNewsCard();
+        if (currentNewsMarker) {
+            map.closePopup(currentNewsMarker.getPopup());
+            map.removeLayer(currentNewsMarker);
+            currentNewsMarker = null;
+        }
     }
 
     window.toggleNewsFeed = function() {
@@ -875,7 +919,7 @@
     selectCompany('AAPL');
     initToggleButtons();
 
-    // AIS simulation
+    // AIS vessel simulation
     const vesselLayer = L.layerGroup().addTo(map);
     setInterval(() => {
         const lat = 20 + Math.random()*30;
