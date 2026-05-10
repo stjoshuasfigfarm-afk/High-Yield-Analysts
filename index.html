@@ -127,26 +127,23 @@
         <div class="flex items-center gap-4">
             <h1 class="text-xs font-bold tracking-widest text-[#22ab94]">HY Analysts Terminal</h1>
             <a href="https://www.youtube.com/@HighYieldAnalysts" target="_blank" class="flex items-center gap-1" title="HY Analysts">
-   <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+   <svg width="512" height="512" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Mostly green gradient with a tiny orange accent -->
-    <linearGradient id="hy_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Pure green gradient (no orange) -->
+    <linearGradient id="green_grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0f5c4a" />   <!-- dark forest green -->
-      <stop offset="40%" stop-color="#22ab94" />  <!-- original teal -->
-      <stop offset="85%" stop-color="#55d6b5" />  <!-- bright mint green -->
-      <stop offset="100%" stop-color="#ffaa33" /> <!-- soft orange accent (keeps a hint of your original) -->
+      <stop offset="50%" stop-color="#22ab94" />  <!-- teal -->
+      <stop offset="100%" stop-color="#55d6b5" /> <!-- bright mint green -->
     </linearGradient>
   </defs>
 
-  <!-- Y -->
-  <line x1="50" y1="50" x2="50" y2="82" stroke="url(#hy_grad)" stroke-width="8" stroke-linecap="round" />
-  <line x1="50" y1="50" x2="28" y2="18" stroke="url(#hy_grad)" stroke-width="8" stroke-linecap="round" />
-  <line x1="50" y1="50" x2="72" y2="18" stroke="url(#hy_grad)" stroke-width="8" stroke-linecap="round" />
+  <!-- Y – only the two upper branches (no bottom leg) -->
+  <line x1="50" y1="50" x2="28" y2="18" stroke="url(#green_grad)" stroke-width="8" stroke-linecap="round" />
+  <line x1="50" y1="50" x2="72" y2="18" stroke="url(#green_grad)" stroke-width="8" stroke-linecap="round" />
 
-  <!-- A -->
-  <line x1="18" y1="75" x2="50" y2="22" stroke="url(#hy_grad)" stroke-width="7" stroke-linecap="round" />
-  <line x1="82" y1="75" x2="50" y2="22" stroke="url(#hy_grad)" stroke-width="7" stroke-linecap="round" />
-  <line x1="32" y1="52" x2="68" y2="52" stroke="url(#hy_grad)" stroke-width="7" stroke-linecap="round" />
+  <!-- A – only the inverted V (no horizontal crossbar) -->
+  <line x1="18" y1="75" x2="50" y2="22" stroke="url(#green_grad)" stroke-width="7" stroke-linecap="round" />
+  <line x1="82" y1="75" x2="50" y2="22" stroke="url(#green_grad)" stroke-width="7" stroke-linecap="round" />
 </svg>
     <span style="font-size:9px;font-weight:700;color:#ff8800; margin-left:4px;">HY ANALYSTS</span>
 
