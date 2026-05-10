@@ -525,39 +525,190 @@
           bs: { assets: 305, debt: 58, cash: 26, equity: 30, fy: 'FY2025' } }
     ];
 
-    // ---------- SUPPLY CHAIN GENERATOR (unchanged) ----------
+     // ---------- COMPLETE SUPPLY CHAIN MAPPING (upstream = suppliers, downstream = buyers) ----------
+    // This map covers every ticker with realistic relationships. For any company not explicitly listed,
+    // the sector-based fallback will provide meaningful connections.
+    const supplyChainMap = {
+        // Technology (suppliers and customers)
+        'AAPL': { upstream: ['TSM', 'QCOM', 'MU', 'ASML', 'AVGO', 'TXN', 'SK'], midstream: ['UPS', 'FDX'], downstream: ['WMT', 'AMZN', 'TGT', 'BBY', 'VZ', 'T', 'BESTBUY'] },
+        'NVDA': { upstream: ['TSM', 'SK', 'ASML', 'MU', 'SAMSUNG'], midstream: ['UPS'], downstream: ['MSFT', 'GOOGL', 'AMZN', 'META', 'DELL', 'SMCI', 'TSLA'] },
+        'MSFT': { upstream: ['NVDA', 'AMD', 'TSM', 'INTC', 'DELL'], midstream: ['UPS'], downstream: ['AAPL', 'GOOGL', 'META', 'ORCL', 'CRM', 'ADBE', 'NOW'] },
+        'AMZN': { upstream: ['NVDA', 'TSM', 'MSFT', 'WMT'], midstream: ['UPS', 'AMZN'], downstream: ['AAPL', 'GOOGL', 'META', 'NFLX', 'WMT'] },
+        'GOOGL': { upstream: ['NVDA', 'AMD', 'TSM', 'AVGO'], midstream: [], downstream: ['MSFT', 'META', 'AAPL', 'AMZN'] },
+        'META': { upstream: ['NVDA', 'AMD', 'TSM'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AAPL'] },
+        'TSLA': { upstream: ['TSM', 'LG', 'CATL', 'SAMSUNG', 'DELPHI'], midstream: ['UPS'], downstream: ['WMT', 'AMZN', 'UBER', 'LYFT', 'HERTZ'] },
+        'BRKB': { upstream: ['AAPL', 'JPM', 'AXP'], midstream: ['BNSF', 'UPS'], downstream: ['GEICO', 'KHC', 'DPZ'] },
+        'JPM': { upstream: ['V', 'MA'], midstream: ['JPM'], downstream: ['GS', 'MS', 'BAC', 'C', 'WFC', 'BLK'] },
+        'V': { upstream: [], midstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS', 'AXP', 'BLK'] },
+        'MA': { upstream: [], midstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS', 'AXP', 'BLK'] },
+        'WMT': { upstream: ['AAPL', 'MSFT', 'AMZN', 'XOM', 'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE'], midstream: ['UPS'], downstream: ['TGT', 'COST', 'HD', 'LOW'] },
+        'XOM': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['CVX', 'WMT', 'PSX', 'VLO'] },
+        'LLY': { upstream: ['TMO', 'JNJ', 'PFE'], midstream: ['UNH', 'CVS'], downstream: ['NOVO', 'ABBV'] },
+        'UNH': { upstream: [], midstream: [], downstream: ['JNJ', 'PFE', 'MRK', 'ABBV', 'LLY', 'CVS'] },
+        'AVGO': { upstream: ['TSM', 'ASML'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META', 'MSFT', 'AMZN'] },
+        'COST': { upstream: ['AAPL', 'MSFT', 'PG', 'KO', 'PEP', 'NKE'], midstream: ['UPS'], downstream: ['WMT', 'TGT'] },
+        'PG': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST', 'HD', 'AMZN'] },
+        'HD': { upstream: ['LOW', 'DE', 'CAT'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'LOW'] },
+        'ABBV': { upstream: ['JNJ', 'PFE', 'TMO'], midstream: ['UNH', 'CVS'], downstream: ['MRK', 'LLY'] },
+        'BAC': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'C', 'WFC', 'GS'] },
+        'KO': { upstream: ['PEP'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST', 'MCD', 'SBUX'] },
+        'PEP': { upstream: ['KO'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST', 'MCD', 'SBUX'] },
+        'MRK': { upstream: ['JNJ', 'PFE', 'TMO'], midstream: ['UNH', 'CVS'], downstream: ['ABBV', 'LLY'] },
+        'TMO': { upstream: [], midstream: [], downstream: ['JNJ', 'PFE', 'MRK', 'ABBV', 'LLY', 'GILD', 'AMGN'] },
+        'CAT': { upstream: ['DE'], midstream: ['UPS'], downstream: ['HD', 'LOW'] },
+        'GE': { upstream: [], midstream: [], downstream: ['BA', 'RTX', 'CAT'] },
+        'BA': { upstream: ['SPR', 'GE', 'RTX'], midstream: [], downstream: ['UAL', 'DAL', 'LUV'] },
+        'RTX': { upstream: ['GE', 'BA'], midstream: [], downstream: ['BA', 'LMT'] },
+        'LMT': { upstream: ['RTX', 'BA'], midstream: [], downstream: ['NOC', 'GD'] },
+        'F': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'GM': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'TM': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'HMC': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'RIVN': { upstream: ['TSM', 'CATL'], midstream: ['UPS'], downstream: ['WMT', 'AMZN', 'UBER'] },
+        'BYDDF': { upstream: ['LG', 'CATL', 'SAMSUNG'], midstream: [], downstream: ['WMT', 'AMZN', 'UBER'] },
+        'T': { upstream: ['VZ', 'NOK', 'ERIC'], midstream: [], downstream: ['AAPL', 'GOOGL', 'VZ'] },
+        'VZ': { upstream: ['T', 'NOK'], midstream: [], downstream: ['AAPL', 'GOOGL', 'T'] },
+        'AMT': { upstream: ['T', 'VZ'], midstream: [], downstream: ['T', 'VZ'] },
+        'EMAARDEV': { upstream: ['A9N'], midstream: [], downstream: ['FAB', 'A9N'] },
+        'SANLAM': { upstream: [], midstream: [], downstream: ['STND', 'NASPERS'] },
+        'ICICIBANK': { upstream: ['V', 'MA'], midstream: [], downstream: ['HDFC', 'TCS', 'RELIANCE'] },
+        'HDFC': { upstream: ['V', 'MA'], midstream: [], downstream: ['ICICIBANK', 'TCS', 'RELIANCE'] },
+        'TCS': { upstream: ['INFY', 'MSFT'], midstream: [], downstream: ['BAC', 'JPM', 'GS', 'MS'] },
+        'INFY': { upstream: ['TCS', 'MSFT'], midstream: [], downstream: ['BAC', 'JPM', 'GS', 'MS'] },
+        'RELIANCE': { upstream: ['A9N', 'HAL'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'SMSN': { upstream: ['ASML', 'TSM'], midstream: [], downstream: ['AAPL', 'NVDA', 'MSFT', 'GOOGL', 'SONY'] },
+        'SONY': { upstream: ['TSM', 'SMSN', 'SK'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AAPL', 'NFLX'] },
+        'BABA': { upstream: ['TSM', 'NVDA'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'TCEHY': { upstream: ['NVDA', 'TSM'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AAPL'] },
+        'RIO': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['BHP', 'VALE', 'CAT'] },
+        'BHP': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['RIO', 'VALE', 'CAT'] },
+        'VALE': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['BHP', 'RIO', 'CAT'] },
+        'BP': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'SHEL'] },
+        'SHEL': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['BP', 'CVX', 'XOM'] },
+        'CVX': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'BP', 'SHEL'] },
+        'HSBA': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'GS'] },
+        'BNP': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'RY': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'TD': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'ITUB': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'BBAS3': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'STND': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'NASPERS': { upstream: ['TCEHY'], midstream: [], downstream: ['STND', 'SANLAM'] },
+        'FAB': { upstream: ['A9N', 'EMAARDEV'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'A9N': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'SABIC', '2010'] },
+        '2010': { upstream: ['A9N', 'SABIC'], midstream: [], downstream: ['PG', 'PEP', 'KO', 'NKE'] },
+        'PANW': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'MRNA': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'NOVO'] },
+        'MTN': { upstream: [], midstream: [], downstream: ['STND', 'SANLAM', 'NASPERS'] },
+        'GRAB': { upstream: ['UBER', 'ABNB'], midstream: [], downstream: ['SEA'] },
+        'SEA': { upstream: ['GRAB'], midstream: [], downstream: ['SHOP'] },
+        'SHOP': { upstream: ['SEA'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'SPGI': { upstream: ['CME'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'GS', 'MS'] },
+        'CME': { upstream: [], midstream: [], downstream: ['JPM', 'GS', 'MS', 'BAC', 'C'] },
+        'BAYN': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'MRK', 'ABBV'] },
+        'SK': { upstream: ['ASML', 'TSM'], midstream: [], downstream: ['NVDA', 'AAPL', 'MSFT', 'GOOGL', 'SONY'] },
+        'NOVO': { upstream: ['LLY', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'MRK'] },
+        'ROCHE': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'MRK', 'ABBV'] },
+        'NESN': { upstream: ['PG', 'KO'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'LVMH': { upstream: ['PG', 'KO'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'SAP': { upstream: ['MSFT', 'ORCL'], midstream: [], downstream: ['AAPL', 'GOOGL', 'AMZN', 'WMT'] },
+        'ASML': { upstream: [], midstream: [], downstream: ['TSM', 'INTC', 'SAMSUNG', 'SK'] },
+        'INTC': { upstream: ['ASML', 'TSM'], midstream: [], downstream: ['AAPL', 'MSFT', 'DELL', 'HPQ'] },
+        'AMD': { upstream: ['TSM', 'ASML'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AMZN', 'SONY'] },
+        'MU': { upstream: ['TSM', 'ASML'], midstream: [], downstream: ['NVDA', 'AAPL', 'MSFT', 'DELL'] },
+        'QCOM': { upstream: ['TSM', 'SAMSUNG'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META', 'VZ', 'T'] },
+        'TXN': { upstream: ['TSM'], midstream: [], downstream: ['AAPL', 'NVDA', 'QCOM', 'INTC'] },
+        'NOW': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'INTU': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'AMGN': { upstream: ['TMO', 'JNJ', 'PFE'], midstream: ['UNH', 'CVS'], downstream: ['JNJ', 'PFE', 'MRK'] },
+        'GILD': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['JNJ', 'PFE', 'MRK'] },
+        'CVS': { upstream: [], midstream: [], downstream: ['UNH', 'JNJ', 'PFE', 'MRK', 'ABBV', 'LLY'] },
+        'MDT': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['ABT', 'JNJ', 'PFE'] },
+        'ABT': { upstream: ['TMO', 'MDT'], midstream: ['UNH', 'CVS'], downstream: ['JNJ', 'PFE', 'MRK'] },
+        'DE': { upstream: ['CAT'], midstream: ['UPS'], downstream: ['HD', 'LOW'] },
+        'MMM': { upstream: [], midstream: ['UPS'], downstream: ['HD', 'LOW', 'WMT', 'TGT'] },
+        'HON': { upstream: [], midstream: [], downstream: ['BA', 'CAT', 'GE'] },
+        'MS': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'GS', 'BLK'] },
+        'GS': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'MS', 'BLK'] },
+        'C': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'WFC'] },
+        'WFC': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'AXP': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'BLK': { upstream: ['JPM', 'GS', 'MS'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC'] },
+        'PM': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'MO': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'MCD': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'YUM'] },
+        'SBUX': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'MCD'] },
+        'NKE': { upstream: ['PG'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'DIS': { upstream: ['NFLX', 'SONY'], midstream: [], downstream: ['WMT', 'TGT', 'AMZN'] },
+        'NFLX': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['DIS', 'WMT', 'AMZN'] },
+        'ORCL': { upstream: ['MSFT', 'NVDA'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META', 'CRM'] },
+        'CRM': { upstream: ['MSFT', 'ORCL', 'GOOGL'], midstream: [], downstream: ['AAPL', 'GOOGL', 'AMZN'] },
+        'ADBE': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN'] },
+        'PYPL': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC'] },
+        'COIN': { upstream: ['PYPL', 'SQ'], midstream: [], downstream: ['JPM', 'GS', 'MS', 'C'] },
+        'PLTR': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT', 'JPM', 'GS'] },
+        'SNOW': { upstream: ['MSFT', 'AMZN'], midstream: [], downstream: ['AAPL', 'GOOGL', 'WMT'] },
+        'NET': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'DDOG': { upstream: ['MSFT', 'AMZN'], midstream: [], downstream: ['AAPL', 'GOOGL', 'WMT'] },
+        'SQ': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'SPOT': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'T', 'VZ'] },
+        'UBER': { upstream: ['TSLA', 'RIVN'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'ABNB': { upstream: [], midstream: [], downstream: ['WMT', 'AMZN', 'UBER'] },
+        'HAL': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'SLB': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'ET': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'KMI': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'UPS': { upstream: [], midstream: [], downstream: ['WMT', 'AMZN', 'TGT', 'HD', 'COST', 'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE'] },
+        'FDX': { upstream: [], midstream: [], downstream: ['WMT', 'AMZN', 'TGT', 'HD', 'COST', 'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE'] },
+        'LYFT': { upstream: ['TSLA', 'UBER'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'RBLX': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN'] },
+        'GOTO': { upstream: ['SEA', 'GRAB'], midstream: [], downstream: ['SHOP'] },
+        'TLKM': { upstream: ['T', 'VZ'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META'] },
+        'MBB': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'CNQ': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
+        'SU': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
+        'CEMEX': { upstream: ['CAT', 'DE'], midstream: ['UPS'], downstream: ['HD', 'LOW'] },
+        'AMXL': { upstream: ['T', 'VZ'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META'] },
+        'BBD': { upstream: ['BA', 'GE'], midstream: [], downstream: ['UAL', 'DAL', 'LUV'] },
+        'LYFT': { upstream: ['TSLA', 'UBER'], midstream: [], downstream: ['WMT', 'AMZN'] },
+        'RBLX': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN'] },
+        'GOTO': { upstream: ['SEA', 'GRAB'], midstream: [], downstream: ['SHOP'] },
+        'TLKM': { upstream: ['T', 'VZ'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META'] },
+        'MBB': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] }
+    };
+
+    // ---------- FALLBACK SUPPLY CHAIN (uses sector detection for any company not in the map) ----------
     function getSupplyChainForCompany(company) {
+        if (supplyChainMap[company.id]) return supplyChainMap[company.id];
         const sector = detectSector(company);
         const upstream = [], midstream = [], downstream = [];
         const add = (t, arr) => { if (getAssetById(t)) arr.push(t); };
-        if (sector === 'tech') {
-            add('TSM', upstream); add('QCOM', upstream); add('MU', upstream); add('ASML', upstream);
-            add('UPS', midstream); add('FDX', midstream);
-            add('WMT', downstream); add('AMZN', downstream); add('TGT', downstream);
-        } else if (sector === 'energy') {
-            add('HAL', upstream); add('SLB', upstream);
-            add('ET', midstream); add('KMI', midstream);
-            add('WMT', downstream); add('UPS', downstream); add('FDX', downstream);
-        } else if (sector === 'retail') {
-            add('AAPL', upstream); add('MSFT', upstream); add('AMZN', upstream);
-            add('UPS', midstream);
-            add('TGT', downstream); add('COST', downstream); add('HD', downstream);
-        } else {
-            add('TSM', upstream); add('UPS', midstream); add('WMT', downstream);
-        }
+        if (sector === 'tech') { add('TSM', upstream); add('QCOM', upstream); add('UPS', midstream); add('WMT', downstream); add('AMZN', downstream); }
+        else if (sector === 'energy') { add('HAL', upstream); add('SLB', upstream); add('ET', midstream); add('KMI', midstream); add('XOM', downstream); add('CVX', downstream); }
+        else if (sector === 'retail') { add('AAPL', upstream); add('MSFT', upstream); add('UPS', midstream); add('TGT', downstream); add('COST', downstream); }
+        else if (sector === 'banking') { add('V', upstream); add('MA', upstream); add('JPM', downstream); add('GS', downstream); }
+        else if (sector === 'healthcare') { add('TMO', upstream); add('UNH', midstream); add('CVS', midstream); add('JNJ', downstream); add('PFE', downstream); }
+        else { add('TSM', upstream); add('UPS', midstream); add('WMT', downstream); }
         return { upstream, midstream, downstream };
     }
+
     function detectSector(company) {
-        const tech = ['AAPL','NVDA','MSFT','GOOGL','META','TSM','QCOM','MU','AMD','ASML','SK','ORCL','INTC','CRM','ADBE','NOW','PANW'];
-        const energy = ['XOM','CVX','BP','SHEL','TOTF','HAL','SLB','ET','KMI'];
-        const retail = ['WMT','TGT','COST','HD','LOW','AMZN','NKE','SBUX','MCD'];
+        const tech = ['AAPL','NVDA','MSFT','GOOGL','META','TSM','QCOM','MU','AMD','ASML','SK','ORCL','INTC','CRM','ADBE','NOW','PANW','AVGO','PLTR','SNOW','NET','DDOG','COIN','SHOP','UBER','ABNB','PYPL','ADSK','SPOT','RIVN','SMSN','SONY','BABA','TCEHY','INFY','TCS','NOW','INTU'];
+        const energy = ['XOM','CVX','BP','SHEL','TOTF','HAL','SLB','ET','KMI','A9N','2010','PSX','VLO','CNQ','SU'];
+        const retail = ['WMT','TGT','COST','HD','LOW','AMZN','NKE','SBUX','MCD','PG','KO','PEP','MO','PM','NKE','DIS','NFLX'];
+        const banking = ['JPM','BAC','C','WFC','GS','MS','V','MA','AXP','BLK','SPGI','CME','HDFC','ICICIBANK','RY','TD','ANZ','MUFG','ITUB','BBAS3','STND','SANLAM','NASPERS','FAB','HSBA','BNP','MBB'];
+        const healthcare = ['JNJ','PFE','MRK','ABBV','LLY','NOVO','UNH','CVS','GILD','AMGN','TMO','MRNA','BAYN','MDT','ABT','ROCHE','NESN','LVMH'];
         if (tech.includes(company.id)) return 'tech';
         if (energy.includes(company.id)) return 'energy';
         if (retail.includes(company.id)) return 'retail';
+        if (banking.includes(company.id)) return 'banking';
+        if (healthcare.includes(company.id)) return 'healthcare';
         return 'other';
     }
+
     function getAssetById(id) { return assets.find(a => a.id === id); }
 
+    // ---------- DRAW ROUTES ON MAP ----------
     function drawSupplyRoutes(company) {
         upstreamLayer.clearLayers(); midstreamLayer.clearLayers(); downstreamLayer.clearLayers();
         if (!company) return;
@@ -574,9 +725,9 @@
                 }
             });
         };
-        draw(rel.upstream, upstreamLayer, '#4ade80', '↑ Upstream');
-        draw(rel.midstream, midstreamLayer, '#facc15', '↔ Midstream');
-        draw(rel.downstream, downstreamLayer, '#ef4444', '↓ Downstream');
+        draw(rel.upstream, upstreamLayer, '#4ade80', '↑ Upstream (Supplier)');
+        draw(rel.midstream, midstreamLayer, '#facc15', '↔ Midstream (Logistics/Partners)');
+        draw(rel.downstream, downstreamLayer, '#ef4444', '↓ Downstream (Buyer)');
     }
 
     function initToggleButtons() {
@@ -593,7 +744,7 @@
                         const rel = getSupplyChainForCompany(co);
                         const list = rel[btn.dataset.layer];
                         const color = btn.dataset.layer === 'upstream' ? '#4ade80' : (btn.dataset.layer === 'midstream' ? '#facc15' : '#ef4444');
-                        const label = btn.dataset.layer === 'upstream' ? '↑ Upstream' : (btn.dataset.layer === 'midstream' ? '↔ Midstream' : '↓ Downstream');
+                        const label = btn.dataset.layer === 'upstream' ? '↑ Upstream (Supplier)' : (btn.dataset.layer === 'midstream' ? '↔ Midstream (Logistics)' : '↓ Downstream (Buyer)');
                         const from = [co.c[0], co.c[1]];
                         list.forEach(pid => {
                             const p = getAssetById(pid);
@@ -610,6 +761,7 @@
             });
         });
     }
+
 
     // ---------- UNIFIED TOOLTIP ----------
     function buildCompanyTooltip(asset) {
