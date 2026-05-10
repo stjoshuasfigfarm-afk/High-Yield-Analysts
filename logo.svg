@@ -1,42 +1,17 @@
 <svg width="512" height="512" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#22ab94" />
-      <stop offset="100%" stop-color="#ff8800" />
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
-  </defs>
-
-  <!-- Outer ring (optional, adds uniqueness) -->
-  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#grad)" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.5" />
-
-  <!-- Central diamond (intersection anchor) -->
-  <polygon points="50,20 80,50 50,80 20,50" fill="url(#grad)" opacity="0.15" filter="url(#glow)" />
-
-  <!-- H – two vertical pillars + crossbar, now with slightly tapered ends (via linecaps) and thicker -->
-  <line x1="22" y1="18" x2="22" y2="82" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" />
-  <line x1="78" y1="18" x2="78" y2="82" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" />
-  <line x1="22" y1="50" x2="78" y2="50" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" />
-
-  <!-- Y – leg and branches, using slightly thinner stroke for variety -->
-  <line x1="50" y1="50" x2="50" y2="82" stroke="url(#grad)" stroke-width="9" stroke-linecap="round" />
-  <line x1="50" y1="50" x2="28" y2="18" stroke="url(#grad)" stroke-width="9" stroke-linecap="round" />
-  <line x1="50" y1="50" x2="72" y2="18" stroke="url(#grad)" stroke-width="9" stroke-linecap="round" />
-
-  <!-- A – inverted V with crossbar, thinner to layer behind -->
-  <line x1="18" y1="75" x2="50" y2="22" stroke="url(#grad)" stroke-width="8" stroke-linecap="round" />
-  <line x1="82" y1="75" x2="50" y2="22" stroke="url(#grad)" stroke-width="8" stroke-linecap="round" />
-  <line x1="32" y1="52" x2="68" y2="52" stroke="url(#grad)" stroke-width="8" stroke-linecap="round" />
-
-  <!-- Small decorative dots at the four cardinal points (adds uniqueness) -->
-  <circle cx="50" cy="10" r="2" fill="#ff8800" opacity="0.8" />
-  <circle cx="50" cy="90" r="2" fill="#22ab94" opacity="0.8" />
-  <circle cx="10" cy="50" r="2" fill="#ff8800" opacity="0.8" />
-  <circle cx="90" cy="50" r="2" fill="#22ab94" opacity="0.8" />
+    <defs>
+        <linearGradient id="hy_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#22ab94" />
+            <stop offset="100%" stop-color="#ff8800" />
+        </linearGradient>
+    </defs>
+    <line x1="22" y1="18" x2="22" y2="82" stroke="url(#hy_grad)" stroke-width="9" stroke-linecap="round" />
+    <line x1="78" y1="18" x2="78" y2="82" stroke="url(#hy_grad)" stroke-width="9" stroke-linecap="round" />
+    <line x1="22" y1="50" x2="78" y2="50" stroke="url(#hy_grad)" stroke-width="9" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="50" y2="82" stroke="url(#hy_grad)" stroke-width="8" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="28" y2="18" stroke="url(#hy_grad)" stroke-width="8" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="72" y2="18" stroke="url(#hy_grad)" stroke-width="8" stroke-linecap="round" />
+    <line x1="18" y1="75" x2="50" y2="22" stroke="url(#hy_grad)" stroke-width="7" stroke-linecap="round" />
+    <line x1="82" y1="75" x2="50" y2="22" stroke="url(#hy_grad)" stroke-width="7" stroke-linecap="round" />
+    <line x1="32" y1="52" x2="68" y2="52" stroke="url(#hy_grad)" stroke-width="7" stroke-linecap="round" />
 </svg>
