@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/*.py": { "runtime": "python3.9" }
+  },
+  "rewrites": [
+    { "source": "/api/quote/priority", "destination": "/api/quote" },
+    { "source": "/api/company/financialdata", "destination": "/api/company" },
+    { "source": "/api/financials/income", "destination": "/api/income" },
+    { "source": "/api/financials/balance", "destination": "/api/balance" }
+  ]
+}
