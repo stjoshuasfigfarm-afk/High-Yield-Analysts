@@ -3,5 +3,11 @@
     "api/*.py": {
       "runtime": "python3.9"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/quote", "destination": "/api/quote" },
+    { "source": "/api/company", "destination": "/api/company" },
+    { "source": "/api/income", "destination": "/api/income" },
+    { "source": "/api/balance", "destination": "/api/balance" }
+  ]
 }
