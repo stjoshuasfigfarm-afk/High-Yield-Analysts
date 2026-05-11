@@ -7,7 +7,7 @@ import urllib.request
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 # ---------- Configuration ----------
-PORT = 3132
+PORT = 4242
 FINANCIAL_API_KEY = "afb05902415e550cb4a4cccefa62d2a1"
 FINANCIAL_BASE = "https://api.financialdata.net/v3"
 ITICK_API_KEY = "d4c2fcc1f4d44ac0940afed75d8dec5de3d1be6d554d4747981e869c732f42d7"          # <-- Replace with your iTick key
