@@ -2,7 +2,7 @@ import json
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 
-FINANCIAL_API_KEY = "YOUR_NEW_API_KEY"
+FINANCIAL_API_KEY = "afb05902415e550cb4a4cccefa62d2a1"
 FINANCIAL_BASE = "https://api.financialdata.net/v3"
 
 def handler(request):
