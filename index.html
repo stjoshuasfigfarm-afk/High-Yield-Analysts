@@ -14,9 +14,9 @@
             const output = document.getElementById('output');
             output.innerText = 'Loading...';
             try {
-                const quoteRes = await fetch(`/api/quote?symbol=${ticker}`);
+                const quoteRes = await fetch(`/api/quote.py?symbol=${ticker}`);
                 const quote = await quoteRes.json();
-                const companyRes = await fetch(`/api/company?symbol=${ticker}`);
+                const companyRes = await fetch(`/api/company.py?symbol=${ticker}`);
                 const company = await companyRes.json();
                 output.innerText = JSON.stringify({ quote, company }, null, 2);
             } catch(err) {
