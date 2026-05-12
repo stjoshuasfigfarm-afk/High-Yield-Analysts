@@ -1,23 +1,39 @@
 export default async function handler(req, res) {
     const { symbol } = req.query;
     if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
+    const sym = symbol.toUpperCase();
 
-    const API_KEY = process.env.FINANCIAL_API_KEY;
-    if (!API_KEY) return res.status(500).json({ error: 'Missing API key' });
-
-    // Note: FinancialData.net v1 uses symbols in path and query params
-    const url = `https://api.financialdata.net/api/v1/income-statement/${symbol.toUpperCase()}?period=quarterly&limit=4&token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (!data.financials) return res.status(404).json({ error: 'No income data' });
-        const quarters = data.financials.map(f => ({
-            date: f.date,
-            revenue: f.revenue,
-            netIncome: f.netIncome,
-        }));
-        res.status(200).json({ quarters });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    // FinancialData.net (quarterly)
+    if (process.env.FINANCIAL_API_KEY) {
+        try {
+            const url = `https://api.financialdata.net/api/v1/income-statement/${sym}?period=quarterly&limit=4&token=${process.env.FINANCIAL_API_KEY}`;
+            const data = await fetch(url).then(r => r.json());
+            if (data?.financials?.length) {
+                const quarters = data.financials.map(f => ({
+                    date: f.date,
+                    revenue: f.revenue,
+                    netIncome: f.netIncome,
+                }));
+                return res.json({ quarters });
+            }
+        } catch (e) { console.warn('FinancialData income failed', e.message); }
     }
+
+    // Fallback: FMP (annual)
+    if (process.env.FMP_API_KEY) {
+        try {
+            const url = `https://financialmodelingprep.com/api/v3/income-statement/${sym}?limit=4&apikey=${process.env.FMP_API_KEY}`;
+            const data = await fetch(url).then(r => r.json());
+            if (data?.length) {
+                const years = data.map(row => ({
+                    date: row.date,
+                    revenue: row.revenue,
+                    netIncome: row.netIncome,
+                }));
+                return res.json({ quarters: years });
+            }
+        } catch (e) { console.warn('FMP income failed', e.message); }
+    }
+
+    return res.status(503).json({ error: 'No income data available' });
 }
