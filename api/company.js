@@ -1,10 +1,26 @@
 export default async function handler(req, res) {
     const { symbol } = req.query;
     if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
-
     const symbolUpper = symbol.toUpperCase();
 
-    // ----- Primary: FinancialData.net -----
+    // Try Finnhub first (fast, free)
+    if (process.env.FINNHUB_API_KEY) {
+        try {
+            const url = `https://finnhub.io/api/v1/stock/profile2?symbol=${symbolUpper}&token=${process.env.FINNHUB_API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data && data.name) {
+                return res.status(200).json({
+                    name: data.name,
+                    sector: data.finnhubIndustry || data.sector,
+                    employees: data.employeeTotal,
+                    marketCap: data.marketCapitalization,
+                });
+            }
+        } catch (err) { console.warn('Finnhub profile failed:', err.message); }
+    }
+
+    // Fallback to FinancialData.net
     if (process.env.FINANCIAL_API_KEY) {
         try {
             const url = `https://api.financialdata.net/api/v1/companies/profile/${symbolUpper}?token=${process.env.FINANCIAL_API_KEY}`;
@@ -21,7 +37,7 @@ export default async function handler(req, res) {
         } catch (err) { console.warn('FinancialData.net company failed:', err.message); }
     }
 
-    // ----- Fallback: FinancialModelingPrep -----
+    // Last resort: FMP
     if (process.env.FMP_API_KEY) {
         try {
             const url = `https://financialmodelingprep.com/api/v3/profile/${symbolUpper}?apikey=${process.env.FMP_API_KEY}`;
