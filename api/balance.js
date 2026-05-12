@@ -1,35 +1,23 @@
-const axios = require('axios');
+export default async function handler(req, res) {
+    const { symbol } = req.query;
+    if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
 
-module.exports = async (req, res) => {
-  const { symbol } = req.query;
-  const apiKey = process.env.FINANCIAL_API_KEY;
+    const API_KEY = process.env.FINANCIAL_API_KEY;
+    if (!API_KEY) return res.status(500).json({ error: 'Missing API key' });
 
-  const mockBalance = {
-    totalAssets: (Math.random() * 400 + 100).toFixed(2) + 'B',
-    totalDebt: (Math.random() * 200 + 50).toFixed(2) + 'B',
-    cash: (Math.random() * 100 + 20).toFixed(2) + 'B',
-    equity: (Math.random() * 300 + 50).toFixed(2) + 'B'
-  };
-
-  if (!symbol) return res.status(400).json({ error: 'Symbol is required' });
-
-  if (!apiKey || apiKey === 'your_api_key_here') {
-    return res.json(mockBalance);
-  }
-
-  try {
-    const response = await axios.get(`https://financialmodelingprep.com/api/v3/balance-sheet-statement/${symbol}?limit=1&apikey=${apiKey}`);
-    if (response.data && response.data.length > 0) {
-      const b = response.data[0];
-      return res.json({
-        totalAssets: (b.totalAssets / 1e9).toFixed(2) + 'B',
-        totalDebt: (b.totalTotalDebt / 1e9).toFixed(2) + 'B',
-        cash: (b.cashAndCashEquivalents / 1e9).toFixed(2) + 'B',
-        equity: (b.totalStockholdersEquity / 1e9).toFixed(2) + 'B'
-      });
+    const url = `https://api.financialdata.net/api/v1/balance-sheet/${symbol.toUpperCase()}?limit=1&token=${API_KEY}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!data.financials || data.financials.length === 0) return res.status(404).json({ error: 'No balance sheet' });
+        const bs = data.financials[0];
+        res.status(200).json({
+            totalAssets: bs.totalAssets,
+            totalDebt: bs.totalDebt,
+            cashAndCashEquivalents: bs.cashAndCashEquivalents,
+            totalEquity: bs.totalEquity,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    res.json(mockBalance);
-  } catch (err) {
-    res.json(mockBalance);
-  }
-};
+}
