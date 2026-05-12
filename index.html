@@ -37,18 +37,22 @@
         .accent-bg { background-color: var(--accent); }
 
         #map {
-            width: 100%;
-            height: 100%;
-            min-height: 400px;
-            background: #000 !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #050505 !important;
+            z-index: 1;
         }
 
-        /* Fixed Leaflet dark theme – tiles remain visible */
         .leaflet-container {
-            background: #000 !important;
+            background: #050505 !important;
         }
+
+        /* Subtle contrast boost for dark tiles */
         .leaflet-tile-pane {
-            filter: brightness(0.7) contrast(1.1);
+            filter: brightness(0.8) contrast(1.1);
         }
 
         .ticker-wrap {
@@ -90,7 +94,7 @@
 
         .supply-chain-line {
             stroke-dasharray: 5, 5;
-            animation: dash 10s linear infinite;
+            animation: dash 15s linear infinite;
         }
         @keyframes dash {
             to { stroke-dashoffset: 100; }
@@ -107,6 +111,7 @@
             <span class="ticker-item">CRUDE OIL FUTURES STABILIZE NEAR $80...</span>
             <span class="ticker-item">BITCOIN BREAKS NEW 2024 HIGH ABOVE $70K...</span>
             <span class="ticker-item">US TREASURY 10-YEAR YIELD SLIPS TO 4.2%...</span>
+            <span class="ticker-item">QUANT DATA ALERT: VOLATILITY SPIKE IN SEMICONDUCTORS...</span>
         </div>
     </div>
 
@@ -114,48 +119,54 @@
     <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar Left: Company Info -->
         <aside class="w-64 border-r border-[#1a1a1a] flex flex-col p-3 space-y-3 custom-scrollbar overflow-y-auto">
-            <div class="space-y-1">
+            <div class="space-y-1 relative">
                 <div class="text-[8px] text-zinc-500 uppercase tracking-widest">Search Engine</div>
                 <input type="text" id="search-input" placeholder="TICKER OR NAME..." class="w-full text-[10px]">
-                <div id="search-results" class="hidden absolute bg-[#0a0a0a] border border-[#1a1a1a] w-56 z-50 mt-1"></div>
+                <div id="search-results" class="hidden absolute bg-[#0a0a0a] border border-[#1a1a1a] w-full z-[2000] mt-1 shadow-2xl"></div>
             </div>
 
             <div id="company-info-panel" class="space-y-4">
                 <div class="border-b border-[#1a1a1a] pb-2">
-                    <h1 id="panel-name" class="text-xs font-bold accent-text">---</h1>
+                    <h1 id="panel-name" class="text-xs font-bold accent-text">SELECT NODE</h1>
                     <div class="flex justify-between mt-1 text-[9px]">
-                        <span id="panel-symbol" class="bg-[#1a1a1a] px-1">---</span>
-                        <span id="panel-sector" class="text-zinc-500">---</span>
+                        <span id="panel-symbol" class="bg-[#1a1a1a] px-1 font-mono">---</span>
+                        <span id="panel-sector" class="text-zinc-500 uppercase">STANDBY_</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div class="terminal-panel p-2">
                         <div class="text-[8px] text-zinc-500 uppercase">Price</div>
-                        <div id="panel-price" class="text-[12px] font-bold">---</div>
+                        <div id="panel-price" class="text-[12px] font-bold font-mono">---</div>
                     </div>
                     <div class="terminal-panel p-2">
                         <div class="text-[8px] text-zinc-500 uppercase">Change</div>
-                        <div id="panel-change" class="text-[12px] font-bold">---</div>
+                        <div id="panel-change" class="text-[12px] font-bold font-mono">---</div>
                     </div>
                 </div>
 
                 <div class="space-y-2">
                     <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Intelligence</div>
-                    <div class="flex justify-between"><span>Employees</span> <span id="panel-employees">---</span></div>
-                    <div class="flex justify-between"><span>Mkt Cap</span> <span id="panel-marketcap">---</span></div>
-                    <div class="flex justify-between"><span>HQ</span> <span id="panel-hq">---</span></div>
+                    <div class="flex justify-between text-[9px]"><span>Employees</span> <span id="panel-employees">---</span></div>
+                    <div class="flex justify-between text-[9px]"><span>Mkt Cap</span> <span id="panel-marketcap">---</span></div>
+                    <div class="flex justify-between text-[9px]"><span>HQ</span> <span id="panel-hq" class="truncate max-w-[120px]">---</span></div>
                 </div>
 
                 <div class="space-y-2">
                     <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Sector Rotation</div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[8px]"><span>TECH</span> <span>+1.2%</span></div>
-                        <div class="h-1 bg-[#1a1a1a]"><div class="h-full accent-bg" style="width: 75%"></div></div>
-                        <div class="flex justify-between text-[8px]"><span>FINN</span> <span>-0.4%</span></div>
-                        <div class="h-1 bg-[#1a1a1a]"><div class="h-full bg-rose-500" style="width: 40%"></div></div>
-                        <div class="flex justify-between text-[8px]"><span>ENGY</span> <span>+2.1%</span></div>
-                        <div class="h-1 bg-[#1a1a1a]"><div class="h-full accent-bg" style="width: 85%"></div></div>
+                    <div class="space-y-2 text-[9px]">
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span>TECH</span> <span class="accent-text">+1.2%</span></div>
+                            <div class="h-1 bg-[#1a1a1a]"><div class="h-full accent-bg" style="width: 75%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span>FINN</span> <span class="text-rose-500">-0.4%</span></div>
+                            <div class="h-1 bg-[#1a1a1a]"><div class="h-full bg-rose-500" style="width: 40%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span>ENGY</span> <span class="accent-text">+2.1%</span></div>
+                            <div class="h-1 bg-[#1a1a1a]"><div class="h-full accent-bg" style="width: 85%"></div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -165,17 +176,20 @@
         <main class="flex-1 relative border-r border-[#1a1a1a]">
             <div id="map"></div>
             <!-- Legend / Overlay -->
-            <div class="absolute bottom-4 left-4 z-[1000] terminal-panel p-2 opacity-80 pointer-events-none">
-                <div class="flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-[#22ab94]"></div> <span class="text-[8px]">UPSTREAM</span></div>
-                <div class="flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-rose-500"></div> <span class="text-[8px]">DOWNSTREAM</span></div>
+            <div class="absolute bottom-4 left-4 z-[1000] terminal-panel p-2 opacity-80 pointer-events-none border border-[#333]">
+                <div class="flex items-center gap-1.5"><div class="w-2 h-2 bg-[#22ab94] rounded-full"></div> <span class="text-[8px]">UPSTREAM PARTNER</span></div>
+                <div class="flex items-center gap-1.5"><div class="w-2 h-2 bg-rose-500 rounded-full"></div> <span class="text-[8px]">DOWNSTREAM PARTNER</span></div>
             </div>
+            <div class="absolute top-4 right-4 z-[1000] text-[8px] font-mono text-zinc-500 pointer-events-none">MAP_SERVICE_CONNECTED (GLOBAL_HUB)</div>
         </main>
 
         <!-- Sidebar Right: Charts & Balance Sheet -->
-        <aside class="w-80 p-3 space-y-4 custom-scrollbar overflow-y-auto">
+        <aside class="w-80 p-3 space-y-4 custom-scrollbar overflow-y-auto bg-black">
             <div>
-                <div class="text-[8px] text-zinc-500 uppercase tracking-widest mb-2 border-b border-[#1a1a1a]">Market Sentiment (1H)</div>
-                <div id="chart-container" style="height: 300px;" class="w-full terminal-panel overflow-hidden"></div>
+                <div class="text-[8px] text-zinc-500 uppercase tracking-widest mb-2 border-b border-[#1a1a1a]">Market Momentum (1H)</div>
+                <div id="chart-container" style="height: 300px;" class="w-full terminal-panel overflow-hidden relative">
+                    <div id="chart-loading" class="absolute inset-0 flex items-center justify-center text-[10px] text-zinc-700 font-mono">INITIALIZING_ENGINE...</div>
+                </div>
             </div>
 
             <div class="space-y-3">
@@ -183,19 +197,19 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="terminal-panel p-2">
                         <div class="text-[7px] text-zinc-500 uppercase">Total Assets</div>
-                        <div id="panel-assets" class="text-[10px] font-bold">---</div>
+                        <div id="panel-assets" class="text-[10px] font-bold font-mono">---</div>
                     </div>
                     <div class="terminal-panel p-2">
                         <div class="text-[7px] text-zinc-500 uppercase">Total Debt</div>
-                        <div id="panel-debt" class="text-[10px] font-bold text-rose-500">---</div>
+                        <div id="panel-debt" class="text-[10px] font-bold text-rose-500 font-mono">---</div>
                     </div>
                     <div class="terminal-panel p-2">
                         <div class="text-[7px] text-zinc-500 uppercase">Cash Position</div>
-                        <div id="panel-cash" class="text-[10px] font-bold accent-text">---</div>
+                        <div id="panel-cash" class="text-[10px] font-bold accent-text font-mono">---</div>
                     </div>
                     <div class="terminal-panel p-2">
                         <div class="text-[7px] text-zinc-500 uppercase">Equity (BV)</div>
-                        <div id="panel-equity" class="text-[10px] font-bold">---</div>
+                        <div id="panel-equity" class="text-[10px] font-bold font-mono">---</div>
                     </div>
                 </div>
             </div>
@@ -218,184 +232,42 @@
 
         // --- DATA & CONFIG ---
         const companies = [
-            // === Technology (Hardware, Software, Semiconductors) ===
-            { symbol: 'AAPL', name: 'Apple Inc.', pos: [37.33, -122.03], upstream: ['TSM', 'NVDA'], downstream: ['AMZN', 'WMT'] },
+            { symbol: 'AAPL', name: 'Apple Inc.', pos: [37.33, -122.03], upstream: ['TSM', 'NVDA'], downstream: ['AMZN', 'UBER'] },
             { symbol: 'MSFT', name: 'Microsoft Corp.', pos: [47.64, -122.13], upstream: ['NVDA', 'INTC', 'AMD'], downstream: ['GOOGL', 'AMZN', 'META'] },
             { symbol: 'NVDA', name: 'NVIDIA Corp.', pos: [37.37, -121.96], upstream: ['TSM', 'ASML'], downstream: ['AAPL', 'MSFT', 'TSLA', 'META'] },
-            { symbol: 'TSM', name: 'TSMC', pos: [24.77, 121.01], upstream: ['ASML', 'AMAT', 'KLAC'], downstream: ['AAPL', 'NVDA', 'AMD', 'QCOM', 'INTC'] },
-            { symbol: 'ASML', name: 'ASML Holding', pos: [51.42, 5.42], upstream: ['ZEISS', 'VDL'], downstream: ['TSM', 'INTC', 'SAMSUNG'] },
-            { symbol: 'INTC', name: 'Intel Corp.', pos: [37.38, -121.96], upstream: ['ASML', 'TSM'], downstream: ['AAPL', 'MSFT', 'DELL', 'HPQ'] },
-            { symbol: 'AMD', name: 'Advanced Micro Devices', pos: [37.37, -121.96], upstream: ['TSM', 'ASML'], downstream: ['MSFT', 'GOOGL', 'SONY'] },
-            { symbol: 'QCOM', name: 'Qualcomm', pos: [32.90, -117.20], upstream: ['TSM', 'SAMSUNG'], downstream: ['AAPL', 'GOOGL', 'META', 'VZ', 'T'] },
-            { symbol: 'TXN', name: 'Texas Instruments', pos: [32.93, -96.75], upstream: ['TSM'], downstream: ['AAPL', 'NVDA', 'QCOM', 'INTC'] },
-            { symbol: 'MU', name: 'Micron Technology', pos: [43.61, -116.20], upstream: ['TSM', 'ASML'], downstream: ['NVDA', 'AAPL', 'MSFT', 'DELL'] },
-            { symbol: 'ADBE', name: 'Adobe Inc.', pos: [37.33, -121.89], upstream: ['MSFT', 'GOOGL'], downstream: ['AAPL', 'AMZN'] },
-            { symbol: 'CRM', name: 'Salesforce', pos: [37.79, -122.40], upstream: ['MSFT', 'ORCL'], downstream: ['AAPL', 'GOOGL', 'AMZN'] },
-            { symbol: 'ORCL', name: 'Oracle Corp.', pos: [37.78, -122.40], upstream: ['MSFT', 'NVDA'], downstream: ['AAPL', 'CRM', 'JPM'] },
-            { symbol: 'SAP', name: 'SAP SE', pos: [49.27, 8.64], upstream: ['MSFT', 'ORCL'], downstream: ['BMW', 'SIE', 'BAYN'] },
-            { symbol: 'NOW', name: 'ServiceNow', pos: [37.53, -122.03], upstream: ['MSFT', 'GOOGL'], downstream: ['WMT', 'JPM', 'GS'] },
-            { symbol: 'INTU', name: 'Intuit Inc.', pos: [37.27, -122.06], upstream: ['MSFT', 'GOOGL'], downstream: ['AAPL', 'AMZN', 'WMT'] },
-            { symbol: 'PANW', name: 'Palo Alto Networks', pos: [37.45, -122.13], upstream: ['MSFT', 'GOOGL'], downstream: ['AAPL', 'AMZN', 'WMT'] },
-            { symbol: 'PLTR', name: 'Palantir', pos: [39.74, -104.98], upstream: ['MSFT', 'GOOGL'], downstream: ['JPM', 'GS', 'AMZN'] },
-            { symbol: 'SNOW', name: 'Snowflake Inc.', pos: [37.53, -122.03], upstream: ['MSFT', 'AMZN'], downstream: ['AAPL', 'GOOGL', 'WMT'] },
-            { symbol: 'NET', name: 'Cloudflare', pos: [37.77, -122.39], upstream: ['MSFT', 'GOOGL'], downstream: ['AAPL', 'AMZN', 'WMT'] },
-            { symbol: 'DDOG', name: 'Datadog', pos: [40.73, -73.99], upstream: ['MSFT', 'AMZN'], downstream: ['AAPL', 'GOOGL', 'WMT'] },
-            { symbol: 'SQ', name: 'Block Inc.', pos: [37.77, -122.39], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'PYPL', name: 'PayPal Holdings', pos: [37.38, -121.97], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C', 'WFC'] },
-            { symbol: 'COIN', name: 'Coinbase Global', pos: [37.78, -122.41], upstream: ['PYPL', 'SQ'], downstream: ['JPM', 'GS', 'MS', 'C'] },
-            { symbol: 'SHOP', name: 'Shopify Inc.', pos: [45.42, -75.70], upstream: ['SEA', 'GRAB'], downstream: ['WMT', 'AMZN', 'TGT'] },
-            { symbol: 'SPOT', name: 'Spotify', pos: [40.73, -73.99], upstream: ['MSFT', 'GOOGL'], downstream: ['AAPL', 'AMZN', 'T', 'VZ'] },
-            
-            // === Internet & E-commerce ===
+            { symbol: 'TSM', name: 'TSMC', pos: [24.77, 121.01], upstream: ['ASML', 'AMAT'], downstream: ['AAPL', 'NVDA', 'AMD', 'QCOM', 'INTC'] },
             { symbol: 'AMZN', name: 'Amazon.com Inc.', pos: [47.61, -122.34], upstream: ['UPS', 'FDX', 'TSM'], downstream: ['WMT', 'TGT', 'COST'] },
             { symbol: 'GOOGL', name: 'Alphabet Inc.', pos: [37.42, -122.08], upstream: ['NVDA', 'AMD', 'TSM'], downstream: ['META', 'MSFT', 'AAPL'] },
-            { symbol: 'META', name: 'Meta Platforms', pos: [37.48, -122.14], upstream: ['NVDA', 'AMD', 'TSM'], downstream: ['MSFT', 'GOOGL', 'AAPL'] },
-            { symbol: 'NFLX', name: 'Netflix', pos: [37.23, -121.96], upstream: ['MSFT', 'GOOGL'], downstream: ['DIS', 'AMZN'] },
-            { symbol: 'DIS', name: 'Walt Disney', pos: [34.15, -118.34], upstream: ['NFLX', 'SONY'], downstream: ['WMT', 'TGT', 'AMZN'] },
-            { symbol: 'UBER', name: 'Uber Technologies', pos: [37.77, -122.40], upstream: ['TSLA', 'RIVN'], downstream: ['WMT', 'AMZN', 'TGT'] },
-            { symbol: 'ABNB', name: 'Airbnb', pos: [37.77, -122.40], upstream: [], downstream: ['WMT', 'AMZN', 'UBER'] },
-            { symbol: 'BABA', name: 'Alibaba Group', pos: [30.24, 120.15], upstream: ['TSM', 'NVDA'], downstream: ['WMT', 'AMZN', 'TGT'] },
-            { symbol: 'TCEHY', name: 'Tencent Holdings', pos: [22.54, 114.05], upstream: ['NVDA', 'TSM'], downstream: ['MSFT', 'GOOGL', 'AAPL'] },
-            { symbol: 'PDDH', name: 'PDD Holdings', pos: [31.23, 121.47], upstream: ['BABA'], downstream: ['WMT', 'AMZN'] },
-            { symbol: 'JD', name: 'JD.com', pos: [39.91, 116.39], upstream: ['TSM'], downstream: ['WMT', 'AMZN', 'TGT'] },
-            { symbol: 'BIDU', name: 'Baidu', pos: [40.06, 116.31], upstream: ['NVDA', 'AMD'], downstream: ['MSFT', 'GOOGL'] },
-            { symbol: 'NIO', name: 'NIO Inc.', pos: [31.22, 121.47], upstream: ['TSM', 'CATL'], downstream: ['WMT', 'AMZN', 'UBER'] },
-            
-            // === Financial Services ===
-            { symbol: 'JPM', name: 'JPMorgan Chase', pos: [40.75, -73.97], upstream: ['V', 'MA'], downstream: ['BAC', 'C', 'WFC', 'GS', 'MS'] },
-            { symbol: 'BAC', name: 'Bank of America', pos: [35.22, -80.84], upstream: ['V', 'MA'], downstream: ['JPM', 'C', 'WFC'] },
-            { symbol: 'C', name: 'Citigroup', pos: [40.75, -73.97], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'WFC'] },
-            { symbol: 'WFC', name: 'Wells Fargo', pos: [37.77, -122.41], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'GS', name: 'Goldman Sachs', pos: [40.71, -74.01], upstream: ['V', 'MA'], downstream: ['JPM', 'MS', 'BLK'] },
-            { symbol: 'MS', name: 'Morgan Stanley', pos: [40.75, -73.98], upstream: ['V', 'MA'], downstream: ['JPM', 'GS', 'BLK'] },
-            { symbol: 'BLK', name: 'BlackRock Inc.', pos: [40.71, -74.01], upstream: ['JPM', 'GS', 'MS'], downstream: ['BAC', 'C', 'WFC'] },
-            { symbol: 'V', name: 'Visa Inc.', pos: [37.56, -122.27], upstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS'] },
-            { symbol: 'MA', name: 'Mastercard', pos: [41.04, -73.71], upstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS'] },
-            { symbol: 'AXP', name: 'American Express', pos: [40.75, -73.97], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'SPGI', name: 'S&P Global', pos: [40.75, -73.98], upstream: ['CME'], downstream: ['JPM', 'BAC', 'C', 'GS', 'MS'] },
-            { symbol: 'CME', name: 'CME Group', pos: [41.88, -87.62], upstream: [], downstream: ['JPM', 'GS', 'MS', 'BAC'] },
-            { symbol: 'HSBA', name: 'HSBC Holdings', pos: [51.51, -0.08], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'BNP', name: 'BNP Paribas', pos: [48.87, 2.34], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'RY', name: 'Royal Bank of Canada', pos: [43.65, -79.38], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'TD', name: 'TD Bank Group', pos: [43.65, -79.38], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'HDFC', name: 'HDFC Bank', pos: [19.08, 72.88], upstream: ['V', 'MA'], downstream: ['ICICIBANK', 'TCS', 'RELIANCE'] },
-            { symbol: 'ICICIBANK', name: 'ICICI Bank', pos: [22.60, 88.37], upstream: ['V', 'MA'], downstream: ['HDFC', 'TCS', 'RELIANCE'] },
-            { symbol: 'ITUB', name: 'Itaú Unibanco', pos: [-23.56, -46.65], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'BBAS3', name: 'Banco do Brasil', pos: [-15.78, -47.93], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'STND', name: 'Standard Bank Group', pos: [-26.20, 28.04], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            
-            // === Energy ===
-            { symbol: 'XOM', name: 'Exxon Mobil', pos: [32.89, -96.94], upstream: ['SLB', 'HAL'], downstream: ['CVX', 'BP', 'SHEL'] },
-            { symbol: 'CVX', name: 'Chevron', pos: [37.76, -121.95], upstream: ['HAL', 'SLB'], downstream: ['XOM', 'BP', 'SHEL'] },
-            { symbol: 'BP', name: 'BP plc', pos: [51.50, -0.12], upstream: ['HAL', 'SLB'], downstream: ['XOM', 'CVX', 'SHEL'] },
-            { symbol: 'SHEL', name: 'Shell plc', pos: [51.50, -0.12], upstream: ['SLB'], downstream: ['BP', 'CVX', 'XOM'] },
-            { symbol: 'TOTF', name: 'TotalEnergies', pos: [48.88, 2.31], upstream: ['HAL', 'SLB'], downstream: ['XOM', 'CVX'] },
-            { symbol: 'HAL', name: 'Halliburton', pos: [29.77, -95.37], upstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
-            { symbol: 'SLB', name: 'SLB (Schlumberger)', pos: [29.75, -95.36], upstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
-            { symbol: 'A9N', name: 'Saudi Aramco', pos: [26.31, 50.11], upstream: ['HAL', 'SLB'], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
-            { symbol: 'CNQ', name: 'Canadian Natural Resources', pos: [51.04, -114.07], upstream: ['HAL', 'SLB'], downstream: ['XOM', 'CVX', 'BP'] },
-            { symbol: 'SU', name: 'Suncor Energy', pos: [51.04, -114.07], upstream: ['HAL', 'SLB'], downstream: ['XOM', 'CVX', 'BP'] },
-            
-            // === Healthcare & Pharma ===
-            { symbol: 'JNJ', name: 'Johnson & Johnson', pos: [40.57, -74.62], upstream: ['TMO'], downstream: ['PFE', 'MRK', 'ABBV'] },
-            { symbol: 'PFE', name: 'Pfizer', pos: [40.74, -73.97], upstream: ['TMO'], downstream: ['JNJ', 'MRK', 'ABBV'] },
-            { symbol: 'MRK', name: 'Merck & Co.', pos: [40.50, -74.41], upstream: ['TMO'], downstream: ['JNJ', 'PFE', 'ABBV'] },
-            { symbol: 'ABBV', name: 'AbbVie', pos: [42.32, -87.84], upstream: ['TMO'], downstream: ['JNJ', 'PFE', 'MRK'] },
-            { symbol: 'LLY', name: 'Eli Lilly', pos: [39.76, -86.16], upstream: ['TMO'], downstream: ['NOVO', 'JNJ'] },
-            { symbol: 'NOVO', name: 'Novo Nordisk', pos: [55.77, 12.33], upstream: ['LLY'], downstream: ['JNJ', 'PFE'] },
-            { symbol: 'UNH', name: 'UnitedHealth Group', pos: [44.91, -93.44], upstream: [], downstream: ['JNJ', 'PFE', 'MRK', 'ABBV'] },
-            { symbol: 'CVS', name: 'CVS Health', pos: [41.86, -71.41], upstream: [], downstream: ['UNH', 'JNJ', 'PFE'] },
-            { symbol: 'TMO', name: 'Thermo Fisher Scientific', pos: [42.37, -71.23], upstream: [], downstream: ['JNJ', 'PFE', 'MRK', 'ABBV', 'LLY'] },
-            { symbol: 'ABT', name: 'Abbott Laboratories', pos: [42.13, -87.93], upstream: ['TMO'], downstream: ['JNJ', 'PFE'] },
-            { symbol: 'MDT', name: 'Medtronic', pos: [44.87, -93.27], upstream: ['TMO'], downstream: ['ABT', 'JNJ'] },
-            { symbol: 'GILD', name: 'Gilead Sciences', pos: [37.44, -122.02], upstream: ['TMO'], downstream: ['JNJ', 'PFE'] },
-            { symbol: 'AMGN', name: 'Amgen', pos: [34.05, -118.26], upstream: ['TMO'], downstream: ['JNJ', 'PFE'] },
-            { symbol: 'MRNA', name: 'Moderna', pos: [42.36, -71.05], upstream: ['TMO'], downstream: ['PFE', 'NOVO'] },
-            { symbol: 'BAYN', name: 'Bayer AG', pos: [51.53, 6.93], upstream: ['TMO'], downstream: ['PFE', 'MRK'] },
-            { symbol: 'ROCHE', name: 'Roche Holding', pos: [47.56, 7.60], upstream: ['TMO'], downstream: ['PFE', 'MRK', 'ABBV'] },
-            
-            // === Consumer Goods & Retail ===
-            { symbol: 'WMT', name: 'Walmart', pos: [36.37, -94.20], upstream: ['AAPL', 'MSFT', 'XOM', 'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE'], downstream: ['TGT', 'COST', 'HD'] },
-            { symbol: 'TGT', name: 'Target', pos: [44.96, -93.27], upstream: ['WMT', 'AMZN'], downstream: ['COST', 'HD'] },
-            { symbol: 'COST', name: 'Costco', pos: [47.53, -122.03], upstream: ['AAPL', 'MSFT', 'PG', 'KO', 'PEP', 'NKE'], downstream: ['WMT', 'TGT'] },
-            { symbol: 'HD', name: 'Home Depot', pos: [33.86, -84.48], upstream: ['LOW', 'DE', 'CAT'], downstream: ['WMT', 'TGT'] },
-            { symbol: 'LOW', name: 'Lowe''s', pos: [35.15, -80.99], upstream: ['HD', 'DE'], downstream: ['WMT', 'TGT'] },
-            { symbol: 'PG', name: 'Procter & Gamble', pos: [39.10, -84.51], upstream: [], downstream: ['WMT', 'TGT', 'COST', 'AMZN'] },
-            { symbol: 'KO', name: 'Coca-Cola', pos: [33.77, -84.39], upstream: [], downstream: ['WMT', 'TGT', 'COST', 'MCD', 'SBUX'] },
-            { symbol: 'PEP', name: 'PepsiCo', pos: [41.04, -73.69], upstream: [], downstream: ['WMT', 'TGT', 'COST', 'MCD', 'SBUX'] },
-            { symbol: 'NKE', name: 'Nike', pos: [45.49, -122.82], upstream: [], downstream: ['WMT', 'TGT', 'COST', 'AMZN'] },
-            { symbol: 'MCD', name: 'McDonald''s', pos: [41.79, -88.10], upstream: [], downstream: ['WMT', 'TGT', 'YUM'] },
-            { symbol: 'SBUX', name: 'Starbucks', pos: [47.55, -122.38], upstream: [], downstream: ['WMT', 'TGT', 'MCD'] },
-            { symbol: 'PM', name: 'Philip Morris', pos: [41.87, -88.15], upstream: [], downstream: ['WMT', 'TGT', 'COST'] },
-            { symbol: 'MO', name: 'Altria', pos: [37.54, -77.43], upstream: [], downstream: ['WMT', 'TGT', 'COST'] },
-            { symbol: 'LVMH', name: 'LVMH', pos: [48.86, 2.30], upstream: [], downstream: ['WMT', 'TGT', 'COST'] },
-            { symbol: 'NESN', name: 'Nestlé', pos: [46.46, 6.84], upstream: ['PG', 'KO'], downstream: ['WMT', 'TGT', 'COST'] },
-            { symbol: 'ULVR', name: 'Unilever', pos: [51.50, -0.10], upstream: ['PG'], downstream: ['WMT', 'TGT', 'COST'] },
-            
-            // === Industrials & Manufacturing ===
-            { symbol: 'CAT', name: 'Caterpillar', pos: [32.81, -96.94], upstream: ['DE'], downstream: ['HD', 'LOW'] },
-            { symbol: 'DE', name: 'Deere & Co.', pos: [41.52, -90.56], upstream: ['CAT'], downstream: ['HD', 'LOW'] },
-            { symbol: 'GE', name: 'GE Aerospace', pos: [42.36, -71.05], upstream: [], downstream: ['BA', 'RTX', 'CAT'] },
-            { symbol: 'BA', name: 'Boeing', pos: [38.86, -77.05], upstream: ['SPR', 'GE'], downstream: ['UAL', 'DAL', 'LUV'] },
-            { symbol: 'RTX', name: 'RTX Corp.', pos: [38.88, -77.06], upstream: ['GE'], downstream: ['BA', 'LMT'] },
-            { symbol: 'LMT', name: 'Lockheed Martin', pos: [39.02, -77.17], upstream: ['RTX'], downstream: ['NOC', 'GD'] },
-            { symbol: 'NOC', name: 'Northrop Grumman', pos: [38.87, -77.05], upstream: ['LMT'], downstream: ['BA'] },
-            { symbol: 'GD', name: 'General Dynamics', pos: [38.87, -77.05], upstream: ['LMT'], downstream: ['BA'] },
-            { symbol: 'HON', name: 'Honeywell', pos: [35.22, -80.84], upstream: [], downstream: ['BA', 'CAT', 'GE'] },
-            { symbol: 'MMM', name: '3M', pos: [44.96, -93.17], upstream: [], downstream: ['HD', 'LOW', 'WMT'] },
-            { symbol: 'UPS', name: 'UPS', pos: [33.91, -84.35], upstream: [], downstream: ['WMT', 'AMZN', 'TGT', 'HD', 'COST'] },
-            { symbol: 'FDX', name: 'FedEx', pos: [35.15, -90.05], upstream: [], downstream: ['WMT', 'AMZN', 'TGT', 'HD'] },
-            
-            // === Automotive & Transportation ===
-            { symbol: 'TSLA', name: 'Tesla, Inc.', pos: [30.27, -97.74], upstream: ['NVDA', 'TSM', 'LG', 'CATL'], downstream: ['WMT', 'AMZN', 'UBER', 'LYFT'] },
-            { symbol: 'TM', name: 'Toyota Motor', pos: [35.08, 137.15], upstream: ['NVDA', 'TSM', 'AISIN'], downstream: ['WMT', 'AMZN', 'UBER'] },
-            { symbol: 'F', name: 'Ford Motor', pos: [42.31, -83.21], upstream: ['TSM', 'QCOM'], downstream: ['WMT', 'AMZN'] },
-            { symbol: 'GM', name: 'General Motors', pos: [42.32, -83.04], upstream: ['TSM', 'QCOM'], downstream: ['WMT', 'AMZN'] },
-            { symbol: 'HMC', name: 'Honda Motor', pos: [35.76, 139.73], upstream: ['TSM', 'QCOM'], downstream: ['WMT', 'AMZN'] },
-            { symbol: 'RIVN', name: 'Rivian', pos: [37.53, -122.03], upstream: ['TSM', 'CATL'], downstream: ['WMT', 'AMZN', 'UBER'] },
-            { symbol: 'BYDDF', name: 'BYD Company', pos: [22.55, 114.06], upstream: ['TSM', 'LG', 'CATL'], downstream: ['WMT', 'AMZN', 'UBER'] },
-            { symbol: 'LYFT', name: 'Lyft', pos: [37.77, -122.41], upstream: ['TSLA', 'UBER'], downstream: ['WMT', 'AMZN'] },
-            
-            // === Telecommunications ===
-            { symbol: 'T', name: 'AT&T', pos: [32.78, -96.80], upstream: ['VZ', 'NOK', 'ERIC'], downstream: ['AAPL', 'GOOGL', 'VZ'] },
-            { symbol: 'VZ', name: 'Verizon', pos: [40.73, -74.00], upstream: ['T', 'NOK'], downstream: ['AAPL', 'GOOGL', 'T'] },
-            { symbol: 'TMUS', name: 'T-Mobile', pos: [47.61, -122.33], upstream: ['T', 'VZ'], downstream: ['AAPL', 'GOOGL'] },
-            { symbol: 'AMT', name: 'American Tower', pos: [42.36, -71.06], upstream: ['T', 'VZ'], downstream: ['T', 'VZ', 'TMUS'] },
-            
-            // === Materials & Mining ===
-            { symbol: 'RIO', name: 'Rio Tinto', pos: [51.51, -0.09], upstream: ['HAL', 'SLB'], downstream: ['BHP', 'VALE', 'CAT'] },
-            { symbol: 'BHP', name: 'BHP Group', pos: [-33.86, 151.21], upstream: ['HAL', 'SLB'], downstream: ['RIO', 'VALE', 'CAT'] },
-            { symbol: 'VALE', name: 'Vale SA', pos: [-22.90, -43.18], upstream: ['HAL', 'SLB'], downstream: ['BHP', 'RIO', 'CAT'] },
-            { symbol: 'CEMEX', name: 'CEMEX', pos: [25.67, -100.32], upstream: ['CAT', 'DE'], downstream: ['HD', 'LOW'] },
-            
-            // === Real Estate ===
-            { symbol: 'SPG', name: 'Simon Property Group', pos: [39.77, -86.16], upstream: [], downstream: ['WMT', 'TGT', 'MCD'] },
-            { symbol: 'PLD', name: 'Prologis', pos: [37.77, -122.41], upstream: [], downstream: ['AMZN', 'WMT', 'UPS', 'FDX'] },
-            
-            // === Other notable global companies ===
-            { symbol: 'SONY', name: 'Sony Group', pos: [35.66, 139.73], upstream: ['TSM', 'SAMSUNG'], downstream: ['MSFT', 'GOOGL', 'AAPL', 'NFLX'] },
-            { symbol: 'SAMSUNG', name: 'Samsung Electronics', pos: [37.32, 127.12], upstream: ['ASML', 'TSM'], downstream: ['AAPL', 'NVDA', 'MSFT', 'GOOGL'] },
-            { symbol: 'INFY', name: 'Infosys', pos: [12.97, 77.59], upstream: ['TCS', 'MSFT'], downstream: ['BAC', 'JPM', 'GS'] },
-            { symbol: 'TCS', name: 'Tata Consultancy Services', pos: [19.07, 72.88], upstream: ['INFY', 'MSFT'], downstream: ['BAC', 'JPM', 'GS'] },
-            { symbol: 'RELIANCE', name: 'Reliance Industries', pos: [19.06, 72.89], upstream: ['A9N', 'HAL'], downstream: ['WMT', 'AMZN', 'TGT'] },
-            { symbol: 'GRAB', name: 'Grab Holdings', pos: [1.28, 103.85], upstream: ['UBER', 'ABNB'], downstream: ['SEA'] },
-            { symbol: 'SEA', name: 'Sea Limited', pos: [1.29, 103.85], upstream: ['GRAB'], downstream: ['SHOP'] },
-            { symbol: 'RBLX', name: 'Roblox', pos: [37.52, -122.02], upstream: ['MSFT', 'GOOGL'], downstream: ['AAPL', 'AMZN'] },
-            { symbol: 'SQSP', name: 'Squarespace', pos: [40.73, -73.99], upstream: ['SHOP'], downstream: ['WMT', 'AMZN'] },
-            { symbol: 'GOTO', name: 'GoTo Group', pos: [-6.21, 106.84], upstream: ['SEA', 'GRAB'], downstream: ['SHOP'] },
-            { symbol: 'TLKM', name: 'Telkom Indonesia', pos: [-6.91, 107.61], upstream: ['T', 'VZ'], downstream: ['AAPL', 'GOOGL', 'META'] },
-            { symbol: 'MBB', name: 'Maybank', pos: [3.15, 101.71], upstream: ['V', 'MA'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'FAB', name: 'First Abu Dhabi Bank', pos: [24.47, 54.37], upstream: ['A9N'], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'EMAARDEV', name: 'Emaar Properties', pos: [25.19, 55.27], upstream: ['A9N'], downstream: [] },
-            { symbol: 'NASPERS', name: 'Naspers', pos: [-33.93, 18.42], upstream: ['TCEHY'], downstream: ['STND', 'SANLAM'] },
-            { symbol: 'SANLAM', name: 'Sanlam', pos: [-33.91, 18.42], upstream: [], downstream: ['STND', 'NASPERS'] },
-            { symbol: 'BBD', name: 'Bombardier', pos: [45.50, -73.57], upstream: ['BA', 'GE'], downstream: ['UAL', 'DAL'] },
-            { symbol: 'AMXL', name: 'América Móvil', pos: [19.43, -99.13], upstream: ['T', 'VZ'], downstream: ['AAPL', 'GOOGL', 'META'] }
+            { symbol: 'TSLA', name: 'Tesla, Inc.', pos: [30.27, -97.74], upstream: ['NVDA', 'PANASONIC'], downstream: ['HERTZ'] },
+            { symbol: 'JPM', name: 'JPMorgan Chase', pos: [40.75, -73.97], upstream: ['V', 'MA'], downstream: ['CONSUMER'] },
+            { symbol: 'XOM', name: 'Exxon Mobil', pos: [32.89, -96.94], upstream: ['SLB', 'HAL'], downstream: ['VALE'] },
+            { symbol: 'ASML', name: 'ASML Holding', pos: [51.42, 5.42], upstream: ['ZEISS'], downstream: ['TSM', 'INTC', 'NVDA'] },
+            { symbol: 'SAP', name: 'SAP SE', pos: [49.27, 8.64], upstream: ['MSFT'], downstream: ['BMW'] },
+            { symbol: 'TM', name: 'Toyota Motor', pos: [35.08, 137.15], upstream: ['NVDA', 'AISIN'], downstream: ['UBER'] },
+            { symbol: 'V', name: 'Visa Inc.', pos: [37.56, -122.27], upstream: [], downstream: ['JPM', 'BAC', 'C'] },
+            { symbol: 'MC', name: 'LVMH', pos: [48.86, 2.30], upstream: [], downstream: ['ELITE'] },
+            { symbol: 'NESN', name: 'Nestle', pos: [46.46, 6.84], upstream: ['ADM'], downstream: ['RETAIL'] },
+            { symbol: 'AZN', name: 'AstraZeneca', pos: [52.20, 0.12], upstream: ['BIO'], downstream: ['GOVT'] },
+            { symbol: 'TCS', name: 'Tata Consultancy', pos: [19.07, 72.88], upstream: ['INFY'], downstream: ['JPM', 'GS'] },
+            { symbol: 'RELIANCE', name: 'Reliance Industries', pos: [19.06, 72.89], upstream: ['XOM'], downstream: ['RETAIL'] },
+            { symbol: 'BABA', name: 'Alibaba Group', pos: [30.24, 120.15], upstream: ['TSM'], downstream: ['GLOBAL'] },
+            { symbol: 'SAMSUNG', name: 'Samsung Electronics', pos: [37.32, 127.12], upstream: ['ASML', 'TSM'], downstream: ['AAPL', 'NVDA'] }
         ];
 
-        // Map setup
-        const map = L.map('map', { center: [20, 0], zoom: 2, zoomControl: false, attributionControl: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        // --- MAP SETUP ---
+        const map = L.map('map', { 
+            center: [20, 0], 
+            zoom: 2, 
+            zoomControl: false, 
+            attributionControl: false,
+            fadeAnimation: true
+        });
+        
+        // Using CartoDB Dark Matter tiles - natively dark and high performance
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
 
         companies.forEach(company => {
             const marker = L.circleMarker(company.pos, {
@@ -412,10 +284,12 @@
             markers[company.symbol] = marker;
         });
 
-        // Chart Initialization
+        // --- CHART INITIALIZATION ---
         function initChart() {
             const chartContainer = document.getElementById('chart-container');
-            if (chart) return; // Already initialized
+            if (chart) return; 
+
+            document.getElementById('chart-loading').style.display = 'none';
 
             chart = LightweightCharts.createChart(chartContainer, {
                 layout: { background: { type: 'solid', color: '#0a0a0a' }, textColor: '#666' },
@@ -428,74 +302,72 @@
             lineSeries = chart.addLineSeries({ color: '#22ab94', lineWidth: 1 });
         }
 
-        // --- CORE FUNCTIONS ---
         function updateChart(symbol) {
             if (!lineSeries) return;
             
             const now = Math.floor(Date.now() / 1000);
             const data = [];
             const seed = symbol.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-            let price = 100 + (seed % 200);
+            let price = 100 + (seed % 300);
             
             for (let i = 0; i < 100; i++) {
-                price += Math.sin(i * 0.1) * 2 + (Math.random() - 0.5) * 4;
-                data.push({ time: now - (100 - i) * 3600, value: price });
+                price += Math.sin(i * 0.1) * 2 + (Math.random() - 0.5) * 6;
+                data.push({ time: now - (100 - i) * 3600, value: parseFloat(price.toFixed(2)) });
             }
             lineSeries.setData(data);
             chart.timeScale().fitContent();
         }
 
+        // --- CORE FUNCTIONS ---
         async function loadCompany(symbol) {
             const comp = companies.find(c => c.symbol === symbol);
             if (!comp) return;
 
             if (!lineSeries) initChart();
 
-            Object.values(markers).forEach(m => m.setStyle({ weight: 1, radius: 4 }));
-            if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 6 });
+            // Highlight Marker
+            Object.values(markers).forEach(m => m.setStyle({ weight: 1, radius: 4, fillColor: '#22ab94' }));
+            if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 8, fillColor: '#fff' });
             map.flyTo(comp.pos, 4, { duration: 1.5 });
 
+            // Draw Supply Chain Lines
             chainLines.forEach(l => map.removeLayer(l));
             chainLines.length = 0;
 
             comp.upstream.forEach(upSymbol => {
                 const target = companies.find(c => c.symbol === upSymbol);
                 if (target) {
-                    const line = L.polyline([target.pos, comp.pos], { color: '#22ab94', weight: 1, opacity: 0.4, className: 'supply-chain-line' }).addTo(map);
+                    const line = L.polyline([target.pos, comp.pos], { color: '#22ab94', weight: 1, opacity: 0.5, className: 'supply-chain-line' }).addTo(map);
                     chainLines.push(line);
                 }
             });
             comp.downstream.forEach(downSymbol => {
                 const target = companies.find(c => c.symbol === downSymbol);
                 if (target) {
-                    const line = L.polyline([comp.pos, target.pos], { color: '#ef4444', weight: 1, opacity: 0.4, className: 'supply-chain-line' }).addTo(map);
+                    const line = L.polyline([comp.pos, target.pos], { color: '#ef4444', weight: 1, opacity: 0.5, className: 'supply-chain-line' }).addTo(map);
                     chainLines.push(line);
                 }
             });
 
+            // Fetch Real-time Data
             try {
-                const urls = [
-                    `/api/quote?symbol=${symbol}`,
-                    `/api/company?symbol=${symbol}`,
-                    `/api/balance?symbol=${symbol}`,
-                    `/api/income?symbol=${symbol}`
-                ];
-                
+                const endpoints = ['quote', 'company', 'balance', 'income'];
                 const [quote, profile, balance, income] = await Promise.all(
-                    urls.map(url => fetch(url).then(r => r.json()))
+                    endpoints.map(ep => fetch(`/api/${ep}?symbol=${symbol}`).then(r => r.json()))
                 );
 
+                // Update UI Panels
                 document.getElementById('panel-name').textContent = profile.name || comp.name;
-                document.getElementById('panel-symbol').textContent = profile.symbol || symbol;
+                document.getElementById('panel-symbol').textContent = symbol;
                 document.getElementById('panel-sector').textContent = profile.sector || 'N/A';
-                document.getElementById('panel-price').textContent = `$${quote.price || '---'}`;
+                document.getElementById('panel-price').textContent = `$${parseFloat(quote.price || 0).toFixed(2)}`;
                 
                 const changeVal = parseFloat(quote.changePercent) || 0;
                 const ch = document.getElementById('panel-change');
                 ch.textContent = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
-                ch.className = `text-[12px] font-bold ${changeVal >= 0 ? 'accent-text' : 'text-rose-500'}`;
+                ch.className = `text-[12px] font-bold font-mono ${changeVal >= 0 ? 'accent-text' : 'text-rose-500'}`;
                 
-                document.getElementById('panel-employees').textContent = profile.employees || '---';
+                document.getElementById('panel-employees').textContent = profile.employees ? parseInt(profile.employees).toLocaleString() : '---';
                 document.getElementById('panel-marketcap').textContent = profile.marketCap || '---';
                 document.getElementById('panel-hq').textContent = profile.hq || '---';
 
@@ -505,38 +377,40 @@
                 document.getElementById('panel-equity').textContent = balance.equity || '---';
 
                 const list = document.getElementById('income-list');
-                list.innerHTML = (income || []).map(row => `
-                    <div class="flex justify-between border-b border-[#1a1a1a] py-1">
-                        <span class="text-zinc-500">${row.date}</span>
-                        <span class="font-bold">${row.netIncome}</span>
+                list.innerHTML = (income || []).slice(0, 4).map(row => `
+                    <div class="flex justify-between border-b border-[#1a1a1a] py-1 text-[9px]">
+                        <span class="text-zinc-500 uppercase">${row.date}</span>
+                        <span class="font-bold font-mono">${row.netIncome}</span>
                     </div>
-                `).join('') || '<div class="text-zinc-600 italic">No data available</div>';
+                `).join('') || '<div class="text-zinc-700 italic">DATA_UNAVAILABLE</div>';
 
                 updateChart(symbol);
             } catch (err) {
-                console.error("API Error context:", symbol, err);
+                console.error("ANALYSIS_FETCH_FAILURE:", symbol, err);
             }
         }
 
-        // Search Interaction
+        // --- SEARCH INTERACTION ---
         const searchInput = document.getElementById('search-input');
         const searchResults = document.getElementById('search-results');
 
-        searchInput.oninput = (e) => {
+        searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toUpperCase();
             if (!query) { searchResults.classList.add('hidden'); return; }
+            
             const filtered = companies.filter(c => c.symbol.includes(query) || c.name.toUpperCase().includes(query));
             if (filtered.length > 0) {
                 searchResults.innerHTML = filtered.map(c => `
-                    <div class="p-2 border-b border-[#1a1a1a] cursor-pointer hover:bg-[#1a1a1a]" onclick="loadAndClear('${c.symbol}')">
-                        <span class="accent-text">${c.symbol}</span> | <span>${c.name}</span>
+                    <div class="px-3 py-2 border-b border-[#1a1a1a] cursor-pointer hover:bg-[#1a1a1a] flex justify-between items-center" onclick="loadAndClear('${c.symbol}')">
+                        <span class="accent-text font-bold font-mono">${c.symbol}</span>
+                        <span class="text-zinc-500 text-[8px] truncate max-w-[120px]">${c.name}</span>
                     </div>
                 `).join('');
                 searchResults.classList.remove('hidden');
             } else {
                 searchResults.classList.add('hidden');
             }
-        };
+        });
 
         window.loadAndClear = (symbol) => {
             loadCompany(symbol);
@@ -544,10 +418,29 @@
             searchInput.value = '';
         };
 
-        initChart();
-        loadCompany('AAPL');
+        // Close search results on click away
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+
+        // --- INITIALIZATION ---
+        window.addEventListener('load', () => {
+            initChart();
+            loadCompany('AAPL');
+            // Force map layout refresh
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 500);
+        });
+
         window.addEventListener('resize', () => {
-            if (chart) chart.resize(document.getElementById('chart-container').clientWidth, 300);
+            if (chart) {
+                const width = document.getElementById('chart-container').clientWidth;
+                chart.resize(width, 300);
+                chart.timeScale().fitContent();
+            }
         });
     </script>
 </body>
