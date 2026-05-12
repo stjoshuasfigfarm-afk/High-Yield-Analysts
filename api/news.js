@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     try {
         const response = await fetch(url);
         const data = await response.json();
-        if (data && data.data) {
+        if (data?.data?.length) {
             const articles = data.data.map(article => ({
                 title: article.title,
                 description: article.description,
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
                 source: article.source,
                 sentiment: article.entities?.[0]?.sentiment_score || null
             }));
-            return res.status(200).json({ articles, total: data.meta.found });
+            return res.json({ articles, total: data.meta.found });
         } else {
             return res.status(404).json({ error: 'No news found' });
         }
