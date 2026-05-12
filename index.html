@@ -37,20 +37,15 @@
         .accent-bg { background-color: var(--accent); }
 
         #map {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            width: 100%;
+            height: 100%;
             background: #050505 !important;
-            z-index: 1;
         }
 
         .leaflet-container {
             background: #050505 !important;
         }
 
-        /* Subtle contrast boost for dark tiles */
         .leaflet-tile-pane {
             filter: brightness(0.8) contrast(1.1);
         }
@@ -102,6 +97,30 @@
     </style>
 </head>
 <body class="flex flex-col">
+    <!-- Header Bar -->
+    <header class="h-10 border-b border-[#1a1a1a] flex items-center justify-between px-4 bg-black z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-2 bg-[#22ab94] rounded-full animate-pulse shadow-[0_0_8px_#22ab94]"></div>
+            <h1 class="text-[10px] font-bold tracking-[0.3em] uppercase opacity-80">HY Analysts Terminal</h1>
+        </div>
+        <div id="top-info" class="flex items-center gap-6 invisible">
+            <div class="flex flex-col items-end text-right">
+                <div class="flex items-center gap-2">
+                   <span id="top-symbol" class="text-[10px] font-bold accent-text font-mono">---</span>
+                   <span id="top-price" class="text-[12px] font-bold font-mono">---</span>
+                </div>
+                <div class="flex items-center gap-1 -mt-1 justify-end">
+                   <span id="top-name" class="text-[8px] text-zinc-500 uppercase truncate max-w-[150px]">---</span>
+                   <span id="top-change" class="text-[9px] font-mono">---</span>
+                </div>
+            </div>
+            <div class="h-6 w-[1px] bg-zinc-900 hidden sm:block"></div>
+            <div class="text-[8px] font-mono text-zinc-600 tracking-widest uppercase hidden lg:block">
+                LAT_LNK: ACTIVE
+            </div>
+        </div>
+    </header>
+
     <!-- News Ticker -->
     <div class="ticker-wrap">
         <div id="ticker" class="ticker">
@@ -117,120 +136,90 @@
 
     <!-- Interface -->
     <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar Left: Company Info -->
-        <aside class="w-64 border-r border-[#1a1a1a] flex flex-col p-3 space-y-3 custom-scrollbar overflow-y-auto">
-            <div class="space-y-1 relative">
-                <div class="text-[8px] text-zinc-500 uppercase tracking-widest">Search Engine</div>
-                <input type="text" id="search-input" placeholder="TICKER OR NAME..." class="w-full text-[10px]">
-                <div id="search-results" class="hidden absolute bg-[#0a0a0a] border border-[#1a1a1a] w-full z-[2000] mt-1 shadow-2xl"></div>
+        <!-- Sidebar Left: Company List -->
+        <aside class="w-60 border-r border-[#1a1a1a] flex flex-col bg-black">
+            <div class="p-3 border-b border-[#1a1a1a] space-y-1">
+                <div class="text-[8px] text-zinc-500 uppercase tracking-widest">Node Registry</div>
+                <input type="text" id="search-input" placeholder="FIND TICKER..." class="w-full text-[10px]">
             </div>
-
-            <div id="company-info-panel" class="space-y-4">
-                <div class="border-b border-[#1a1a1a] pb-2">
-                    <h1 id="panel-name" class="text-xs font-bold accent-text">SELECT NODE</h1>
-                    <div class="flex justify-between mt-1 text-[9px]">
-                        <span id="panel-symbol" class="bg-[#1a1a1a] px-1 font-mono">---</span>
-                        <span id="panel-sector" class="text-zinc-500 uppercase">STANDBY_</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="terminal-panel p-2">
-                        <div class="text-[8px] text-zinc-500 uppercase">Price</div>
-                        <div id="panel-price" class="text-[12px] font-bold font-mono">---</div>
-                    </div>
-                    <div class="terminal-panel p-2">
-                        <div class="text-[8px] text-zinc-500 uppercase">Change</div>
-                        <div id="panel-change" class="text-[12px] font-bold font-mono">---</div>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Intelligence</div>
-                    <div class="flex justify-between text-[9px]"><span>Employees</span> <span id="panel-employees">---</span></div>
-                    <div class="flex justify-between text-[9px]"><span>Mkt Cap</span> <span id="panel-marketcap">---</span></div>
-                    <div class="flex justify-between text-[9px]"><span>HQ</span> <span id="panel-hq" class="truncate max-w-[120px]">---</span></div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Sector Rotation</div>
-                    <div class="space-y-2 text-[9px]">
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span>TECH</span> <span class="accent-text">+1.2%</span></div>
-                            <div class="h-1 bg-[#1a1a1a]"><div class="h-full accent-bg" style="width: 75%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span>FINN</span> <span class="text-rose-500">-0.4%</span></div>
-                            <div class="h-1 bg-[#1a1a1a]"><div class="h-full bg-rose-500" style="width: 40%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span>ENGY</span> <span class="accent-text">+2.1%</span></div>
-                            <div class="h-1 bg-[#1a1a1a]"><div class="h-full accent-bg" style="width: 85%"></div></div>
-                        </div>
-                    </div>
-                </div>
+            <div id="ticker-list" class="flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Ticker list populated by JS -->
+            </div>
+            <div class="p-2 bg-[#050505] border-t border-[#111]">
+                <div class="text-[7px] text-zinc-600 uppercase tracking-tighter mb-1">System Load: 12%</div>
+                <div class="h-[1px] w-full bg-zinc-900"><div class="h-full bg-accent" style="width: 12%"></div></div>
             </div>
         </aside>
 
         <!-- Center: Map -->
-        <main class="flex-1 relative border-r border-[#1a1a1a]">
+        <main class="flex-1 relative border-r border-[#1a1a1a] bg-[#050505]">
             <div id="map"></div>
-            <!-- Legend / Overlay -->
             <div class="absolute bottom-4 left-4 z-[1000] terminal-panel p-2 opacity-80 pointer-events-none border border-[#333]">
                 <div class="flex items-center gap-1.5"><div class="w-2 h-2 bg-[#22ab94] rounded-full"></div> <span class="text-[8px]">UPSTREAM PARTNER</span></div>
                 <div class="flex items-center gap-1.5"><div class="w-2 h-2 bg-rose-500 rounded-full"></div> <span class="text-[8px]">DOWNSTREAM PARTNER</span></div>
             </div>
-            <div class="absolute top-4 right-4 z-[1000] text-[8px] font-mono text-zinc-500 pointer-events-none">MAP_SERVICE_CONNECTED (GLOBAL_HUB)</div>
         </main>
 
-        <!-- Sidebar Right: Charts & Balance Sheet -->
-        <aside class="w-80 p-3 space-y-4 custom-scrollbar overflow-y-auto bg-black">
-            <div>
-                <div class="text-[8px] text-zinc-500 uppercase tracking-widest mb-2 border-b border-[#1a1a1a]">Market Momentum (1H)</div>
-                <div id="chart-container" style="height: 300px;" class="w-full terminal-panel overflow-hidden relative">
-                    <div id="chart-loading" class="absolute inset-0 flex items-center justify-center text-[10px] text-zinc-700 font-mono">INITIALIZING_ENGINE...</div>
-                </div>
+        <!-- Sidebar Right: Analytics -->
+        <aside class="w-80 p-3 space-y-4 custom-scrollbar overflow-y-auto bg-black border-l border-[#1a1a1a]">
+            <div id="no-selection" class="h-40 flex items-center justify-center border border-[#1a1a1a] border-dashed">
+                <p class="text-[8px] text-zinc-600 uppercase tracking-widest px-4 text-center">Select node to initialize intelligence stream</p>
             </div>
+            
+            <div id="details-view" class="hidden space-y-4">
+                <div>
+                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest mb-2 border-b border-[#1a1a1a]">Momentum Engine</div>
+                    <div id="chart-container" style="height: 250px;" class="w-full terminal-panel"></div>
+                </div>
 
-            <div class="space-y-3">
-                <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Balance Sheet Snapshot</div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="terminal-panel p-2">
-                        <div class="text-[7px] text-zinc-500 uppercase">Total Assets</div>
-                        <div id="panel-assets" class="text-[10px] font-bold font-mono">---</div>
-                    </div>
-                    <div class="terminal-panel p-2">
-                        <div class="text-[7px] text-zinc-500 uppercase">Total Debt</div>
-                        <div id="panel-debt" class="text-[10px] font-bold text-rose-500 font-mono">---</div>
-                    </div>
-                    <div class="terminal-panel p-2">
-                        <div class="text-[7px] text-zinc-500 uppercase">Cash Position</div>
-                        <div id="panel-cash" class="text-[10px] font-bold accent-text font-mono">---</div>
-                    </div>
-                    <div class="terminal-panel p-2">
-                        <div class="text-[7px] text-zinc-500 uppercase">Equity (BV)</div>
-                        <div id="panel-equity" class="text-[10px] font-bold font-mono">---</div>
+                <div class="space-y-2">
+                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Static Intelligence</div>
+                    <div class="grid grid-cols-2 gap-2 text-[9px]">
+                        <div class="flex flex-col border border-[#111] p-1.5">
+                            <span class="text-zinc-500 text-[7px] uppercase">Sector</span>
+                            <span id="panel-sector" class="truncate">---</span>
+                        </div>
+                        <div class="flex flex-col border border-[#111] p-1.5">
+                            <span class="text-zinc-500 text-[7px] uppercase">Staffing</span>
+                            <span id="panel-employees">---</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="space-y-2">
-                <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Quarterly Net Income</div>
-                <div id="income-list" class="space-y-1">
-                    <!-- Income rows by JS -->
+                <div class="space-y-2">
+                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Financial Prism</div>
+                    <div class="grid grid-cols-2 gap-2 font-mono">
+                        <div class="terminal-panel p-2">
+                            <div class="text-[7px] text-zinc-500 uppercase">Assets</div>
+                            <div id="panel-assets" class="text-[9px] font-bold">---</div>
+                        </div>
+                        <div class="terminal-panel p-2">
+                            <div class="text-[7px] text-zinc-500 uppercase">Debt</div>
+                            <div id="panel-debt" class="text-[9px] font-bold text-rose-500">---</div>
+                        </div>
+                        <div class="terminal-panel p-2">
+                            <div class="text-[7px] text-zinc-500 uppercase">Cash</div>
+                            <div id="panel-cash" class="text-[9px] font-bold accent-text">---</div>
+                        </div>
+                        <div class="terminal-panel p-2">
+                            <div class="text-[7px] text-zinc-500 uppercase">Equity</div>
+                            <div id="panel-equity" class="text-[9px] font-bold">---</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest border-b border-[#1a1a1a]">Historical Earnings</div>
+                    <div id="income-list" class="space-y-1"></div>
                 </div>
             </div>
         </aside>
     </div>
 
     <script>
-        // --- STATE & GLOBALS ---
-        let chart;
-        let lineSeries;
-        const markers = {};
-        const chainLines = [];
+        let chart, lineSeries, selectedSymbol = null;
+        const markers = {}, chainLines = [];
 
-        // --- DATA & CONFIG ---
         const companies = [
             { symbol: 'AAPL', name: 'Apple Inc.', pos: [37.33, -122.03], upstream: ['TSM', 'NVDA'], downstream: ['AMZN', 'UBER'] },
             { symbol: 'MSFT', name: 'Microsoft Corp.', pos: [47.64, -122.13], upstream: ['NVDA', 'INTC', 'AMD'], downstream: ['GOOGL', 'AMZN', 'META'] },
@@ -240,76 +229,46 @@
             { symbol: 'GOOGL', name: 'Alphabet Inc.', pos: [37.42, -122.08], upstream: ['NVDA', 'AMD', 'TSM'], downstream: ['META', 'MSFT', 'AAPL'] },
             { symbol: 'TSLA', name: 'Tesla, Inc.', pos: [30.27, -97.74], upstream: ['NVDA', 'PANASONIC'], downstream: ['HERTZ'] },
             { symbol: 'JPM', name: 'JPMorgan Chase', pos: [40.75, -73.97], upstream: ['V', 'MA'], downstream: ['CONSUMER'] },
-            { symbol: 'XOM', name: 'Exxon Mobil', pos: [32.89, -96.94], upstream: ['SLB', 'HAL'], downstream: ['VALE'] },
-            { symbol: 'ASML', name: 'ASML Holding', pos: [51.42, 5.42], upstream: ['ZEISS'], downstream: ['TSM', 'INTC', 'NVDA'] },
-            { symbol: 'SAP', name: 'SAP SE', pos: [49.27, 8.64], upstream: ['MSFT'], downstream: ['BMW'] },
-            { symbol: 'TM', name: 'Toyota Motor', pos: [35.08, 137.15], upstream: ['NVDA', 'AISIN'], downstream: ['UBER'] },
             { symbol: 'V', name: 'Visa Inc.', pos: [37.56, -122.27], upstream: [], downstream: ['JPM', 'BAC', 'C'] },
-            { symbol: 'MC', name: 'LVMH', pos: [48.86, 2.30], upstream: [], downstream: ['ELITE'] },
-            { symbol: 'NESN', name: 'Nestle', pos: [46.46, 6.84], upstream: ['ADM'], downstream: ['RETAIL'] },
-            { symbol: 'AZN', name: 'AstraZeneca', pos: [52.20, 0.12], upstream: ['BIO'], downstream: ['GOVT'] },
-            { symbol: 'TCS', name: 'Tata Consultancy', pos: [19.07, 72.88], upstream: ['INFY'], downstream: ['JPM', 'GS'] },
-            { symbol: 'RELIANCE', name: 'Reliance Industries', pos: [19.06, 72.89], upstream: ['XOM'], downstream: ['RETAIL'] },
             { symbol: 'BABA', name: 'Alibaba Group', pos: [30.24, 120.15], upstream: ['TSM'], downstream: ['GLOBAL'] },
-            { symbol: 'SAMSUNG', name: 'Samsung Electronics', pos: [37.32, 127.12], upstream: ['ASML', 'TSM'], downstream: ['AAPL', 'NVDA'] }
+            { symbol: 'SAMSUNG', name: 'Samsung Electronics', pos: [37.32, 127.12], upstream: ['ASML', 'TSM'], downstream: ['AAPL', 'NVDA'] },
+            { symbol: 'ASML', name: 'ASML Holding', pos: [51.42, 5.42], upstream: ['ZEISS'], downstream: ['TSM', 'INTC'] },
+            { symbol: 'SAP', name: 'SAP SE', pos: [49.27, 8.64], upstream: ['MSFT'], downstream: ['BMW'] },
+            { symbol: 'TM', name: 'Toyota Motor', pos: [35.08, 137.15], upstream: ['NVDA'], downstream: ['UBER'] },
+            { symbol: 'SONY', name: 'Sony Group', pos: [35.67, 139.73], upstream: ['TSM'], downstream: ['MSFT'] }
         ];
 
-        // --- MAP SETUP ---
-        const map = L.map('map', { 
-            center: [20, 0], 
-            zoom: 2, 
-            zoomControl: false, 
-            attributionControl: false,
-            fadeAnimation: true
-        });
-        
-        // Using CartoDB Dark Matter tiles - natively dark and high performance
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
+        const map = L.map('map', { center: [20, 0], zoom: 2, zoomControl: false, attributionControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         companies.forEach(company => {
             const marker = L.circleMarker(company.pos, {
-                radius: 4,
-                fillColor: '#22ab94',
-                color: '#fff',
-                weight: 1,
-                opacity: 0.8,
-                fillOpacity: 0.8
+                radius: 4, fillColor: '#22ab94', color: '#fff', weight: 1, opacity: 0.8, fillOpacity: 0.8
             }).addTo(map);
-            
             marker.bindTooltip(company.name, { direction: 'top', className: 'accent-text font-mono text-[8px] bg-black border-none' });
             marker.on('click', () => loadCompany(company.symbol));
             markers[company.symbol] = marker;
         });
 
-        // --- CHART INITIALIZATION ---
         function initChart() {
-            const chartContainer = document.getElementById('chart-container');
-            if (chart) return; 
-
-            document.getElementById('chart-loading').style.display = 'none';
-
-            chart = LightweightCharts.createChart(chartContainer, {
+            const container = document.getElementById('chart-container');
+            if (chart) return;
+            chart = LightweightCharts.createChart(container, {
                 layout: { background: { type: 'solid', color: '#0a0a0a' }, textColor: '#666' },
                 grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
                 timeScale: { visible: true, borderVisible: false },
                 rightPriceScale: { borderVisible: false },
-                handleScroll: false,
-                handleScale: false,
+                handleScroll: false, handleScale: false
             });
             lineSeries = chart.addLineSeries({ color: '#22ab94', lineWidth: 1 });
         }
 
         function updateChart(symbol) {
             if (!lineSeries) return;
-            
             const now = Math.floor(Date.now() / 1000);
             const data = [];
             const seed = symbol.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
             let price = 100 + (seed % 300);
-            
             for (let i = 0; i < 100; i++) {
                 price += Math.sin(i * 0.1) * 2 + (Math.random() - 0.5) * 6;
                 data.push({ time: now - (100 - i) * 3600, value: parseFloat(price.toFixed(2)) });
@@ -318,129 +277,77 @@
             chart.timeScale().fitContent();
         }
 
-        // --- CORE FUNCTIONS ---
+        function renderTickerList() {
+            const container = document.getElementById('ticker-list');
+            const search = document.getElementById('search-input').value.toUpperCase();
+            const filtered = companies.filter(c => c.symbol.includes(search) || c.name.toUpperCase().includes(search));
+            container.innerHTML = filtered.map(c => `
+                <div class="px-3 py-2 border-b border-[#111] cursor-pointer hover:bg-zinc-900 group ${selectedSymbol === c.symbol ? 'bg-zinc-900' : ''}" onclick="loadCompany('${c.symbol}')">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-bold font-mono ${selectedSymbol === c.symbol ? 'accent-text' : 'text-zinc-400'}">${c.symbol}</span>
+                    </div>
+                    <div class="text-[7px] text-zinc-600 truncate uppercase">${c.name}</div>
+                </div>
+            `).join('');
+        }
+
         async function loadCompany(symbol) {
+            selectedSymbol = symbol;
+            renderTickerList();
             const comp = companies.find(c => c.symbol === symbol);
             if (!comp) return;
 
+            document.getElementById('no-selection').classList.add('hidden');
+            document.getElementById('details-view').classList.remove('hidden');
+            document.getElementById('top-info').classList.remove('invisible');
             if (!lineSeries) initChart();
 
-            // Highlight Marker
             Object.values(markers).forEach(m => m.setStyle({ weight: 1, radius: 4, fillColor: '#22ab94' }));
-            if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 8, fillColor: '#fff' });
-            map.flyTo(comp.pos, 4, { duration: 1.5 });
+            if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 6, fillColor: '#fff' });
+            map.flyTo(comp.pos, 4, { duration: 1 });
 
-            // Draw Supply Chain Lines
             chainLines.forEach(l => map.removeLayer(l));
             chainLines.length = 0;
-
-            comp.upstream.forEach(upSymbol => {
-                const target = companies.find(c => c.symbol === upSymbol);
+            [...comp.upstream.map(s => ({s, color: '#22ab94'})), ...comp.downstream.map(s => ({s, color: '#ef4444'}))].forEach(link => {
+                const target = companies.find(c => c.symbol === link.s);
                 if (target) {
-                    const line = L.polyline([target.pos, comp.pos], { color: '#22ab94', weight: 1, opacity: 0.5, className: 'supply-chain-line' }).addTo(map);
-                    chainLines.push(line);
-                }
-            });
-            comp.downstream.forEach(downSymbol => {
-                const target = companies.find(c => c.symbol === downSymbol);
-                if (target) {
-                    const line = L.polyline([comp.pos, target.pos], { color: '#ef4444', weight: 1, opacity: 0.5, className: 'supply-chain-line' }).addTo(map);
+                    const line = L.polyline([target.pos, comp.pos], { color: link.color, weight: 1, opacity: 0.3, className: 'supply-chain-line' }).addTo(map);
                     chainLines.push(line);
                 }
             });
 
-            // Fetch Real-time Data
             try {
-                const endpoints = ['quote', 'company', 'balance', 'income'];
-                const [quote, profile, balance, income] = await Promise.all(
-                    endpoints.map(ep => fetch(`/api/${ep}?symbol=${symbol}`).then(r => r.json()))
-                );
+                const [quote, profile, balance, income] = await Promise.all(['quote', 'company', 'balance', 'income'].map(ep => fetch(`/api/${ep}?symbol=${symbol}`).then(r => r.json())));
+                
+                document.getElementById('top-symbol').textContent = symbol;
+                document.getElementById('top-price').textContent = `$${parseFloat(quote.price || 0).toFixed(2)}`;
+                document.getElementById('top-name').textContent = profile.name || comp.name;
+                const ch = document.getElementById('top-change'), val = parseFloat(quote.changePercent) || 0;
+                ch.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(2)}%`;
+                ch.className = `text-[9px] font-mono ${val >= 0 ? 'accent-text' : 'text-rose-500'}`;
 
-                // Update UI Panels
-                document.getElementById('panel-name').textContent = profile.name || comp.name;
-                document.getElementById('panel-symbol').textContent = symbol;
                 document.getElementById('panel-sector').textContent = profile.sector || 'N/A';
-                document.getElementById('panel-price').textContent = `$${parseFloat(quote.price || 0).toFixed(2)}`;
-                
-                const changeVal = parseFloat(quote.changePercent) || 0;
-                const ch = document.getElementById('panel-change');
-                ch.textContent = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
-                ch.className = `text-[12px] font-bold font-mono ${changeVal >= 0 ? 'accent-text' : 'text-rose-500'}`;
-                
-                document.getElementById('panel-employees').textContent = profile.employees ? parseInt(profile.employees).toLocaleString() : '---';
-                document.getElementById('panel-marketcap').textContent = profile.marketCap || '---';
-                document.getElementById('panel-hq').textContent = profile.hq || '---';
-
+                document.getElementById('panel-employees').textContent = parseInt(profile.employees || 0).toLocaleString();
                 document.getElementById('panel-assets').textContent = balance.totalAssets || '---';
                 document.getElementById('panel-debt').textContent = balance.totalDebt || '---';
-                document.getElementById('panel-cash').textContent = balance.cash || '---';
-                document.getElementById('panel-equity').textContent = balance.equity || '---';
-
-                const list = document.getElementById('income-list');
-                list.innerHTML = (income || []).slice(0, 4).map(row => `
-                    <div class="flex justify-between border-b border-[#1a1a1a] py-1 text-[9px]">
-                        <span class="text-zinc-500 uppercase">${row.date}</span>
-                        <span class="font-bold font-mono">${row.netIncome}</span>
-                    </div>
-                `).join('') || '<div class="text-zinc-700 italic">DATA_UNAVAILABLE</div>';
-
-                updateChart(symbol);
-            } catch (err) {
-                console.error("ANALYSIS_FETCH_FAILURE:", symbol, err);
-            }
-        }
-
-        // --- SEARCH INTERACTION ---
-        const searchInput = document.getElementById('search-input');
-        const searchResults = document.getElementById('search-results');
-
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toUpperCase();
-            if (!query) { searchResults.classList.add('hidden'); return; }
-            
-            const filtered = companies.filter(c => c.symbol.includes(query) || c.name.toUpperCase().includes(query));
-            if (filtered.length > 0) {
-                searchResults.innerHTML = filtered.map(c => `
-                    <div class="px-3 py-2 border-b border-[#1a1a1a] cursor-pointer hover:bg-[#1a1a1a] flex justify-between items-center" onclick="loadAndClear('${c.symbol}')">
-                        <span class="accent-text font-bold font-mono">${c.symbol}</span>
-                        <span class="text-zinc-500 text-[8px] truncate max-w-[120px]">${c.name}</span>
+                document.getElementById('panel-income-list'); // Just checking existence
+                document.getElementById('income-list').innerHTML = (income || []).slice(0,4).map(r => `
+                    <div class="flex justify-between border-b border-[#111] py-1 text-[8px]">
+                        <span class="text-zinc-600 uppercase">${r.date}</span>
+                        <span class="font-bold font-mono">${r.netIncome}</span>
                     </div>
                 `).join('');
-                searchResults.classList.remove('hidden');
-            } else {
-                searchResults.classList.add('hidden');
-            }
-        });
 
-        window.loadAndClear = (symbol) => {
-            loadCompany(symbol);
-            searchResults.classList.add('hidden');
-            searchInput.value = '';
-        };
+                updateChart(symbol);
+                setTimeout(() => map.invalidateSize(), 150);
+            } catch (err) { console.error(err); }
+        }
 
-        // Close search results on click away
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.classList.add('hidden');
-            }
-        });
-
-        // --- INITIALIZATION ---
-        window.addEventListener('load', () => {
-            initChart();
-            loadCompany('AAPL');
-            // Force map layout refresh
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 500);
-        });
-
+        document.getElementById('search-input').oninput = renderTickerList;
+        window.addEventListener('load', () => { renderTickerList(); loadCompany('AAPL'); });
         window.addEventListener('resize', () => {
-            if (chart) {
-                const width = document.getElementById('chart-container').clientWidth;
-                chart.resize(width, 300);
-                chart.timeScale().fitContent();
-            }
+            if (chart) chart.resize(document.getElementById('chart-container').clientWidth, 250);
+            map.invalidateSize();
         });
     </script>
 </body>
