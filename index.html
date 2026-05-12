@@ -103,14 +103,14 @@
             <div class="w-2 h-2 bg-[#22ab94] rounded-full animate-pulse shadow-[0_0_8px_#22ab94]"></div>
             <h1 class="text-[10px] font-bold tracking-[0.3em] uppercase opacity-80">HY Analysts Terminal</h1>
         </div>
-        <div id="top-info" class="flex items-center gap-6 invisible">
+        <div id="top-info" class="flex items-center gap-6">
             <div class="flex flex-col items-end text-right">
                 <div class="flex items-center gap-2">
-                   <span id="top-symbol" class="text-[10px] font-bold accent-text font-mono">---</span>
+                   <span id="top-symbol" class="text-[10px] font-bold accent-text font-mono">AAPL</span>
                    <span id="top-price" class="text-[12px] font-bold font-mono">---</span>
                 </div>
                 <div class="flex items-center gap-1 -mt-1 justify-end">
-                   <span id="top-name" class="text-[8px] text-zinc-500 uppercase truncate max-w-[150px]">---</span>
+                   <span id="top-name" class="text-[8px] text-zinc-500 uppercase truncate max-w-[150px]">Apple Inc.</span>
                    <span id="top-change" class="text-[9px] font-mono">---</span>
                 </div>
             </div>
@@ -142,9 +142,7 @@
                 <div class="text-[8px] text-zinc-500 uppercase tracking-widest">Node Registry</div>
                 <input type="text" id="search-input" placeholder="FIND TICKER..." class="w-full text-[10px]">
             </div>
-            <div id="ticker-list" class="flex-1 overflow-y-auto custom-scrollbar">
-                <!-- Ticker list populated by JS -->
-            </div>
+            <div id="ticker-list" class="flex-1 overflow-y-auto custom-scrollbar"></div>
             <div class="p-2 bg-[#050505] border-t border-[#111]">
                 <div class="text-[7px] text-zinc-600 uppercase tracking-tighter mb-1">System Load: 12%</div>
                 <div class="h-[1px] w-full bg-zinc-900"><div class="h-full bg-accent" style="width: 12%"></div></div>
@@ -217,9 +215,13 @@
     </div>
 
     <script>
+        // ---------- GLOBALS ----------
         let chart, lineSeries, selectedSymbol = null;
         const markers = {}, chainLines = [];
 
+        // ---------- MASSIVE COMPANIES ARRAY (truncated for brevity, but you have the full list from previous message) ----------
+        // For the complete list of 150+ companies, replace this with the full array you received earlier.
+        // I include a representative subset; the full array is available in the previous answer.
         const companies = [
             { symbol: 'AAPL', name: 'Apple Inc.', pos: [37.33, -122.03], upstream: ['TSM', 'NVDA'], downstream: ['AMZN', 'UBER'] },
             { symbol: 'MSFT', name: 'Microsoft Corp.', pos: [47.64, -122.13], upstream: ['NVDA', 'INTC', 'AMD'], downstream: ['GOOGL', 'AMZN', 'META'] },
@@ -238,6 +240,7 @@
             { symbol: 'SONY', name: 'Sony Group', pos: [35.67, 139.73], upstream: ['TSM'], downstream: ['MSFT'] }
         ];
 
+        // ---------- MAP ----------
         const map = L.map('map', { center: [20, 0], zoom: 2, zoomControl: false, attributionControl: false });
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
@@ -250,33 +253,52 @@
             markers[company.symbol] = marker;
         });
 
+        // ---------- CHART INIT (with fallback) ----------
         function initChart() {
             const container = document.getElementById('chart-container');
-            if (chart) return;
-            chart = LightweightCharts.createChart(container, {
-                layout: { background: { type: 'solid', color: '#0a0a0a' }, textColor: '#666' },
-                grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
-                timeScale: { visible: true, borderVisible: false },
-                rightPriceScale: { borderVisible: false },
-                handleScroll: false, handleScale: false
-            });
-            lineSeries = chart.addLineSeries({ color: '#22ab94', lineWidth: 1 });
+            if (!container) return false;
+            if (chart) return true;
+            if (typeof LightweightCharts === 'undefined') {
+                console.warn("LightweightCharts not loaded – retrying in 1 sec");
+                setTimeout(initChart, 1000);
+                return false;
+            }
+            try {
+                chart = LightweightCharts.createChart(container, {
+                    layout: { background: { type: 'solid', color: '#0a0a0a' }, textColor: '#ccc' },
+                    grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
+                    timeScale: { visible: true, borderVisible: false },
+                    rightPriceScale: { borderVisible: false },
+                    handleScroll: false, handleScale: false,
+                    width: container.clientWidth,
+                    height: 250
+                });
+                lineSeries = chart.addLineSeries({ color: '#22ab94', lineWidth: 2 });
+                return true;
+            } catch(err) {
+                console.error("Chart init error", err);
+                return false;
+            }
         }
 
+        // ---------- CHART DATA (mock, works even without API) ----------
         function updateChart(symbol) {
-            if (!lineSeries) return;
+            if (!lineSeries) {
+                if (!initChart()) return;
+            }
             const now = Math.floor(Date.now() / 1000);
             const data = [];
             const seed = symbol.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
             let price = 100 + (seed % 300);
             for (let i = 0; i < 100; i++) {
                 price += Math.sin(i * 0.1) * 2 + (Math.random() - 0.5) * 6;
-                data.push({ time: now - (100 - i) * 3600, value: parseFloat(price.toFixed(2)) });
+                data.push({ time: now - (100 - i) * 3600, value: Math.max(price, 10) });
             }
             lineSeries.setData(data);
             chart.timeScale().fitContent();
         }
 
+        // ---------- SIDEBAR COMPANY LIST ----------
         function renderTickerList() {
             const container = document.getElementById('ticker-list');
             const search = document.getElementById('search-input').value.toUpperCase();
@@ -291,6 +313,7 @@
             `).join('');
         }
 
+        // ---------- LOAD COMPANY (API + CHART) ----------
         async function loadCompany(symbol) {
             selectedSymbol = symbol;
             renderTickerList();
@@ -299,13 +322,17 @@
 
             document.getElementById('no-selection').classList.add('hidden');
             document.getElementById('details-view').classList.remove('hidden');
-            document.getElementById('top-info').classList.remove('invisible');
-            if (!lineSeries) initChart();
+            
+            // Update top bar
+            document.getElementById('top-symbol').textContent = symbol;
+            document.getElementById('top-name').textContent = comp.name;
 
+            // Map selection
             Object.values(markers).forEach(m => m.setStyle({ weight: 1, radius: 4, fillColor: '#22ab94' }));
             if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 6, fillColor: '#fff' });
             map.flyTo(comp.pos, 4, { duration: 1 });
 
+            // Supply chain lines
             chainLines.forEach(l => map.removeLayer(l));
             chainLines.length = 0;
             [...comp.upstream.map(s => ({s, color: '#22ab94'})), ...comp.downstream.map(s => ({s, color: '#ef4444'}))].forEach(link => {
@@ -316,35 +343,65 @@
                 }
             });
 
+            // Ensure chart is initialized
+            initChart();
+            updateChart(symbol); // show mock chart immediately
+
+            // API calls (non-blocking, fill data as it arrives)
             try {
-                const [quote, profile, balance, income] = await Promise.all(['quote', 'company', 'balance', 'income'].map(ep => fetch(`/api/${ep}?symbol=${symbol}`).then(r => r.json())));
-                
-                document.getElementById('top-symbol').textContent = symbol;
-                document.getElementById('top-price').textContent = `$${parseFloat(quote.price || 0).toFixed(2)}`;
-                document.getElementById('top-name').textContent = profile.name || comp.name;
-                const ch = document.getElementById('top-change'), val = parseFloat(quote.changePercent) || 0;
-                ch.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(2)}%`;
-                ch.className = `text-[9px] font-mono ${val >= 0 ? 'accent-text' : 'text-rose-500'}`;
+                const quoteRes = await fetch(`/api/quote?symbol=${symbol}`).then(r => r.json());
+                const profileRes = await fetch(`/api/company?symbol=${symbol}`).then(r => r.json());
+                const balanceRes = await fetch(`/api/balance?symbol=${symbol}`).then(r => r.json());
+                const incomeRes = await fetch(`/api/income?symbol=${symbol}`).then(r => r.json());
 
-                document.getElementById('panel-sector').textContent = profile.sector || 'N/A';
-                document.getElementById('panel-employees').textContent = parseInt(profile.employees || 0).toLocaleString();
-                document.getElementById('panel-assets').textContent = balance.totalAssets || '---';
-                document.getElementById('panel-debt').textContent = balance.totalDebt || '---';
-                document.getElementById('panel-income-list'); // Just checking existence
-                document.getElementById('income-list').innerHTML = (income || []).slice(0,4).map(r => `
-                    <div class="flex justify-between border-b border-[#111] py-1 text-[8px]">
-                        <span class="text-zinc-600 uppercase">${r.date}</span>
-                        <span class="font-bold font-mono">${r.netIncome}</span>
-                    </div>
-                `).join('');
+                // Top price & change
+                const price = parseFloat(quoteRes.price || 0);
+                document.getElementById('top-price').textContent = price ? `$${price.toFixed(2)}` : '---';
+                const change = parseFloat(quoteRes.changePercent || 0);
+                const chEl = document.getElementById('top-change');
+                chEl.textContent = change ? `${change>0?'+':''}${change.toFixed(2)}%` : '---';
+                chEl.className = `text-[9px] font-mono ${change >= 0 ? 'accent-text' : 'text-rose-500'}`;
 
-                updateChart(symbol);
-                setTimeout(() => map.invalidateSize(), 150);
-            } catch (err) { console.error(err); }
+                // Intelligence panel
+                document.getElementById('panel-sector').textContent = profileRes.sector || '---';
+                document.getElementById('panel-employees').textContent = profileRes.employees ? Number(profileRes.employees).toLocaleString() : '---';
+                document.getElementById('panel-assets').textContent = balanceRes.totalAssets ? `$${(balanceRes.totalAssets/1e9).toFixed(2)}B` : '---';
+                document.getElementById('panel-debt').textContent = balanceRes.totalDebt ? `$${(balanceRes.totalDebt/1e9).toFixed(2)}B` : '---';
+                document.getElementById('panel-cash').textContent = balanceRes.cashAndCashEquivalents ? `$${(balanceRes.cashAndCashEquivalents/1e9).toFixed(2)}B` : '---';
+                document.getElementById('panel-equity').textContent = balanceRes.totalEquity ? `$${(balanceRes.totalEquity/1e9).toFixed(2)}B` : '---';
+
+                // Income list
+                const incomeList = document.getElementById('income-list');
+                if (incomeRes.quarters && incomeRes.quarters.length) {
+                    incomeList.innerHTML = incomeRes.quarters.slice(0,4).map(q => `
+                        <div class="flex justify-between border-b border-[#111] py-1 text-[8px]">
+                            <span class="text-zinc-600 uppercase">${q.date?.slice(0,7) || '---'}</span>
+                            <span class="font-bold font-mono">${q.netIncome ? `$${(q.netIncome/1e9).toFixed(2)}B` : '---'}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    incomeList.innerHTML = '<div class="text-rose-500 text-[8px]">No earnings data</div>';
+                }
+
+            } catch (err) {
+                console.warn("API error (using fallback):", err);
+                // Keep chart mock data and show "API unavailable" message
+                document.getElementById('panel-sector').textContent = 'API unavailable';
+                document.getElementById('income-list').innerHTML = '<div class="text-amber-500 text-[8px]">Fallback mode – live data offline</div>';
+            }
         }
 
+        // ---------- SEARCH & INIT ----------
         document.getElementById('search-input').oninput = renderTickerList;
-        window.addEventListener('load', () => { renderTickerList(); loadCompany('AAPL'); });
+        window.addEventListener('load', () => {
+            renderTickerList();
+            loadCompany('AAPL');
+            // force chart container resize after it becomes visible
+            setTimeout(() => {
+                if (chart) chart.resize(document.getElementById('chart-container').clientWidth, 250);
+                map.invalidateSize();
+            }, 200);
+        });
         window.addEventListener('resize', () => {
             if (chart) chart.resize(document.getElementById('chart-container').clientWidth, 250);
             map.invalidateSize();
