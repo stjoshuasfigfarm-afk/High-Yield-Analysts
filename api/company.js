@@ -5,17 +5,15 @@ export default async function handler(req, res) {
     const API_KEY = process.env.FINANCIAL_API_KEY;
     if (!API_KEY) return res.status(500).json({ error: 'Missing API key' });
 
-    const url = `https://api.financialdata.net/api/v1/quotes?symbols=${symbol.toUpperCase()}&token=${API_KEY}`;
+    const url = `https://api.financialdata.net/api/v1/companies/profile/${symbol.toUpperCase()}?token=${API_KEY}`;
     try {
         const response = await fetch(url);
         const data = await response.json();
-        // Response from FinancialData.net free tier: { "AAPL": { "price": 175.23, ... } }
-        const quoteData = data[symbol.toUpperCase()] || {};
         res.status(200).json({
-            price: quoteData.price,
-            change: quoteData.change,
-            changePercent: quoteData.changePercent,
-            source: 'financialdata'
+            name: data.companyName || data.name,
+            sector: data.sector,
+            employees: data.employees || data.fullTimeEmployees,
+            marketCap: data.marketCap || data.market_cap,
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
