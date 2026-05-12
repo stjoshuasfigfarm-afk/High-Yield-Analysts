@@ -1,39 +1,23 @@
-const axios = require('axios');
+export default async function handler(req, res) {
+    const { symbol } = req.query;
+    if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
 
-module.exports = async (req, res) => {
-  const { symbol } = req.query;
-  const apiKey = process.env.FINANCIAL_API_KEY;
+    const API_KEY = process.env.FINANCIAL_API_KEY;
+    if (!API_KEY) return res.status(500).json({ error: 'Missing API key' });
 
-  if (!symbol) {
-    return res.status(400).json({ error: 'Symbol is required' });
-  }
-
-  // Fallback data
-  const mockData = {
-    symbol: symbol.toUpperCase(),
-    price: (Math.random() * 500 + 100).toFixed(2),
-    change: (Math.random() * 5 - 2.5).toFixed(2),
-    changePercent: (Math.random() * 4 - 2).toFixed(2)
-  };
-
-  if (!apiKey || apiKey === 'your_api_key_here') {
-    return res.json(mockData);
-  }
-
-  try {
-    // Attempt to fetch from Financial Modeling Prep (common permissive-ish API for free tier)
-    const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`);
-    if (response.data && response.data.length > 0) {
-      const q = response.data[0];
-      return res.json({
-        symbol: q.symbol,
-        price: q.price,
-        change: q.change,
-        changePercent: q.changesPercentage
-      });
+    const url = `https://api.financialdata.net/api/v1/quotes?symbols=${symbol.toUpperCase()}&token=${API_KEY}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        // Response from FinancialData.net free tier: { "AAPL": { "price": 175.23, ... } }
+        const quoteData = data[symbol.toUpperCase()] || {};
+        res.status(200).json({
+            price: quoteData.price,
+            change: quoteData.change,
+            changePercent: quoteData.changePercent,
+            source: 'financialdata'
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    res.json(mockData);
-  } catch (err) {
-    res.json(mockData);
-  }
-};
+}
