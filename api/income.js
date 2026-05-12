@@ -1,30 +1,23 @@
-const axios = require('axios');
+export default async function handler(req, res) {
+    const { symbol } = req.query;
+    if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
 
-module.exports = async (req, res) => {
-  const { symbol } = req.query;
-  const apiKey = process.env.FINANCIAL_API_KEY;
+    const API_KEY = process.env.FINANCIAL_API_KEY;
+    if (!API_KEY) return res.status(500).json({ error: 'Missing API key' });
 
-  const mockIncome = Array.from({ length: 4 }, (_, i) => ({
-    date: `Q${4 - i} 2023`,
-    netIncome: (Math.random() * 20 + 5).toFixed(2) + 'B'
-  }));
-
-  if (!symbol) return res.status(400).json({ error: 'Symbol is required' });
-
-  if (!apiKey || apiKey === 'your_api_key_here') {
-    return res.json(mockIncome);
-  }
-
-  try {
-    const response = await axios.get(`https://financialmodelingprep.com/api/v3/income-statement/${symbol}?limit=4&apikey=${apiKey}`);
-    if (response.data && Array.isArray(response.data)) {
-      return res.json(response.data.map(i => ({
-        date: i.date,
-        netIncome: (i.netIncome / 1e9).toFixed(2) + 'B'
-      })));
+    // Note: FinancialData.net v1 uses symbols in path and query params
+    const url = `https://api.financialdata.net/api/v1/income-statement/${symbol.toUpperCase()}?period=quarterly&limit=4&token=${API_KEY}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!data.financials) return res.status(404).json({ error: 'No income data' });
+        const quarters = data.financials.map(f => ({
+            date: f.date,
+            revenue: f.revenue,
+            netIncome: f.netIncome,
+        }));
+        res.status(200).json({ quarters });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    res.json(mockIncome);
-  } catch (err) {
-    res.json(mockIncome);
-  }
-};
+}
