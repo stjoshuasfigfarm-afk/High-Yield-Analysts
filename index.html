@@ -9,7 +9,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <style>
-        /* (Your existing CSS – no changes needed) */
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
         
         :root {
@@ -59,6 +58,7 @@
             height: 24px;
             display: flex;
             align-items: center;
+            position: relative;
         }
         .ticker {
             display: flex;
@@ -98,7 +98,7 @@
     </style>
 </head>
 <body class="flex flex-col">
-    <!-- Header Bar (unchanged) -->
+    <!-- Header Bar -->
     <header class="h-10 border-b border-[#1a1a1a] flex items-center justify-between px-4 bg-black z-50">
         <div class="flex items-center gap-3">
             <div class="w-2 h-2 bg-[#22ab94] rounded-full animate-pulse shadow-[0_0_8px_#22ab94]"></div>
@@ -122,22 +122,16 @@
         </div>
     </header>
 
-    <!-- News Ticker (unchanged) -->
+    <!-- Live News Ticker -->
     <div class="ticker-wrap">
         <div id="ticker" class="ticker">
-            <span class="ticker-item">FED MAINTAINS RATES AT 5.25-5.50%...</span>
-            <span class="ticker-item">TECH SECTOR OUTPERFORMS ON AI TAILWINDS...</span>
-            <span class="ticker-item">GLOBAL SUPPLY CHAIN STRESS INDEX HITS 2-YEAR LOW...</span>
-            <span class="ticker-item">CRUDE OIL FUTURES STABILIZE NEAR $80...</span>
-            <span class="ticker-item">BITCOIN BREAKS NEW 2024 HIGH ABOVE $70K...</span>
-            <span class="ticker-item">US TREASURY 10-YEAR YIELD SLIPS TO 4.2%...</span>
-            <span class="ticker-item">QUANT DATA ALERT: VOLATILITY SPIKE IN SEMICONDUCTORS...</span>
+            <span class="ticker-item">Loading news...</span>
         </div>
     </div>
 
     <!-- Interface -->
     <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar Left: Company List (unchanged) -->
+        <!-- Sidebar Left: Company List -->
         <aside class="w-60 border-r border-[#1a1a1a] flex flex-col bg-black">
             <div class="p-3 border-b border-[#1a1a1a] space-y-1">
                 <div class="text-[8px] text-zinc-500 uppercase tracking-widest">Node Registry</div>
@@ -150,7 +144,7 @@
             </div>
         </aside>
 
-        <!-- Center: Map (unchanged) -->
+        <!-- Center: Map -->
         <main class="flex-1 relative border-r border-[#1a1a1a] bg-[#050505]">
             <div id="map"></div>
             <div class="absolute bottom-4 left-4 z-[1000] terminal-panel p-2 opacity-80 pointer-events-none border border-[#333]">
@@ -159,14 +153,13 @@
             </div>
         </main>
 
-        <!-- Sidebar Right: Analytics (modified) -->
+        <!-- Sidebar Right: Analytics -->
         <aside class="w-80 p-3 space-y-4 custom-scrollbar overflow-y-auto bg-black border-l border-[#1a1a1a]">
             <div id="no-selection" class="h-40 flex items-center justify-center border border-[#1a1a1a] border-dashed">
                 <p class="text-[8px] text-zinc-600 uppercase tracking-widest px-4 text-center">Select node to initialize intelligence stream</p>
             </div>
             
             <div id="details-view" class="hidden space-y-4">
-                <!-- Chart container with ticker on the right (Momentum Engine label removed) -->
                 <div>
                     <div class="flex justify-end items-center mb-2">
                         <span id="chart-ticker" class="text-[10px] font-bold accent-text font-mono tracking-wider">---</span>
@@ -223,7 +216,7 @@
         let chart, lineSeries, selectedSymbol = null;
         const markers = {}, chainLines = [];
 
-        // ---------- COMPANIES ARRAY (use your full array here; I include a representative subset) ----------
+        // ---------- COMPANIES ARRAY (extended – replace with your full list) ----------
         const companies = [
             { symbol: 'AAPL', name: 'Apple Inc.', pos: [37.33, -122.03], upstream: ['TSM', 'NVDA'], downstream: ['AMZN', 'UBER'] },
             { symbol: 'MSFT', name: 'Microsoft Corp.', pos: [47.64, -122.13], upstream: ['NVDA', 'INTC', 'AMD'], downstream: ['GOOGL', 'AMZN', 'META'] },
@@ -255,7 +248,7 @@
             markers[company.symbol] = marker;
         });
 
-        // ---------- CHART INIT ----------
+        // ---------- CHART ----------
         function initChart() {
             const container = document.getElementById('chart-container');
             if (!container) return false;
@@ -298,7 +291,7 @@
             chart.timeScale().fitContent();
         }
 
-        // ---------- SIDEBAR (unchanged) ----------
+        // ---------- SIDEBAR ----------
         function renderTickerList() {
             const container = document.getElementById('ticker-list');
             const search = document.getElementById('search-input').value.toUpperCase();
@@ -313,29 +306,45 @@
             `).join('');
         }
 
-        // ---------- LOAD COMPANY (modified to update chart ticker) ----------
+        // ---------- LIVE NEWS (Marketaux) ----------
+        async function updateNewsTicker(symbol) {
+            const tickerDiv = document.getElementById('ticker');
+            try {
+                const res = await fetch(`/api/news?symbol=${symbol}&limit=8`);
+                const data = await res.json();
+                if (data.articles && data.articles.length) {
+                    const headlines = data.articles.map(a => a.title).join('   ◆   ');
+                    tickerDiv.innerHTML = `<div class="ticker">${headlines}</div>`;
+                    // Restart animation
+                    const newTicker = tickerDiv.cloneNode(true);
+                    tickerDiv.parentNode.replaceChild(newTicker, tickerDiv);
+                } else {
+                    tickerDiv.innerHTML = `<div class="ticker"><span class="ticker-item">No recent news for ${symbol}</span></div>`;
+                }
+            } catch (err) {
+                console.warn('News fetch failed:', err);
+                tickerDiv.innerHTML = `<div class="ticker"><span class="ticker-item">News feed unavailable</span></div>`;
+            }
+        }
+
+        // ---------- LOAD COMPANY (all data + news) ----------
         async function loadCompany(symbol) {
             selectedSymbol = symbol;
             renderTickerList();
             const comp = companies.find(c => c.symbol === symbol);
             if (!comp) return;
 
-            // Show the ticker above the chart (right aligned)
             document.getElementById('chart-ticker').textContent = symbol;
-
             document.getElementById('no-selection').classList.add('hidden');
             document.getElementById('details-view').classList.remove('hidden');
-
-            // Update top bar
             document.getElementById('top-symbol').textContent = symbol;
             document.getElementById('top-name').textContent = comp.name;
 
-            // Map selection
+            // Map & supply chains
             Object.values(markers).forEach(m => m.setStyle({ weight: 1, radius: 4, fillColor: '#22ab94' }));
             if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 6, fillColor: '#fff' });
             map.flyTo(comp.pos, 4, { duration: 1 });
 
-            // Supply chain
             chainLines.forEach(l => map.removeLayer(l));
             chainLines.length = 0;
             [...comp.upstream.map(s => ({s, color: '#22ab94'})), ...comp.downstream.map(s => ({s, color: '#ef4444'}))].forEach(link => {
@@ -350,43 +359,51 @@
             initChart();
             updateChart(symbol);
 
-            // API calls (unchanged)
+            // Fetch live data (quote, profile, balance, income)
             try {
-                const quoteRes = await fetch(`/api/quote?symbol=${symbol}`).then(r => r.json());
-                const profileRes = await fetch(`/api/company?symbol=${symbol}`).then(r => r.json());
-                const balanceRes = await fetch(`/api/balance?symbol=${symbol}`).then(r => r.json());
-                const incomeRes = await fetch(`/api/income?symbol=${symbol}`).then(r => r.json());
+                const [quote, profile, balance, income] = await Promise.all([
+                    fetch(`/api/quote?symbol=${symbol}`).then(r => r.json()),
+                    fetch(`/api/company?symbol=${symbol}`).then(r => r.json()),
+                    fetch(`/api/balance?symbol=${symbol}`).then(r => r.json()),
+                    fetch(`/api/income?symbol=${symbol}`).then(r => r.json())
+                ]);
 
-                const price = parseFloat(quoteRes.price || 0);
+                // Price & change
+                const price = parseFloat(quote.price || 0);
                 document.getElementById('top-price').textContent = price ? `$${price.toFixed(2)}` : '---';
-                const change = parseFloat(quoteRes.changePercent || 0);
+                const change = parseFloat(quote.changePercent || 0);
                 const chEl = document.getElementById('top-change');
                 chEl.textContent = change ? `${change>0?'+':''}${change.toFixed(2)}%` : '---';
                 chEl.className = `text-[9px] font-mono ${change >= 0 ? 'accent-text' : 'text-rose-500'}`;
 
-                document.getElementById('panel-sector').textContent = profileRes.sector || '---';
-                document.getElementById('panel-employees').textContent = profileRes.employees ? Number(profileRes.employees).toLocaleString() : '---';
-                document.getElementById('panel-assets').textContent = balanceRes.totalAssets ? `$${(balanceRes.totalAssets/1e9).toFixed(2)}B` : '---';
-                document.getElementById('panel-debt').textContent = balanceRes.totalDebt ? `$${(balanceRes.totalDebt/1e9).toFixed(2)}B` : '---';
-                document.getElementById('panel-cash').textContent = balanceRes.cashAndCashEquivalents ? `$${(balanceRes.cashAndCashEquivalents/1e9).toFixed(2)}B` : '---';
-                document.getElementById('panel-equity').textContent = balanceRes.totalEquity ? `$${(balanceRes.totalEquity/1e9).toFixed(2)}B` : '---';
+                // Profile & financials
+                document.getElementById('panel-sector').textContent = profile.sector || '---';
+                document.getElementById('panel-employees').textContent = profile.employees ? Number(profile.employees).toLocaleString() : '---';
+                document.getElementById('panel-assets').textContent = balance.totalAssets ? `$${(balance.totalAssets/1e9).toFixed(2)}B` : '---';
+                document.getElementById('panel-debt').textContent = balance.totalDebt ? `$${(balance.totalDebt/1e9).toFixed(2)}B` : '---';
+                document.getElementById('panel-cash').textContent = balance.cashAndCashEquivalents ? `$${(balance.cashAndCashEquivalents/1e9).toFixed(2)}B` : '---';
+                document.getElementById('panel-equity').textContent = balance.totalEquity ? `$${(balance.totalEquity/1e9).toFixed(2)}B` : '---';
 
+                // Earnings
                 const incomeList = document.getElementById('income-list');
-                if (incomeRes.quarters && incomeRes.quarters.length) {
-                    incomeList.innerHTML = incomeRes.quarters.slice(0,4).map(q => `
+                if (income.quarters && income.quarters.length) {
+                    incomeList.innerHTML = income.quarters.slice(0,4).map(q => `
                         <div class="flex justify-between border-b border-[#111] py-1 text-[8px]">
                             <span class="text-zinc-600 uppercase">${q.date?.slice(0,7) || '---'}</span>
                             <span class="font-bold font-mono">${q.netIncome ? `$${(q.netIncome/1e9).toFixed(2)}B` : '---'}</span>
                         </div>
                     `).join('');
                 } else {
-                    incomeList.innerHTML = '<div class="text-rose-500 text-[8px]">No earnings data</div>';
+                    incomeList.innerHTML = '<div class="text-amber-500 text-[8px]">No earnings data</div>';
                 }
             } catch (err) {
                 console.warn("API error (fallback):", err);
                 document.getElementById('panel-sector').textContent = 'API unavailable';
                 document.getElementById('income-list').innerHTML = '<div class="text-amber-500 text-[8px]">Fallback mode – live data offline</div>';
             }
+
+            // Update news ticker (independent)
+            updateNewsTicker(symbol);
         }
 
         // ---------- INIT ----------
