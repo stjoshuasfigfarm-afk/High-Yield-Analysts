@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <style>
+        /* (Your existing CSS – no changes needed) */
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
         
         :root {
@@ -97,7 +98,7 @@
     </style>
 </head>
 <body class="flex flex-col">
-    <!-- Header Bar -->
+    <!-- Header Bar (unchanged) -->
     <header class="h-10 border-b border-[#1a1a1a] flex items-center justify-between px-4 bg-black z-50">
         <div class="flex items-center gap-3">
             <div class="w-2 h-2 bg-[#22ab94] rounded-full animate-pulse shadow-[0_0_8px_#22ab94]"></div>
@@ -121,7 +122,7 @@
         </div>
     </header>
 
-    <!-- News Ticker -->
+    <!-- News Ticker (unchanged) -->
     <div class="ticker-wrap">
         <div id="ticker" class="ticker">
             <span class="ticker-item">FED MAINTAINS RATES AT 5.25-5.50%...</span>
@@ -136,7 +137,7 @@
 
     <!-- Interface -->
     <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar Left: Company List -->
+        <!-- Sidebar Left: Company List (unchanged) -->
         <aside class="w-60 border-r border-[#1a1a1a] flex flex-col bg-black">
             <div class="p-3 border-b border-[#1a1a1a] space-y-1">
                 <div class="text-[8px] text-zinc-500 uppercase tracking-widest">Node Registry</div>
@@ -149,7 +150,7 @@
             </div>
         </aside>
 
-        <!-- Center: Map -->
+        <!-- Center: Map (unchanged) -->
         <main class="flex-1 relative border-r border-[#1a1a1a] bg-[#050505]">
             <div id="map"></div>
             <div class="absolute bottom-4 left-4 z-[1000] terminal-panel p-2 opacity-80 pointer-events-none border border-[#333]">
@@ -158,15 +159,18 @@
             </div>
         </main>
 
-        <!-- Sidebar Right: Analytics -->
+        <!-- Sidebar Right: Analytics (modified) -->
         <aside class="w-80 p-3 space-y-4 custom-scrollbar overflow-y-auto bg-black border-l border-[#1a1a1a]">
             <div id="no-selection" class="h-40 flex items-center justify-center border border-[#1a1a1a] border-dashed">
                 <p class="text-[8px] text-zinc-600 uppercase tracking-widest px-4 text-center">Select node to initialize intelligence stream</p>
             </div>
             
             <div id="details-view" class="hidden space-y-4">
+                <!-- Chart container with ticker on the right (Momentum Engine label removed) -->
                 <div>
-                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest mb-2 border-b border-[#1a1a1a]">Momentum Engine</div>
+                    <div class="flex justify-end items-center mb-2">
+                        <span id="chart-ticker" class="text-[10px] font-bold accent-text font-mono tracking-wider">---</span>
+                    </div>
                     <div id="chart-container" style="height: 250px;" class="w-full terminal-panel"></div>
                 </div>
 
@@ -219,9 +223,7 @@
         let chart, lineSeries, selectedSymbol = null;
         const markers = {}, chainLines = [];
 
-        // ---------- MASSIVE COMPANIES ARRAY (truncated for brevity, but you have the full list from previous message) ----------
-        // For the complete list of 150+ companies, replace this with the full array you received earlier.
-        // I include a representative subset; the full array is available in the previous answer.
+        // ---------- COMPANIES ARRAY (use your full array here; I include a representative subset) ----------
         const companies = [
             { symbol: 'AAPL', name: 'Apple Inc.', pos: [37.33, -122.03], upstream: ['TSM', 'NVDA'], downstream: ['AMZN', 'UBER'] },
             { symbol: 'MSFT', name: 'Microsoft Corp.', pos: [47.64, -122.13], upstream: ['NVDA', 'INTC', 'AMD'], downstream: ['GOOGL', 'AMZN', 'META'] },
@@ -253,13 +255,12 @@
             markers[company.symbol] = marker;
         });
 
-        // ---------- CHART INIT (with fallback) ----------
+        // ---------- CHART INIT ----------
         function initChart() {
             const container = document.getElementById('chart-container');
             if (!container) return false;
             if (chart) return true;
             if (typeof LightweightCharts === 'undefined') {
-                console.warn("LightweightCharts not loaded – retrying in 1 sec");
                 setTimeout(initChart, 1000);
                 return false;
             }
@@ -281,7 +282,6 @@
             }
         }
 
-        // ---------- CHART DATA (mock, works even without API) ----------
         function updateChart(symbol) {
             if (!lineSeries) {
                 if (!initChart()) return;
@@ -298,7 +298,7 @@
             chart.timeScale().fitContent();
         }
 
-        // ---------- SIDEBAR COMPANY LIST ----------
+        // ---------- SIDEBAR (unchanged) ----------
         function renderTickerList() {
             const container = document.getElementById('ticker-list');
             const search = document.getElementById('search-input').value.toUpperCase();
@@ -313,16 +313,19 @@
             `).join('');
         }
 
-        // ---------- LOAD COMPANY (API + CHART) ----------
+        // ---------- LOAD COMPANY (modified to update chart ticker) ----------
         async function loadCompany(symbol) {
             selectedSymbol = symbol;
             renderTickerList();
             const comp = companies.find(c => c.symbol === symbol);
             if (!comp) return;
 
+            // Show the ticker above the chart (right aligned)
+            document.getElementById('chart-ticker').textContent = symbol;
+
             document.getElementById('no-selection').classList.add('hidden');
             document.getElementById('details-view').classList.remove('hidden');
-            
+
             // Update top bar
             document.getElementById('top-symbol').textContent = symbol;
             document.getElementById('top-name').textContent = comp.name;
@@ -332,7 +335,7 @@
             if (markers[symbol]) markers[symbol].setStyle({ weight: 3, radius: 6, fillColor: '#fff' });
             map.flyTo(comp.pos, 4, { duration: 1 });
 
-            // Supply chain lines
+            // Supply chain
             chainLines.forEach(l => map.removeLayer(l));
             chainLines.length = 0;
             [...comp.upstream.map(s => ({s, color: '#22ab94'})), ...comp.downstream.map(s => ({s, color: '#ef4444'}))].forEach(link => {
@@ -343,18 +346,17 @@
                 }
             });
 
-            // Ensure chart is initialized
+            // Chart
             initChart();
-            updateChart(symbol); // show mock chart immediately
+            updateChart(symbol);
 
-            // API calls (non-blocking, fill data as it arrives)
+            // API calls (unchanged)
             try {
                 const quoteRes = await fetch(`/api/quote?symbol=${symbol}`).then(r => r.json());
                 const profileRes = await fetch(`/api/company?symbol=${symbol}`).then(r => r.json());
                 const balanceRes = await fetch(`/api/balance?symbol=${symbol}`).then(r => r.json());
                 const incomeRes = await fetch(`/api/income?symbol=${symbol}`).then(r => r.json());
 
-                // Top price & change
                 const price = parseFloat(quoteRes.price || 0);
                 document.getElementById('top-price').textContent = price ? `$${price.toFixed(2)}` : '---';
                 const change = parseFloat(quoteRes.changePercent || 0);
@@ -362,7 +364,6 @@
                 chEl.textContent = change ? `${change>0?'+':''}${change.toFixed(2)}%` : '---';
                 chEl.className = `text-[9px] font-mono ${change >= 0 ? 'accent-text' : 'text-rose-500'}`;
 
-                // Intelligence panel
                 document.getElementById('panel-sector').textContent = profileRes.sector || '---';
                 document.getElementById('panel-employees').textContent = profileRes.employees ? Number(profileRes.employees).toLocaleString() : '---';
                 document.getElementById('panel-assets').textContent = balanceRes.totalAssets ? `$${(balanceRes.totalAssets/1e9).toFixed(2)}B` : '---';
@@ -370,7 +371,6 @@
                 document.getElementById('panel-cash').textContent = balanceRes.cashAndCashEquivalents ? `$${(balanceRes.cashAndCashEquivalents/1e9).toFixed(2)}B` : '---';
                 document.getElementById('panel-equity').textContent = balanceRes.totalEquity ? `$${(balanceRes.totalEquity/1e9).toFixed(2)}B` : '---';
 
-                // Income list
                 const incomeList = document.getElementById('income-list');
                 if (incomeRes.quarters && incomeRes.quarters.length) {
                     incomeList.innerHTML = incomeRes.quarters.slice(0,4).map(q => `
@@ -382,21 +382,18 @@
                 } else {
                     incomeList.innerHTML = '<div class="text-rose-500 text-[8px]">No earnings data</div>';
                 }
-
             } catch (err) {
-                console.warn("API error (using fallback):", err);
-                // Keep chart mock data and show "API unavailable" message
+                console.warn("API error (fallback):", err);
                 document.getElementById('panel-sector').textContent = 'API unavailable';
                 document.getElementById('income-list').innerHTML = '<div class="text-amber-500 text-[8px]">Fallback mode – live data offline</div>';
             }
         }
 
-        // ---------- SEARCH & INIT ----------
+        // ---------- INIT ----------
         document.getElementById('search-input').oninput = renderTickerList;
         window.addEventListener('load', () => {
             renderTickerList();
             loadCompany('AAPL');
-            // force chart container resize after it becomes visible
             setTimeout(() => {
                 if (chart) chart.resize(document.getElementById('chart-container').clientWidth, 250);
                 map.invalidateSize();
