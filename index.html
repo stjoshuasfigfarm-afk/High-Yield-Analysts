@@ -97,7 +97,7 @@
         .earn-bar-container { background: rgba(255,255,255,0.05); border-radius: 2px; margin: 2px 0; }
         .earn-bar { height: 12px; border-radius: 2px; transition: width 0.3s ease; }
         .earn-label { display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px; color: #aaa; }
-        /* TradingView chart container */
+        /* Fix for TradingView chart container */
         #tradingview_chart {
             height: 100%;
             min-height: 400px;
@@ -188,7 +188,7 @@
         </main>
 
         <aside class="col-span-3 flex flex-col gap-2 overflow-y-auto custom-scroll">
-            <!-- TradingView chart -->
+            <!-- FIXED: Chart card now uses flex-1 and min-height for proper display -->
             <div class="glass-card rounded flex-1 min-h-[400px] overflow-hidden">
                 <div id="tradingview_chart" class="h-full w-full"></div>
             </div>
@@ -218,7 +218,7 @@
 </div>
 
 <script>
-    // ---------- MAP & LAYERS ----------
+    // ---------- MAP ----------
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([25, -40], 3);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
     const hqLayer = L.layerGroup().addTo(map);
@@ -226,28 +226,329 @@
     const midstreamLayer = L.layerGroup().addTo(map);
     const downstreamLayer = L.layerGroup().addTo(map);
 
-    // ---------- ASSETS (only map‑relevant data – NO mock financials) ----------
+    // ---------- FULL ASSETS LIST (EXACTLY AS PROVIDED - 2026 DATA) ----------
     const assets = [
-        { id: 'AAPL', n: 'Apple Inc', c: [37.33, -122.03], color: '#888888' },
-        { id: 'NVDA', n: 'NVIDIA Corp', c: [37.37, -121.96], color: '#76b900' },
-        { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], color: '#00a4ef' },
-        { id: 'AMZN', n: 'Amazon', c: [47.61, -122.33], color: '#ff9900' },
-        { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], color: '#4285f4' },
-        { id: 'META', n: 'Meta Platforms', c: [37.48, -122.14], color: '#0668E1' },
-        { id: 'TSLA', n: 'Tesla Inc', c: [30.22, -97.62], color: '#e31937' },
-        { id: 'BRKB', n: 'Berkshire Hathaway', c: [41.26, -96.05], color: '#1a1a1a' },
-        { id: 'JPM', n: 'JPMorgan Chase', c: [40.75, -73.97], color: '#117aca' },
-        { id: 'V', n: 'Visa', c: [37.78, -122.39], color: '#1a1f71' },
-        { id: 'MA', n: 'Mastercard', c: [41.04, -73.71], color: '#eb001b' },
-        { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], color: '#0071ce' },
-        { id: 'XOM', n: 'ExxonMobil', c: [32.90, -97.07], color: '#ff0000' },
-        { id: 'LLY', n: 'Eli Lilly', c: [39.76, -86.16], color: '#ff0000' },
-        { id: 'UNH', n: 'UnitedHealth', c: [44.91, -93.44], color: '#002677' },
-        // Add more as needed (keep coordinates and colors only)
+        { id: 'AAPL', n: 'Apple Inc', c: [37.33, -122.03], emp: '154k', rev: '$412B', earn: [24,18,38,28], cash: '$31B', color: '#888888',
+          bs: { assets: 385, debt: 98, cash: 31, equity: 86, fy: 'Q2 2026' } },
+        { id: 'NVDA', n: 'NVIDIA Corp', c: [37.37, -121.96], emp: '42k', rev: '$264B', earn: [28,32,42,58], cash: '$12B', color: '#76b900',
+          bs: { assets: 195, debt: 11, cash: 12, equity: 142, fy: 'FY2027 Est' } },
+        { id: 'MSFT', n: 'Microsoft', c: [47.67, -122.12], emp: '240k', rev: '$294B', earn: [28,30,31,33], cash: '$96B', color: '#00a4ef',
+          bs: { assets: 570, debt: 100, cash: 96, equity: 320, fy: 'Q2 2026' } },
+        { id: 'AMZN', n: 'Amazon', c: [47.61, -122.33], emp: '1.58M', rev: '$708B', earn: [22,21,26,23], cash: '$92B', color: '#ff9900',
+          bs: { assets: 710, debt: 142, cash: 92, equity: 345, fy: 'Q2 2026' } },
+        { id: 'GOOGL', n: 'Alphabet', c: [37.42, -122.08], emp: '192k', rev: '$432B', earn: [32,34,36,44], cash: '$124B', color: '#4285f4',
+          bs: { assets: 510, debt: 30, cash: 124, equity: 392, fy: 'Q2 2026' } },
+        { id: 'META', n: 'Meta Platforms', c: [37.48, -122.14], emp: '78k', rev: '$186B', earn: [17,19,28,23], cash: '$82B', color: '#0668E1',
+          bs: { assets: 288, debt: 30, cash: 82, equity: 212, fy: 'Q2 2026' } },
+        { id: 'TSLA', n: 'Tesla Inc', c: [30.22, -97.62], emp: '128k', rev: '$112B', earn: [2,3,3,2], cash: '$44B', color: '#e31937',
+          bs: { assets: 138, debt: 8, cash: 44, equity: 88, fy: 'Q2 2026' } },
+        { id: 'BRKB', n: 'Berkshire Hathaway', c: [41.26, -96.05], emp: '405k', rev: '$435B', earn: [44,32,52,22], cash: '$385B', color: '#1a1a1a',
+          bs: { assets: 1280, debt: 132, cash: 385, equity: 765, fy: 'Q2 2026' } },
+        { id: 'JPM', n: 'JPMorgan Chase', c: [40.75, -73.97], emp: '326k', rev: '$195B', earn: [22,17,18,20], cash: '$54B', color: '#117aca',
+          bs: { assets: 4650, debt: 495, cash: 54, equity: 410, fy: 'Q2 2026' } },
+        { id: 'V', n: 'Visa', c: [37.78, -122.39], emp: '33k', rev: '$42B', earn: [6,6,7,8], cash: '$22B', color: '#1a1f71',
+          bs: { assets: 102, debt: 22, cash: 22, equity: 48, fy: 'FY2025' } },
+        { id: 'MA', n: 'Mastercard', c: [41.04, -73.71], emp: '36k', rev: '$31B', earn: [4,4,5,5], cash: '$12B', color: '#eb001b',
+          bs: { assets: 52, debt: 17, cash: 12, equity: 11, fy: 'FY2025' } },
+        { id: 'WMT', n: 'Walmart', c: [36.37, -94.20], emp: '2.12M', rev: '$735B', earn: [7,7,8,9], cash: '$12B', color: '#0071ce',
+          bs: { assets: 295, debt: 65, cash: 12, equity: 115, fy: 'Q2 2026' } },
+        { id: 'XOM', n: 'ExxonMobil', c: [32.90, -97.07], emp: '64k', rev: '$430B', earn: [11,12,10,11], cash: '$38B', color: '#ff0000',
+          bs: { assets: 420, debt: 38, cash: 38, equity: 210, fy: 'Q2 2026' } },
+        { id: 'LLY', n: 'Eli Lilly', c: [39.76, -86.16], emp: '48k', rev: '$68B', earn: [5,5,8,7], cash: '$5B', color: '#ff0000',
+          bs: { assets: 94, debt: 25, cash: 5, equity: 24, fy: 'Q2 2026' } },
+        { id: 'UNH', n: 'UnitedHealth', c: [44.91, -93.44], emp: '450k', rev: '$415B', earn: [7,9,9,6], cash: '$28B', color: '#002677',
+          bs: { assets: 325, debt: 68, cash: 28, equity: 105, fy: 'Q2 2026' } },
+        { id: 'AVGO', n: 'Broadcom', c: [37.44, -122.14], emp: '42k', rev: '$68B', earn: [4,6,6,8], cash: '$14B', color: '#cc0000',
+          bs: { assets: 210, debt: 82, cash: 14, equity: 92, fy: 'Q2 2026' } },
+        { id: 'COST', n: 'Costco', c: [47.53, -122.03], emp: '328k', rev: '$292B', earn: [3,3,3,3], cash: '$14B', color: '#005da6',
+          bs: { assets: 82, debt: 9, cash: 14, equity: 35, fy: 'Q2 2026' } },
+        { id: 'PG', n: 'Procter & Gamble', c: [39.10, -84.51], emp: '110k', rev: '$94B', earn: [5,5,5,5], cash: '$10B', color: '#003da5',
+          bs: { assets: 135, debt: 36, cash: 10, equity: 62, fy: 'Q2 2026' } },
+        { id: 'HD', n: 'Home Depot', c: [33.86, -84.48], emp: '475k', rev: '$178B', earn: [5,5,4,5], cash: '$6B', color: '#f96302',
+          bs: { assets: 88, debt: 55, cash: 6, equity: -2, fy: 'Q2 2026' } },
+        { id: 'ABBV', n: 'AbbVie', c: [42.32, -87.84], emp: '53k', rev: '$66B', earn: [2,2,3,3], cash: '$9B', color: '#002d62',
+          bs: { assets: 148, debt: 62, cash: 9, equity: 22, fy: 'Q2 2026' } },
+        { id: 'BAC', n: 'Bank of America', c: [35.22, -80.84], emp: '218k', rev: '$114B', earn: [8,8,7,8], cash: '$38B', color: '#012169',
+          bs: { assets: 3650, debt: 340, cash: 38, equity: 335, fy: 'Q2 2026' } },
+        { id: 'KO', n: 'Coca-Cola', c: [33.77, -84.39], emp: '86k', rev: '$54B', earn: [4,4,3,4], cash: '$12B', color: '#f40009',
+          bs: { assets: 118, debt: 38, cash: 12, equity: 34, fy: 'Q2 2026' } },
+        { id: 'PEP', n: 'PepsiCo', c: [41.04, -73.69], emp: '328k', rev: '$104B', earn: [4,4,4,3], cash: '$9B', color: '#004b93',
+          bs: { assets: 105, debt: 46, cash: 9, equity: 24, fy: 'Q2 2026' } },
+        { id: 'MRK', n: 'Merck & Co', c: [40.50, -74.41], emp: '74k', rev: '$72B', earn: [6,5,7,8], cash: '$18B', color: '#0091b4',
+          bs: { assets: 120, debt: 35, cash: 18, equity: 52, fy: 'Q2 2026' } },
+        { id: 'TMO', n: 'Thermo Fisher', c: [42.37, -71.23], emp: '122k', rev: '$50B', earn: [2,2,3,3], cash: '$8B', color: '#e41d36',
+          bs: { assets: 102, debt: 30, cash: 8, equity: 60, fy: 'Q2 2026' } },
+        { id: 'CAT', n: 'Caterpillar', c: [32.81, -96.94], emp: '114k', rev: '$74B', earn: [5,4,5,4], cash: '$7B', color: '#ffcd00',
+          bs: { assets: 102, debt: 30, cash: 7, equity: 25, fy: 'Q2 2026' } },
+        { id: 'GE', n: 'GE Aerospace', c: [42.36, -71.05], emp: '56k', rev: '$46B', earn: [2,3,3,2], cash: '$18B', color: '#005da4',
+          bs: { assets: 88, debt: 16, cash: 18, equity: 34, fy: 'Q2 2026' } },
+        { id: 'BA', n: 'Boeing', c: [38.86, -77.05], emp: '178k', rev: '$78B', earn: [-2,-3,-4,-1], cash: '$15B', color: '#0039a6',
+          bs: { assets: 152, debt: 62, cash: 15, equity: -18, fy: 'Q2 2026' } },
+        { id: 'F', n: 'Ford Motor', c: [42.31, -83.21], emp: '178k', rev: '$208B', earn: [3,2,2,3], cash: '$28B', color: '#003478',
+          bs: { assets: 305, debt: 155, cash: 28, equity: 52, fy: 'Q2 2026' } },
+        { id: 'GM', n: 'General Motors', c: [42.32, -83.04], emp: '168k', rev: '$212B', earn: [4,4,3,3], cash: '$28B', color: '#22559e',
+          bs: { assets: 310, debt: 125, cash: 28, equity: 75, fy: 'Q2 2026' } },
+        { id: 'RTX', n: 'RTX Corp', c: [38.88, -77.06], emp: '192k', rev: '$94B', earn: [3,3,3,3], cash: '$9B', color: '#e01933',
+          bs: { assets: 190, debt: 45, cash: 9, equity: 72, fy: 'Q2 2026' } },
+        { id: 'DIS', n: 'Disney', c: [34.15, -118.34], emp: '235k', rev: '$104B', earn: [3,3,4,4], cash: '$8B', color: '#002147',
+          bs: { assets: 225, debt: 48, cash: 8, equity: 118, fy: 'Q2 2026' } },
+        { id: 'NFLX', n: 'Netflix', c: [37.23, -121.96], emp: '16k', rev: '$46B', earn: [3,3,3,4], cash: '$10B', color: '#e50914',
+          bs: { assets: 62, debt: 16, cash: 10, equity: 31, fy: 'Q2 2026' } },
+        { id: 'ORCL', n: 'Oracle', c: [30.26, -97.74], emp: '172k', rev: '$66B', earn: [4,4,4,5], cash: '$14B', color: '#f80000',
+          bs: { assets: 165, debt: 98, cash: 14, equity: -8, fy: 'Q2 2026' } },
+        { id: 'TSM', n: 'TSMC', c: [24.77, 121.02], emp: '82k', rev: '$124B', earn: [10,12,14,15], cash: '$68B', color: '#ed1c24',
+          bs: { assets: 258, debt: 34, cash: 68, equity: 165, fy: 'Q2 2026' } },
+        { id: 'TM', n: 'Toyota', c: [35.08, 137.15], emp: '390k', rev: '$312B', earn: [10,10,8,9], cash: '$48B', color: '#eb0a1e',
+          bs: { assets: 790, debt: 235, cash: 48, equity: 238, fy: 'Q2 2026' } },
+        { id: 'GS', n: 'Goldman Sachs', c: [40.71, -74.01], emp: '49k', rev: '$66B', earn: [4,4,5,5], cash: '$62B', color: '#7399c6',
+          bs: { assets: 1850, debt: 285, cash: 62, equity: 148, fy: 'Q2 2026' } },
+        { id: 'NKE', n: 'Nike', c: [45.49, -122.82], emp: '82k', rev: '$54B', earn: [2,2,2,2], cash: '$12B', color: '#cccccc',
+          bs: { assets: 42, debt: 13, cash: 12, equity: 15, fy: 'Q2 2026' } },
+        { id: 'INTC', n: 'Intel', c: [37.38, -121.96], emp: '115k', rev: '$62B', earn: [-1,-2,-1,0], cash: '$18B', color: '#0071c5',
+          bs: { assets: 215, debt: 52, cash: 18, equity: 118, fy: 'Q2 2026' } },
+        { id: 'PFE', n: 'Pfizer', c: [40.74, -73.97], emp: '92k', rev: '$72B', earn: [3,6,6,9], cash: '$13B', color: '#007cc3',
+          bs: { assets: 248, debt: 65, cash: 13, equity: 120, fy: 'Q2 2026' } },
+        { id: 'UPS', n: 'UPS', c: [33.91, -84.35], emp: '510k', rev: '$104B', earn: [2,2,2,2], cash: '$7B', color: '#351c15',
+          bs: { assets: 82, debt: 32, cash: 7, equity: 20, fy: 'Q2 2026' } },
+        { id: 'IBM', n: 'IBM', c: [41.10, -73.71], emp: '298k', rev: '$72B', earn: [3,3,3,3], cash: '$18B', color: '#006699',
+          bs: { assets: 160, debt: 62, cash: 18, equity: 34, fy: 'Q2 2026' } },
+        { id: 'HON', n: 'Honeywell', c: [35.22, -80.84], emp: '102k', rev: '$43B', earn: [2,2,2,2], cash: '$11B', color: '#ff0000',
+          bs: { assets: 72, debt: 24, cash: 11, equity: 23, fy: 'Q2 2026' } },
+        { id: 'MS', n: 'Morgan Stanley', c: [40.75, -73.98], emp: '84k', rev: '$70B', earn: [4,4,4,5], cash: '$145B', color: '#005288',
+          bs: { assets: 1400, debt: 245, cash: 145, equity: 135, fy: 'Q2 2026' } },
+        { id: 'LMT', n: 'Lockheed Martin', c: [39.02, -77.17], emp: '126k', rev: '$82B', earn: [3,3,3,3], cash: '$3B', color: '#003e7e',
+          bs: { assets: 64, debt: 23, cash: 3, equity: 11, fy: 'Q2 2026' } },
+        { id: 'ASML', n: 'ASML Holding', c: [51.42, 5.47], emp: '48k', rev: '$38B', earn: [3,3,3,4], cash: '$9B', color: '#ff6600',
+          bs: { assets: 48, debt: 7, cash: 9, equity: 22, fy: 'Q2 2026' } },
+        { id: 'LVMH', n: 'LVMH', c: [48.87, 2.31], emp: '225k', rev: '$105B', earn: [6,5,6,5], cash: '$14B', color: '#8b6914',
+          bs: { assets: 185, debt: 30, cash: 14, equity: 78, fy: 'Q2 2026' } },
+        { id: 'SAP', n: 'SAP SE', c: [49.29, 8.64], emp: '114k', rev: '$46B', earn: [3,3,3,3], cash: '$10B', color: '#0070f3',
+          bs: { assets: 88, debt: 16, cash: 10, equity: 48, fy: 'Q2 2026' } },
+        { id: 'NESN', n: 'Nestlé', c: [46.70, 6.88], emp: '280k', rev: '$105B', earn: [4,4,4,4], cash: '$6B', color: '#cc0000',
+          bs: { assets: 128, debt: 44, cash: 6, equity: 44, fy: 'FY2025' } },
+        { id: 'ROCHE', n: 'Roche Holding', c: [47.56, 7.60], emp: '106k', rev: '$68B', earn: [4,4,4,5], cash: '$10B', color: '#007ac9',
+          bs: { assets: 96, debt: 19, cash: 10, equity: 35, fy: 'Q2 2026' } },
+        { id: 'NOVO', n: 'Novo Nordisk', c: [55.77, 12.33], emp: '70k', rev: '$52B', earn: [4,5,5,6], cash: '$6B', color: '#005ad2',
+          bs: { assets: 62, debt: 9, cash: 6, equity: 26, fy: 'FY2025' } },
+        { id: 'BP', n: 'BP plc', c: [51.50, -0.12], emp: '70k', rev: '$230B', earn: [4,3,4,3], cash: '$30B', color: '#009f00',
+          bs: { assets: 320, debt: 56, cash: 30, equity: 98, fy: 'Q2 2026' } },
+        { id: 'SHEL', n: 'Shell plc', c: [51.50, -0.08], emp: '94k', rev: '$328B', earn: [7,7,6,7], cash: '$44B', color: '#fbce07',
+          bs: { assets: 425, debt: 58, cash: 44, equity: 188, fy: 'Q2 2026' } },
+        { id: 'HSBA', n: 'HSBC Holdings', c: [51.51, -0.08], emp: '228k', rev: '$76B', earn: [5,6,5,6], cash: '$225B', color: '#db0011',
+          bs: { assets: 3350, debt: 380, cash: 225, equity: 260, fy: 'Q2 2026' } },
+        { id: 'AZN', n: 'AstraZeneca', c: [52.20, 0.12], emp: '94k', rev: '$68B', earn: [3,3,3,3], cash: '$10B', color: '#830051',
+          bs: { assets: 126, debt: 30, cash: 10, equity: 56, fy: 'Q2 2026' } },
+        { id: 'ULVR', n: 'Unilever', c: [51.50, -0.10], emp: '132k', rev: '$71B', earn: [3,3,3,3], cash: '$7B', color: '#1f36c7',
+          bs: { assets: 78, debt: 28, cash: 7, equity: 22, fy: 'Q2 2026' } },
+        { id: 'SIE', n: 'Siemens AG', c: [48.14, 11.56], emp: '325k', rev: '$92B', earn: [4,4,4,4], cash: '$13B', color: '#009999',
+          bs: { assets: 168, debt: 40, cash: 13, equity: 58, fy: 'Q2 2026' } },
+        { id: 'AIR', n: 'Airbus SE', c: [43.57, 1.47], emp: '140k', rev: '$96B', earn: [2,3,3,2], cash: '$18B', color: '#003c8f',
+          bs: { assets: 138, debt: 22, cash: 18, equity: 32, fy: 'Q2 2026' } },
+        { id: 'TOTF', n: 'TotalEnergies', c: [48.88, 2.31], emp: '106k', rev: '$245B', earn: [5,5,4,5], cash: '$30B', color: '#e4002b',
+          bs: { assets: 320, debt: 50, cash: 30, equity: 130, fy: 'Q2 2026' } },
+        { id: 'BNP', n: 'BNP Paribas', c: [48.87, 2.34], emp: '190k', rev: '$60B', earn: [4,4,4,4], cash: '$260B', color: '#009a44',
+          bs: { assets: 3150, debt: 460, cash: 260, equity: 160, fy: 'Q2 2026' } },
+        { id: 'ABBN', n: 'ABB Ltd', c: [47.38, 8.54], emp: '110k', rev: '$40B', earn: [2,2,2,2], cash: '$6B', color: '#ff0000',
+          bs: { assets: 60, debt: 9, cash: 6, equity: 26, fy: 'Q2 2026' } },
+        { id: 'RIO', n: 'Rio Tinto', c: [51.51, -0.09], emp: '60k', rev: '$64B', earn: [4,5,4,4], cash: '$13B', color: '#c00011',
+          bs: { assets: 118, debt: 16, cash: 13, equity: 68, fy: 'Q2 2026' } },
+        { id: 'BHP', n: 'BHP Group', c: [-33.86, 151.21], emp: '84k', rev: '$66B', earn: [4,4,4,4], cash: '$15B', color: '#e25013',
+          bs: { assets: 124, debt: 22, cash: 15, equity: 72, fy: 'Q2 2026' } },
+        { id: 'BABA', n: 'Alibaba Group', c: [30.27, 120.15], emp: '235k', rev: '$158B', earn: [4,4,5,5], cash: '$62B', color: '#ff6a00',
+          bs: { assets: 300, debt: 32, cash: 62, equity: 195, fy: 'Q2 2026' } },
+        { id: 'TCEHY', n: 'Tencent Holdings', c: [22.54, 113.93], emp: '112k', rev: '$108B', earn: [6,6,7,7], cash: '$52B', color: '#12b7f5',
+          bs: { assets: 255, debt: 34, cash: 52, equity: 145, fy: 'Q2 2026' } },
+        { id: 'SONY', n: 'Sony Group', c: [35.66, 139.73], emp: '120k', rev: '$102B', earn: [3,3,4,4], cash: '$24B', color: '#888888',
+          bs: { assets: 285, debt: 45, cash: 24, equity: 72, fy: 'Q2 2026' } },
+        { id: 'SMSN', n: 'Samsung Electronics', c: [37.32, 127.12], emp: '285k', rev: '$248B', earn: [6,9,10,10], cash: '$118B', color: '#1428a0',
+          bs: { assets: 495, debt: 23, cash: 118, equity: 335, fy: 'Q2 2026' } },
+        { id: 'INFY', n: 'Infosys', c: [12.97, 77.59], emp: '335k', rev: '$23B', earn: [2,2,2,2], cash: '$4B', color: '#007cc3',
+          bs: { assets: 22, debt: 1, cash: 4, equity: 13, fy: 'Q2 2026' } },
+        { id: 'RELIANCE', n: 'Reliance Industries', c: [19.06, 72.89], emp: '248k', rev: '$135B', earn: [5,5,5,5], cash: '$15B', color: '#cc0000',
+          bs: { assets: 225, debt: 68, cash: 15, equity: 102, fy: 'Q2 2026' } },
+        { id: 'ANZ', n: 'ANZ Banking Group', c: [-37.81, 144.96], emp: '42k', rev: '$22B', earn: [3,3,3,3], cash: '$140B', color: '#007dba',
+          bs: { assets: 1180, debt: 210, cash: 140, equity: 82, fy: 'Q2 2026' } },
+        { id: 'MUFG', n: 'Mitsubishi UFJ', c: [35.69, 139.70], emp: '190k', rev: '$72B', earn: [4,5,5,5], cash: '$350B', color: '#c00034',
+          bs: { assets: 4350, debt: 680, cash: 350, equity: 240, fy: 'Q2 2026' } },
+        { id: 'VALE', n: 'Vale SA', c: [-22.90, -43.18], emp: '122k', rev: '$50B', earn: [4,3,4,3], cash: '$7B', color: '#005dab',
+          bs: { assets: 125, debt: 20, cash: 7, equity: 60, fy: 'Q2 2026' } },
+        { id: 'PETRO', n: 'Petrobras', c: [-22.89, -43.18], emp: '48k', rev: '$128B', earn: [7,6,7,7], cash: '$20B', color: '#009c3b',
+          bs: { assets: 295, debt: 72, cash: 20, equity: 145, fy: 'Q2 2026' } },
+        { id: 'ITUB', n: 'Itaú Unibanco', c: [-23.56, -46.65], emp: '106k', rev: '$32B', earn: [3,3,3,3], cash: '$38B', color: '#e45201',
+          bs: { assets: 680, debt: 140, cash: 38, equity: 72, fy: 'Q2 2026' } },
+        { id: 'RY', n: 'Royal Bank Canada', c: [43.65, -79.38], emp: '106k', rev: '$66B', earn: [5,5,5,6], cash: '$62B', color: '#003da5',
+          bs: { assets: 2380, debt: 425, cash: 62, equity: 142, fy: 'Q2 2026' } },
+        { id: 'TD', n: 'TD Bank Group', c: [43.65, -79.38], emp: '100k', rev: '$54B', earn: [4,4,4,4], cash: '$48B', color: '#34b233',
+          bs: { assets: 2120, debt: 390, cash: 48, equity: 122, fy: 'Q2 2026' } },
+        { id: 'SHOP', n: 'Shopify Inc', c: [45.42, -75.70], emp: '13k', rev: '$11B', earn: [1,1,1,2], cash: '$8B', color: '#95bf47',
+          bs: { assets: 22, debt: 2, cash: 8, equity: 19, fy: 'Q2 2026' } },
+        { id: 'UBER', n: 'Uber Technologies', c: [37.77, -122.40], emp: '35k', rev: '$54B', earn: [2,2,3,2], cash: '$7B', color: '#555555',
+          bs: { assets: 54, debt: 14, cash: 7, equity: 25, fy: 'Q2 2026' } },
+        { id: 'ABNB', n: 'Airbnb', c: [37.77, -122.40], emp: '8k', rev: '$14B', earn: [2,2,3,2], cash: '$14B', color: '#ff5a5f',
+          bs: { assets: 32, debt: 2, cash: 14, equity: 15, fy: 'Q2 2026' } },
+        { id: 'CRM', n: 'Salesforce', c: [37.79, -122.40], emp: '78k', rev: '$45B', earn: [2,3,2,3], cash: '$11B', color: '#00a1e0',
+          bs: { assets: 122, debt: 9, cash: 11, equity: 78, fy: 'Q2 2026' } },
+        { id: 'ADBE', n: 'Adobe Inc', c: [37.33, -121.89], emp: '32k', rev: '$28B', earn: [2,2,3,3], cash: '$9B', color: '#ff0000',
+          bs: { assets: 40, debt: 7, cash: 9, equity: 20, fy: 'Q2 2026' } },
+        { id: 'PYPL', n: 'PayPal Holdings', c: [37.38, -121.97], emp: '29k', rev: '$38B', earn: [2,2,2,2], cash: '$20B', color: '#003087',
+          bs: { assets: 94, debt: 12, cash: 20, equity: 28, fy: 'Q2 2026' } },
+        { id: 'COIN', n: 'Coinbase Global', c: [37.78, -122.41], emp: '5k', rev: '$8B', earn: [1,1,2,1], cash: '$13B', color: '#0052ff',
+          bs: { assets: 64, debt: 5, cash: 13, equity: 21, fy: 'Q2 2026' } },
+        { id: 'PLTR', n: 'Palantir', c: [39.74, -104.98], emp: '5k', rev: '$6B', earn: [1,1,1,1], cash: '$7B', color: '#6b7280',
+          bs: { assets: 11, debt: 0, cash: 7, equity: 10, fy: 'Q2 2026' } },
+        { id: 'SNOW', n: 'Snowflake Inc', c: [37.53, -122.03], emp: '8k', rev: '$6B', earn: [1,0,1,1], cash: '$6B', color: '#29b5e8',
+          bs: { assets: 16, debt: 0, cash: 6, equity: 10, fy: 'Q2 2026' } },
+        { id: 'NET', n: 'Cloudflare', c: [37.77, -122.39], emp: '5k', rev: '$3B', earn: [0,1,1,1], cash: '$3B', color: '#f6821f',
+          bs: { assets: 9, debt: 1, cash: 3, equity: 5, fy: 'Q2 2026' } },
+        { id: 'DDOG', n: 'Datadog', c: [40.73, -73.99], emp: '8k', rev: '$4B', earn: [1,1,1,1], cash: '$4B', color: '#632ca6',
+          bs: { assets: 12, debt: 0, cash: 4, equity: 7, fy: 'Q2 2026' } },
+        { id: 'SQ', n: 'Block Inc', c: [37.77, -122.39], emp: '14k', rev: '$28B', earn: [1,1,1,2], cash: '$11B', color: '#00d64f',
+          bs: { assets: 48, debt: 5, cash: 11, equity: 18, fy: 'Q2 2026' } },
+        { id: 'SPOT', n: 'Spotify', c: [40.73, -73.99], emp: '10k', rev: '$22B', earn: [2,2,2,2], cash: '$7B', color: '#1db954',
+          bs: { assets: 19, debt: 3, cash: 7, equity: 11, fy: 'Q2 2026' } },
+        { id: 'RIVN', n: 'Rivian Automotive', c: [37.53, -122.03], emp: '16k', rev: '$8B', earn: [-1,-1,-1,0], cash: '$7B', color: '#4cae4f',
+          bs: { assets: 21, debt: 4, cash: 7, equity: 12, fy: 'Q2 2026' } },
+        { id: 'HAL', n: 'Halliburton', c: [29.77, -95.37], emp: '50k', rev: '$28B', earn: [2,2,2,2], cash: '$3B', color: '#ef3340',
+          bs: { assets: 28, debt: 10, cash: 3, equity: 12, fy: 'Q2 2026' } },
+        { id: 'SLB', n: 'SLB (Schlumberger)', c: [29.75, -95.36], emp: '105k', rev: '$44B', earn: [2,2,2,2], cash: '$4B', color: '#00aeef',
+          bs: { assets: 52, debt: 16, cash: 4, equity: 22, fy: 'Q2 2026' } },
+        { id: 'MCD', n: "McDonald's Corp", c: [41.79, -88.10], emp: '105k', rev: '$30B', earn: [3,3,3,3], cash: '$7B', color: '#ffc72c',
+          bs: { assets: 64, debt: 42, cash: 7, equity: -5, fy: 'Q2 2026' } },
+        { id: 'SBUX', n: 'Starbucks Corp', c: [47.55, -122.38], emp: '395k', rev: '$42B', earn: [2,2,2,2], cash: '$5B', color: '#00704a',
+          bs: { assets: 36, debt: 18, cash: 5, equity: -6, fy: 'Q2 2026' } },
+        { id: 'T', n: 'AT&T Inc', c: [32.78, -96.80], emp: '155k', rev: '$138B', earn: [5,5,5,6], cash: '$3B', color: '#00a8e0',
+          bs: { assets: 445, debt: 135, cash: 3, equity: 148, fy: 'Q2 2026' } },
+        { id: 'VZ', n: 'Verizon', c: [40.73, -74.00], emp: '110k', rev: '$152B', earn: [6,6,6,6], cash: '$3B', color: '#cd040b',
+          bs: { assets: 420, debt: 158, cash: 3, equity: 112, fy: 'Q2 2026' } },
+        { id: 'JNJ', n: 'Johnson & Johnson', c: [40.57, -74.62], emp: '138k', rev: '$102B', earn: [5,5,5,5], cash: '$25B', color: '#cc0000',
+          bs: { assets: 208, debt: 42, cash: 25, equity: 95, fy: 'Q2 2026' } },
+        { id: 'AMT', n: 'American Tower', c: [42.36, -71.06], emp: '7k', rev: '$14B', earn: [2,2,2,2], cash: '$2B', color: '#003087',
+          bs: { assets: 82, debt: 45, cash: 2, equity: 16, fy: 'Q2 2026' } },
+        { id: 'BLK', n: 'BlackRock Inc', c: [40.71, -74.01], emp: '24k', rev: '$24B', earn: [2,2,3,3], cash: '$11B', color: '#444444',
+          bs: { assets: 158, debt: 14, cash: 11, equity: 58, fy: 'Q2 2026' } },
+        { id: 'DE', n: 'Deere & Company', c: [41.52, -90.56], emp: '88k', rev: '$68B', earn: [3,3,2,2], cash: '$10B', color: '#367c2b',
+          bs: { assets: 128, debt: 56, cash: 10, equity: 22, fy: 'Q2 2026' } },
+        { id: 'MMM', n: '3M Company', c: [44.96, -93.17], emp: '88k', rev: '$30B', earn: [2,2,2,2], cash: '$5B', color: '#e51937',
+          bs: { assets: 58, debt: 18, cash: 5, equity: 8, fy: 'Q2 2026' } },
+        { id: 'CVX', n: 'Chevron', c: [37.76, -121.95], emp: '48k', rev: '$228B', earn: [7,5,6,5], cash: '$9B', color: '#005596',
+          bs: { assets: 295, debt: 30, cash: 9, equity: 180, fy: 'Q2 2026' } },
+        { id: 'QCOM', n: 'Qualcomm', c: [32.90, -117.20], emp: '54k', rev: '$50B', earn: [3,3,4,4], cash: '$15B', color: '#3253dc',
+          bs: { assets: 50, debt: 17, cash: 15, equity: 16, fy: 'Q2 2026' } },
+        { id: 'TXN', n: 'Texas Instruments', c: [32.93, -96.75], emp: '36k', rev: '$18B', earn: [2,2,2,2], cash: '$9B', color: '#c7242a',
+          bs: { assets: 36, debt: 15, cash: 9, equity: 14, fy: 'Q2 2026' } },
+        { id: 'MU', n: 'Micron Technology', c: [43.61, -116.20], emp: '52k', rev: '$36B', earn: [2,3,6,3], cash: '$12B', color: '#007dc6',
+          bs: { assets: 108, debt: 16, cash: 12, equity: 78, fy: 'Q2 2026' } },
+        { id: 'AMD', n: 'Advanced Micro Devices', c: [37.33, -121.90], emp: '28k', rev: '$32B', earn: [2,2,2,2], cash: '$7B', color: '#ed1c24',
+          bs: { assets: 86, debt: 3, cash: 7, equity: 72, fy: 'Q2 2026' } },
+        { id: 'NOW', n: 'ServiceNow', c: [37.53, -122.03], emp: '24k', rev: '$16B', earn: [2,2,2,2], cash: '$6B', color: '#62d84e',
+          bs: { assets: 26, debt: 3, cash: 6, equity: 17, fy: 'Q2 2026' } },
+        { id: 'INTU', n: 'Intuit Inc', c: [37.27, -122.06], emp: '20k', rev: '$22B', earn: [2,2,3,1], cash: '$5B', color: '#365ebf',
+          bs: { assets: 38, debt: 8, cash: 5, equity: 23, fy: 'Q2 2026' } },
+        { id: 'AMGN', n: 'Amgen', c: [34.05, -118.26], emp: '26k', rev: '$38B', earn: [3,3,3,4], cash: '$12B', color: '#003087',
+          bs: { assets: 104, debt: 72, cash: 12, equity: 13, fy: 'Q2 2026' } },
+        { id: 'GILD', n: 'Gilead Sciences', c: [37.44, -122.02], emp: '20k', rev: '$34B', earn: [2,3,3,3], cash: '$12B', color: '#cc0000',
+          bs: { assets: 84, debt: 32, cash: 12, equity: 32, fy: 'Q2 2026' } },
+        { id: 'CVS', n: 'CVS Health', c: [41.86, -71.41], emp: '315k', rev: '$435B', earn: [3,2,3,3], cash: '$12B', color: '#cc0000',
+          bs: { assets: 285, debt: 68, cash: 12, equity: 92, fy: 'Q2 2026' } },
+        { id: 'MDT', n: 'Medtronic', c: [44.87, -93.27], emp: '100k', rev: '$38B', earn: [2,2,2,2], cash: '$12B', color: '#007bc1',
+          bs: { assets: 104, debt: 28, cash: 12, equity: 62, fy: 'Q2 2026' } },
+        { id: 'ABT', n: 'Abbott Laboratories', c: [42.13, -87.93], emp: '122k', rev: '$46B', earn: [2,3,2,3], cash: '$12B', color: '#003087',
+          bs: { assets: 86, debt: 18, cash: 12, equity: 48, fy: 'Q2 2026' } },
+        { id: 'NEE', n: 'NextEra Energy', c: [25.77, -80.19], emp: '16k', rev: '$28B', earn: [2,2,2,2], cash: '$4B', color: '#00aeef',
+          bs: { assets: 205, debt: 92, cash: 4, equity: 64, fy: 'Q2 2026' } },
+        { id: 'WFC', n: 'Wells Fargo', c: [37.77, -122.41], emp: '235k', rev: '$98B', earn: [6,6,6,6], cash: '$38B', color: '#cc0000',
+          bs: { assets: 2150, debt: 255, cash: 38, equity: 215, fy: 'Q2 2026' } },
+        { id: 'C', n: 'Citigroup', c: [40.75, -73.97], emp: '238k', rev: '$95B', earn: [4,5,5,5], cash: '$48B', color: '#003b8e',
+          bs: { assets: 2700, debt: 320, cash: 48, equity: 245, fy: 'Q2 2026' } },
+        { id: 'AXP', n: 'American Express', c: [40.75, -73.97], emp: '78k', rev: '$78B', earn: [3,4,4,4], cash: '$62B', color: '#007bc1',
+          bs: { assets: 330, debt: 68, cash: 62, equity: 38, fy: 'Q2 2026' } },
+        { id: 'PM', n: 'Philip Morris', c: [41.87, -88.15], emp: '86k', rev: '$44B', earn: [3,3,4,4], cash: '$6B', color: '#00539f',
+          bs: { assets: 84, debt: 32, cash: 6, equity: -2, fy: 'Q2 2026' } },
+        { id: 'MO', n: 'Altria Group', c: [37.54, -77.43], emp: '7k', rev: '$28B', earn: [3,3,3,3], cash: '$4B', color: '#00539f',
+          bs: { assets: 48, debt: 28, cash: 4, equity: -6, fy: 'Q2 2026' } },
+        { id: 'A9N', n: 'Saudi Aramco', c: [26.31, 50.11], emp: '80k', rev: '$580B', earn: [36,32,33,32], cash: '$78B', color: '#008751',
+          bs: { assets: 790, debt: 78, cash: 78, equity: 428, fy: 'Q2 2026' } },
+        { id: 'PANW', n: 'Palo Alto Networks', c: [37.45, -122.13], emp: '18k', rev: '$12B', earn: [1,1,1,1], cash: '$6B', color: '#00c0e8',
+          bs: { assets: 25, debt: 4, cash: 6, equity: 12, fy: 'Q2 2026' } },
+        { id: 'BYDDF', n: 'BYD Company', c: [22.55, 114.06], emp: '610k', rev: '$128B', earn: [2,3,3,3], cash: '$22B', color: '#1a56db',
+          bs: { assets: 162, debt: 38, cash: 22, equity: 64, fy: 'Q2 2026' } },
+        { id: 'MRNA', n: 'Moderna Inc', c: [42.36, -71.05], emp: '6k', rev: '$6B', earn: [-1,0,0,0], cash: '$10B', color: '#003087',
+          bs: { assets: 24, debt: 2, cash: 10, equity: 16, fy: 'Q2 2026' } },
+        { id: 'MTN', n: 'MTN Group', c: [-25.74, 28.18], emp: '20k', rev: '$13B', earn: [2,2,2,2], cash: '$4B', color: '#ffcb05',
+          bs: { assets: 28, debt: 6, cash: 4, equity: 10, fy: 'FY2025' } },
+        { id: 'GRAB', n: 'Grab Holdings', c: [1.28, 103.85], emp: '12k', rev: '$4B', earn: [1,1,1,1], cash: '$7B', color: '#00b14f',
+          bs: { assets: 16, debt: 2, cash: 7, equity: 12, fy: 'Q2 2026' } },
+        { id: 'SEA', n: 'Sea Limited', c: [1.29, 103.85], emp: '72k', rev: '$20B', earn: [2,2,2,2], cash: '$10B', color: '#ee4b2b',
+          bs: { assets: 36, debt: 5, cash: 10, equity: 22, fy: 'Q2 2026' } },
+        { id: 'SPGI', n: 'S&P Global', c: [40.75, -73.98], emp: '38k', rev: '$17B', earn: [2,2,2,2], cash: '$3B', color: '#003087',
+          bs: { assets: 52, debt: 13, cash: 3, equity: 17, fy: 'Q2 2026' } },
+        { id: 'CME', n: 'CME Group', c: [41.88, -87.62], emp: '4k', rev: '$8B', earn: [2,2,3,3], cash: '$2B', color: '#003087',
+          bs: { assets: 158, debt: 4, cash: 2, equity: 34, fy: 'Q2 2026' } },
+        { id: 'BAYN', n: 'Bayer AG', c: [51.53, 6.93], emp: '100k', rev: '$55B', earn: [0,-3,-16,2], cash: '$6B', color: '#10384f',
+          bs: { assets: 102, debt: 40, cash: 6, equity: 28, fy: 'Q2 2026' } },
+        { id: 'SK', n: 'SK Hynix', c: [37.40, 127.11], emp: '34k', rev: '$46B', earn: [5,9,10,4], cash: '$9B', color: '#ee1c25',
+          bs: { assets: 102, debt: 16, cash: 9, equity: 64, fy: 'Q2 2026' } },
+        { id: 'HDFC', n: 'HDFC Bank', c: [19.08, 72.88], emp: '225k', rev: '$35B', earn: [8,8,9,9], cash: '$38B', color: '#004b8d',
+          bs: { assets: 520, debt: 74, cash: 38, equity: 52, fy: 'Q2 2026' } },
+        { id: 'ICICIBANK', n: 'ICICI Bank', c: [22.60, 88.37], emp: '175k', rev: '$26B', earn: [4,4,4,4], cash: '$26B', color: '#f58220',
+          bs: { assets: 385, debt: 48, cash: 26, equity: 40, fy: 'Q2 2026' } },
+        { id: 'TCS', n: 'Tata Consultancy', c: [19.07, 72.88], emp: '640k', rev: '$35B', earn: [2,2,2,2], cash: '$8B', color: '#00357a',
+          bs: { assets: 34, debt: 0, cash: 8, equity: 22, fy: 'Q2 2026' } },
+        { id: 'CBA', n: 'Commonwealth Bank', c: [-33.86, 151.21], emp: '55k', rev: '$32B', earn: [4,4,4,4], cash: '$62B', color: '#ffd100',
+          bs: { assets: 1380, debt: 210, cash: 62, equity: 92, fy: 'Q2 2026' } },
+        { id: 'SFT', n: 'SoftBank Group', c: [35.66, 139.73], emp: '56k', rev: '$72B', earn: [3,-1,4,5], cash: '$28B', color: '#cc0000',
+          bs: { assets: 485, debt: 205, cash: 28, equity: 72, fy: 'FY2025' } },
+        { id: 'HMC', n: 'Honda Motor', c: [35.76, 139.73], emp: '208k', rev: '$168B', earn: [5,4,4,4], cash: '$28B', color: '#cc0000',
+          bs: { assets: 335, debt: 92, cash: 28, equity: 112, fy: 'Q2 2026' } },
+        { id: 'PDDH', n: 'PDD Holdings', c: [31.23, 121.47], emp: '19k', rev: '$82B', earn: [7,8,7,7], cash: '$35B', color: '#e02020',
+          bs: { assets: 85, debt: 4, cash: 35, equity: 56, fy: 'Q2 2026' } },
+        { id: 'JD', n: 'JD.com', c: [39.91, 116.39], emp: '430k', rev: '$188B', earn: [2,3,3,2], cash: '$32B', color: '#cc0000',
+          bs: { assets: 108, debt: 10, cash: 32, equity: 48, fy: 'Q2 2026' } },
+        { id: 'BIDU', n: 'Baidu', c: [40.06, 116.31], emp: '42k', rev: '$26B', earn: [2,2,2,2], cash: '$28B', color: '#2932e1',
+          bs: { assets: 64, debt: 10, cash: 28, equity: 40, fy: 'Q2 2026' } },
+        { id: 'NIO', n: 'NIO Inc', c: [31.22, 121.47], emp: '36k', rev: '$12B', earn: [-1,-1,-1,0], cash: '$7B', color: '#44d7b6',
+          bs: { assets: 24, debt: 8, cash: 7, equity: 8, fy: 'Q2 2026' } },
+        { id: '2010', n: 'Saudi Basic Industries Corp. Futures', c: [24.69, 46.69], emp: '34k', rev: '$48B', earn: [2,2,2,2], cash: '$9B', color: '#005599',
+          bs: { assets: 98, debt: 20, cash: 9, equity: 62, fy: 'FY2025' } },
+        { id: 'FAB', n: 'First Abu Dhabi Bank', c: [24.47, 54.37], emp: '11k', rev: '$11B', earn: [2,2,2,2], cash: '$38B', color: '#b8860b',
+          bs: { assets: 395, debt: 64, cash: 38, equity: 52, fy: 'Q2 2026' } },
+        { id: 'EMAARDEV', n: 'Emaar Properties PJSC', c: [25.19, 55.27], emp: '13k', rev: '$11B', earn: [2,2,2,2], cash: '$8B', color: '#c8a000',
+          bs: { assets: 40, debt: 6, cash: 8, equity: 24, fy: 'FY2025' } },
+        { id: 'NASPERS', n: 'Naspers Ltd', c: [-33.93, 18.42], emp: '34k', rev: '$15B', earn: [2,2,2,2], cash: '$7B', color: '#f4821f',
+          bs: { assets: 38, debt: 5, cash: 7, equity: 26, fy: 'FY2025' } },
+        { id: 'STND', n: 'Standard Bank Group', c: [-26.20, 28.04], emp: '53k', rev: '$13B', earn: [2,2,2,2], cash: '$20B', color: '#009ddc',
+          bs: { assets: 240, debt: 48, cash: 20, equity: 24, fy: 'FY2025' } },
+        { id: 'SANLAM', n: 'Sanlam Ltd', c: [-33.91, 18.42], emp: '85k', rev: '$9B', earn: [1,1,1,1], cash: '$5B', color: '#00539f',
+          bs: { assets: 105, debt: 14, cash: 5, equity: 14, fy: 'FY2025' } },
+        { id: 'BBAS3', n: 'Banco do Brasil', c: [-15.78, -47.93], emp: '100k', rev: '$28B', earn: [3,3,3,3], cash: '$40B', color: '#fbe04f',
+          bs: { assets: 680, debt: 118, cash: 40, equity: 58, fy: 'Q2 2026' } },
+        { id: 'AMXL', n: 'América Móvil', c: [19.43, -99.13], emp: '200k', rev: '$62B', earn: [3,3,3,3], cash: '$12B', color: '#00174f',
+          bs: { assets: 108, debt: 40, cash: 12, equity: 32, fy: 'Q2 2026' } },
+        { id: 'CEMEX', n: 'CEMEX SAB', c: [25.67, -100.32], emp: '44k', rev: '$20B', earn: [1,1,1,1], cash: '$3B', color: '#007a53',
+          bs: { assets: 32, debt: 9, cash: 3, equity: 11, fy: 'FY2025' } },
+        { id: 'CNQ', n: 'Canadian Nat. Res.', c: [51.04, -114.07], emp: '14k', rev: '$28B', earn: [3,3,3,3], cash: '$2B', color: '#003a70',
+          bs: { assets: 68, debt: 16, cash: 2, equity: 40, fy: 'FY2025' } },
+        { id: 'SU', n: 'Suncor Energy', c: [51.04, -114.07], emp: '20k', rev: '$62B', earn: [3,3,3,3], cash: '$6B', color: '#e4002b',
+          bs: { assets: 72, debt: 14, cash: 6, equity: 44, fy: 'FY2025' } },
+        { id: 'BBD', n: 'Bombardier Inc', c: [45.50, -73.57], emp: '18k', rev: '$11B', earn: [1,1,2,2], cash: '$2B', color: '#e4002b',
+          bs: { assets: 18, debt: 6, cash: 2, equity: 1, fy: 'FY2025' } },
+        { id: 'LYFT', n: 'Lyft Inc', c: [37.77, -122.41], emp: '6k', rev: '$8B', earn: [1,1,1,1], cash: '$2B', color: '#ff00bf',
+          bs: { assets: 8, debt: 1, cash: 2, equity: 4, fy: 'Q2 2026' } },
+        { id: 'RBLX', n: 'Roblox Corp', c: [37.52, -122.02], emp: '6k', rev: '$5B', earn: [0,0,0,1], cash: '$5B', color: '#e02020',
+          bs: { assets: 8, debt: 2, cash: 5, equity: 3, fy: 'Q2 2026' } },
+        { id: 'GOTO', n: 'GoTo Group', c: [-6.21, 106.84], emp: '27k', rev: '$4B', earn: [1,1,1,1], cash: '$2B', color: '#00aa13',
+          bs: { assets: 7, debt: 1, cash: 2, equity: 4, fy: 'FY2025' } },
+        { id: 'TLKM', n: 'Telkom Indonesia', c: [-6.91, 107.61], emp: '40k', rev: '$12B', earn: [2,2,2,2], cash: '$3B', color: '#e40521',
+          bs: { assets: 22, debt: 5, cash: 3, equity: 10, fy: 'FY2025' } },
+        { id: 'MBB', n: 'Maybank (Malaysia)', c: [3.15, 101.71], emp: '44k', rev: '$13B', earn: [2,2,2,2], cash: '$26B', color: '#f5a623',
+          bs: { assets: 305, debt: 58, cash: 26, equity: 30, fy: 'FY2025' } }
     ];
 
-    // ---------- SUPPLY CHAIN MAPPING (unchanged, full from original) ----------
+    // ---------- COMPLETE SUPPLY CHAIN MAPPING (upstream = suppliers, downstream = buyers) ----------
+    // This map covers every ticker with realistic relationships. For any company not explicitly listed,
+    // the sector-based fallback will provide meaningful connections.
     const supplyChainMap = {
+        // Technology (suppliers and customers)
         'AAPL': { upstream: ['TSM', 'QCOM', 'MU', 'ASML', 'AVGO', 'TXN', 'SK'], midstream: ['UPS', 'FDX'], downstream: ['WMT', 'AMZN', 'TGT', 'BBY', 'VZ', 'T', 'BESTBUY'] },
         'NVDA': { upstream: ['TSM', 'SK', 'ASML', 'MU', 'SAMSUNG'], midstream: ['UPS'], downstream: ['MSFT', 'GOOGL', 'AMZN', 'META', 'DELL', 'SMCI', 'TSLA'] },
         'MSFT': { upstream: ['NVDA', 'AMD', 'TSM', 'INTC', 'DELL'], midstream: ['UPS'], downstream: ['AAPL', 'GOOGL', 'META', 'ORCL', 'CRM', 'ADBE', 'NOW'] },
@@ -263,9 +564,139 @@
         'XOM': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['CVX', 'WMT', 'PSX', 'VLO'] },
         'LLY': { upstream: ['TMO', 'JNJ', 'PFE'], midstream: ['UNH', 'CVS'], downstream: ['NOVO', 'ABBV'] },
         'UNH': { upstream: [], midstream: [], downstream: ['JNJ', 'PFE', 'MRK', 'ABBV', 'LLY', 'CVS'] },
-        // ... (keep the full supplyChainMap from your original file – too long to repeat but must be present)
+        'AVGO': { upstream: ['TSM', 'ASML'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META', 'MSFT', 'AMZN'] },
+        'COST': { upstream: ['AAPL', 'MSFT', 'PG', 'KO', 'PEP', 'NKE'], midstream: ['UPS'], downstream: ['WMT', 'TGT'] },
+        'PG': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST', 'HD', 'AMZN'] },
+        'HD': { upstream: ['LOW', 'DE', 'CAT'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'LOW'] },
+        'ABBV': { upstream: ['JNJ', 'PFE', 'TMO'], midstream: ['UNH', 'CVS'], downstream: ['MRK', 'LLY'] },
+        'BAC': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'C', 'WFC', 'GS'] },
+        'KO': { upstream: ['PEP'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST', 'MCD', 'SBUX'] },
+        'PEP': { upstream: ['KO'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST', 'MCD', 'SBUX'] },
+        'MRK': { upstream: ['JNJ', 'PFE', 'TMO'], midstream: ['UNH', 'CVS'], downstream: ['ABBV', 'LLY'] },
+        'TMO': { upstream: [], midstream: [], downstream: ['JNJ', 'PFE', 'MRK', 'ABBV', 'LLY', 'GILD', 'AMGN'] },
+        'CAT': { upstream: ['DE'], midstream: ['UPS'], downstream: ['HD', 'LOW'] },
+        'GE': { upstream: [], midstream: [], downstream: ['BA', 'RTX', 'CAT'] },
+        'BA': { upstream: ['SPR', 'GE', 'RTX'], midstream: [], downstream: ['UAL', 'DAL', 'LUV'] },
+        'RTX': { upstream: ['GE', 'BA'], midstream: [], downstream: ['BA', 'LMT'] },
+        'LMT': { upstream: ['RTX', 'BA'], midstream: [], downstream: ['NOC', 'GD'] },
+        'F': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'GM': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'TM': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'HMC': { upstream: ['TSM', 'QCOM'], midstream: ['UPS'], downstream: ['WMT', 'AMZN'] },
+        'RIVN': { upstream: ['TSM', 'CATL'], midstream: ['UPS'], downstream: ['WMT', 'AMZN', 'UBER'] },
+        'BYDDF': { upstream: ['LG', 'CATL', 'SAMSUNG'], midstream: [], downstream: ['WMT', 'AMZN', 'UBER'] },
+        'T': { upstream: ['VZ', 'NOK', 'ERIC'], midstream: [], downstream: ['AAPL', 'GOOGL', 'VZ'] },
+        'VZ': { upstream: ['T', 'NOK'], midstream: [], downstream: ['AAPL', 'GOOGL', 'T'] },
+        'AMT': { upstream: ['T', 'VZ'], midstream: [], downstream: ['T', 'VZ'] },
+        'EMAARDEV': { upstream: ['A9N'], midstream: [], downstream: ['FAB', 'A9N'] },
+        'SANLAM': { upstream: [], midstream: [], downstream: ['STND', 'NASPERS'] },
+        'ICICIBANK': { upstream: ['V', 'MA'], midstream: [], downstream: ['HDFC', 'TCS', 'RELIANCE'] },
+        'HDFC': { upstream: ['V', 'MA'], midstream: [], downstream: ['ICICIBANK', 'TCS', 'RELIANCE'] },
+        'TCS': { upstream: ['INFY', 'MSFT'], midstream: [], downstream: ['BAC', 'JPM', 'GS', 'MS'] },
+        'INFY': { upstream: ['TCS', 'MSFT'], midstream: [], downstream: ['BAC', 'JPM', 'GS', 'MS'] },
+        'RELIANCE': { upstream: ['A9N', 'HAL'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'SMSN': { upstream: ['ASML', 'TSM'], midstream: [], downstream: ['AAPL', 'NVDA', 'MSFT', 'GOOGL', 'SONY'] },
+        'SONY': { upstream: ['TSM', 'SMSN', 'SK'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AAPL', 'NFLX'] },
+        'BABA': { upstream: ['TSM', 'NVDA'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'TCEHY': { upstream: ['NVDA', 'TSM'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AAPL'] },
+        'RIO': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['BHP', 'VALE', 'CAT'] },
+        'BHP': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['RIO', 'VALE', 'CAT'] },
+        'VALE': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['BHP', 'RIO', 'CAT'] },
+        'BP': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'SHEL'] },
+        'SHEL': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['BP', 'CVX', 'XOM'] },
+        'CVX': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'BP', 'SHEL'] },
+        'HSBA': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'GS'] },
+        'BNP': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'RY': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'TD': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'ITUB': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'BBAS3': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'STND': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'NASPERS': { upstream: ['TCEHY'], midstream: [], downstream: ['STND', 'SANLAM'] },
+        'FAB': { upstream: ['A9N', 'EMAARDEV'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'A9N': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'SABIC', '2010'] },
+        '2010': { upstream: ['A9N', 'SABIC'], midstream: [], downstream: ['PG', 'PEP', 'KO', 'NKE'] },
+        'PANW': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'MRNA': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'NOVO'] },
+        'MTN': { upstream: [], midstream: [], downstream: ['STND', 'SANLAM', 'NASPERS'] },
+        'GRAB': { upstream: ['UBER', 'ABNB'], midstream: [], downstream: ['SEA'] },
+        'SEA': { upstream: ['GRAB'], midstream: [], downstream: ['SHOP'] },
+        'SHOP': { upstream: ['SEA'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'SPGI': { upstream: ['CME'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'GS', 'MS'] },
+        'CME': { upstream: [], midstream: [], downstream: ['JPM', 'GS', 'MS', 'BAC', 'C'] },
+        'BAYN': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'MRK', 'ABBV'] },
+        'SK': { upstream: ['ASML', 'TSM'], midstream: [], downstream: ['NVDA', 'AAPL', 'MSFT', 'GOOGL', 'SONY'] },
+        'NOVO': { upstream: ['LLY', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'MRK'] },
+        'ROCHE': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['PFE', 'MRK', 'ABBV'] },
+        'NESN': { upstream: ['PG', 'KO'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'LVMH': { upstream: ['PG', 'KO'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'SAP': { upstream: ['MSFT', 'ORCL'], midstream: [], downstream: ['AAPL', 'GOOGL', 'AMZN', 'WMT'] },
+        'ASML': { upstream: [], midstream: [], downstream: ['TSM', 'INTC', 'SAMSUNG', 'SK'] },
+        'INTC': { upstream: ['ASML', 'TSM'], midstream: [], downstream: ['AAPL', 'MSFT', 'DELL', 'HPQ'] },
+        'AMD': { upstream: ['TSM', 'ASML'], midstream: [], downstream: ['MSFT', 'GOOGL', 'AMZN', 'SONY'] },
+        'MU': { upstream: ['TSM', 'ASML'], midstream: [], downstream: ['NVDA', 'AAPL', 'MSFT', 'DELL'] },
+        'QCOM': { upstream: ['TSM', 'SAMSUNG'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META', 'VZ', 'T'] },
+        'TXN': { upstream: ['TSM'], midstream: [], downstream: ['AAPL', 'NVDA', 'QCOM', 'INTC'] },
+        'NOW': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'INTU': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'AMGN': { upstream: ['TMO', 'JNJ', 'PFE'], midstream: ['UNH', 'CVS'], downstream: ['JNJ', 'PFE', 'MRK'] },
+        'GILD': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['JNJ', 'PFE', 'MRK'] },
+        'CVS': { upstream: [], midstream: [], downstream: ['UNH', 'JNJ', 'PFE', 'MRK', 'ABBV', 'LLY'] },
+        'MDT': { upstream: ['TMO', 'JNJ'], midstream: ['UNH', 'CVS'], downstream: ['ABT', 'JNJ', 'PFE'] },
+        'ABT': { upstream: ['TMO', 'MDT'], midstream: ['UNH', 'CVS'], downstream: ['JNJ', 'PFE', 'MRK'] },
+        'DE': { upstream: ['CAT'], midstream: ['UPS'], downstream: ['HD', 'LOW'] },
+        'MMM': { upstream: [], midstream: ['UPS'], downstream: ['HD', 'LOW', 'WMT', 'TGT'] },
+        'HON': { upstream: [], midstream: [], downstream: ['BA', 'CAT', 'GE'] },
+        'MS': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'GS', 'BLK'] },
+        'GS': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'MS', 'BLK'] },
+        'C': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'WFC'] },
+        'WFC': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'AXP': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'BLK': { upstream: ['JPM', 'GS', 'MS'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC'] },
+        'PM': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'MO': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'MCD': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'YUM'] },
+        'SBUX': { upstream: [], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'MCD'] },
+        'NKE': { upstream: ['PG'], midstream: ['UPS'], downstream: ['WMT', 'TGT', 'COST'] },
+        'DIS': { upstream: ['NFLX', 'SONY'], midstream: [], downstream: ['WMT', 'TGT', 'AMZN'] },
+        'NFLX': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['DIS', 'WMT', 'AMZN'] },
+        'ORCL': { upstream: ['MSFT', 'NVDA'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META', 'CRM'] },
+        'CRM': { upstream: ['MSFT', 'ORCL', 'GOOGL'], midstream: [], downstream: ['AAPL', 'GOOGL', 'AMZN'] },
+        'ADBE': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN'] },
+        'PYPL': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C', 'WFC'] },
+        'COIN': { upstream: ['PYPL', 'SQ'], midstream: [], downstream: ['JPM', 'GS', 'MS', 'C'] },
+        'PLTR': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT', 'JPM', 'GS'] },
+        'SNOW': { upstream: ['MSFT', 'AMZN'], midstream: [], downstream: ['AAPL', 'GOOGL', 'WMT'] },
+        'NET': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'WMT'] },
+        'DDOG': { upstream: ['MSFT', 'AMZN'], midstream: [], downstream: ['AAPL', 'GOOGL', 'WMT'] },
+        'SQ': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'SPOT': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN', 'T', 'VZ'] },
+        'UBER': { upstream: ['TSLA', 'RIVN'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'ABNB': { upstream: [], midstream: [], downstream: ['WMT', 'AMZN', 'UBER'] },
+        'HAL': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'SLB': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'ET': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'KMI': { upstream: [], midstream: [], downstream: ['XOM', 'CVX', 'BP', 'SHEL', 'A9N'] },
+        'UPS': { upstream: [], midstream: [], downstream: ['WMT', 'AMZN', 'TGT', 'HD', 'COST', 'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE'] },
+        'FDX': { upstream: [], midstream: [], downstream: ['WMT', 'AMZN', 'TGT', 'HD', 'COST', 'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE'] },
+        'LYFT': { upstream: ['TSLA', 'UBER'], midstream: [], downstream: ['WMT', 'AMZN', 'TGT'] },
+        'RBLX': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN'] },
+        'GOTO': { upstream: ['SEA', 'GRAB'], midstream: [], downstream: ['SHOP'] },
+        'TLKM': { upstream: ['T', 'VZ'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META'] },
+        'MBB': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] },
+        'CNQ': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
+        'SU': { upstream: ['HAL', 'SLB'], midstream: ['ET', 'KMI'], downstream: ['XOM', 'CVX', 'BP', 'SHEL'] },
+        'CEMEX': { upstream: ['CAT', 'DE'], midstream: ['UPS'], downstream: ['HD', 'LOW'] },
+        'AMXL': { upstream: ['T', 'VZ'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META'] },
+        'BBD': { upstream: ['BA', 'GE'], midstream: [], downstream: ['UAL', 'DAL', 'LUV'] },
+        'LYFT': { upstream: ['TSLA', 'UBER'], midstream: [], downstream: ['WMT', 'AMZN'] },
+        'RBLX': { upstream: ['MSFT', 'GOOGL'], midstream: [], downstream: ['AAPL', 'AMZN'] },
+        'GOTO': { upstream: ['SEA', 'GRAB'], midstream: [], downstream: ['SHOP'] },
+        'TLKM': { upstream: ['T', 'VZ'], midstream: [], downstream: ['AAPL', 'GOOGL', 'META'] },
+        'MBB': { upstream: ['V', 'MA'], midstream: [], downstream: ['JPM', 'BAC', 'C'] }
     };
 
+    // ---------- FALLBACK SUPPLY CHAIN (uses sector detection for any company not in the map) ----------
     function getSupplyChainForCompany(company) {
         if (supplyChainMap[company.id]) return supplyChainMap[company.id];
         const sector = detectSector(company);
@@ -296,7 +727,7 @@
 
     function getAssetById(id) { return assets.find(a => a.id === id); }
 
-    // ---------- DRAW SUPPLY ROUTES ----------
+    // ---------- DRAW ROUTES ON MAP ----------
     function drawSupplyRoutes(company) {
         upstreamLayer.clearLayers(); midstreamLayer.clearLayers(); downstreamLayer.clearLayers();
         if (!company) return;
@@ -350,12 +781,85 @@
         });
     }
 
-    // ---------- SIMPLE TOOLTIP (no mock data) ----------
+
+    // ---------- UNIFIED TOOLTIP ----------
     function buildCompanyTooltip(asset) {
-        return `<div style="min-width:160px;"><div style="font-weight:700;border-bottom:1px solid #333;">${asset.n} (${asset.id})</div><div class="text-[7px] mt-1">Click for live data</div></div>`;
+        const rel = getSupplyChainForCompany(asset);
+        const up = (rel.upstream || []).map(t => `<span class="text-green-400">${t}</span>`).join(', ') || 'None';
+        const mid = (rel.midstream || []).map(t => `<span class="text-yellow-400">${t}</span>`).join(', ') || 'None';
+        const down = (rel.downstream || []).map(t => `<span class="text-red-400">${t}</span>`).join(', ') || 'None';
+        const earningsHtml = asset.earn.map((v,i) => {
+            const q = ['Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026'][i];
+            return `<div class="flex justify-between text-[7px]"><span>${q}</span><span style="color:${v>=0?'#4ade80':'#f87171'}">${v>=0?'+':''}$${v}B</span></div>`;
+        }).join('');
+        return `
+            <div style="min-width:260px;">
+                <div style="font-weight:700;border-bottom:1px solid #333;margin-bottom:4px;">${asset.n} (${asset.id})</div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:7.5px;">
+                    <span>Workforce:</span><span>${asset.emp}</span>
+                    <span>Revenue (annual):</span><span>${asset.rev}</span>
+                    <span>Cash & Equiv.:</span><span>${asset.cash}</span>
+                </div>
+                <div style="margin-top:6px;border-top:1px solid #333;padding-top:4px;">
+                    <div class="text-[7px] font-semibold mb-1">Net Income (quarterly)</div>
+                    ${earningsHtml}
+                </div>
+                <div style="margin-top:6px;border-top:1px solid #333;padding-top:4px;">
+                    <div><span class="text-green-400">↑ Upstream:</span> ${up}</div>
+                    <div><span class="text-yellow-400">↔ Midstream:</span> ${mid}</div>
+                    <div><span class="text-red-400">↓ Downstream:</span> ${down}</div>
+                </div>
+            </div>
+        `;
     }
 
-    // ---------- TRADINGVIEW CHART (unchanged) ----------
+    // ---------- BAR CHART FOR EARNINGS (in Company Intelligence) ----------
+    function renderEarningsBarChart(earnArray) {
+        const maxAbs = Math.max(...earnArray.map(Math.abs)) || 1;
+        const quarterLabels = ['Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026'];
+        let html = '<div class="mt-2 text-[8px] font-semibold">Net Income (Q2 2025 – Q1 2026)</div>';
+        for (let i = 0; i < earnArray.length; i++) {
+            const val = earnArray[i];
+            const percent = (Math.abs(val) / maxAbs) * 100;
+            const color = val >= 0 ? '#4ade80' : '#f87171';
+            const sign = val >= 0 ? '+' : '';
+            html += `
+                <div style="margin-top:4px;">
+                    <div class="flex justify-between text-[7px]">
+                        <span>${quarterLabels[i]}</span>
+                        <span style="color:${color}">${sign}$${val}B</span>
+                    </div>
+                    <div class="earn-bar-container">
+                        <div class="earn-bar" style="width:${percent}%; background-color:${color};"></div>
+                    </div>
+                </div>
+            `;
+        }
+        return html;
+    }
+
+    // ---------- UI UPDATE (balance sheet, chart, etc.) ----------
+    function renderBalanceSheet(asset) {
+        if (!asset.bs) return;
+        document.getElementById('bs-no-asset').style.display = 'none';
+        document.getElementById('bs-content').style.display = 'block';
+        document.getElementById('bs-ticker-label').innerText = asset.id;
+        const fmt = v => v>=1000 ? '$'+(v/1000).toFixed(1)+'T' : '$'+v+'B';
+        const maxVal = Math.max(asset.bs.assets, 1);
+        document.getElementById('bs-assets').innerText = fmt(asset.bs.assets);
+        document.getElementById('bs-debt').innerText = fmt(asset.bs.debt);
+        document.getElementById('bs-cash').innerText = fmt(asset.bs.cash);
+        document.getElementById('bs-equity').innerText = (asset.bs.equity<0?'-':'')+fmt(Math.abs(asset.bs.equity));
+        document.getElementById('bs-debt-bar').style.width = Math.min(100, (asset.bs.debt/maxVal)*100)+'%';
+        document.getElementById('bs-cash-bar').style.width = Math.min(100, (asset.bs.cash/maxVal)*100)+'%';
+        document.getElementById('bs-equity-bar').style.width = Math.min(100, (Math.abs(asset.bs.equity)/maxVal)*100)+'%';
+        let de = asset.bs.equity>0 ? (asset.bs.debt/asset.bs.equity).toFixed(2) : 'N/M';
+        document.getElementById('bs-de-ratio').innerText = de+'x';
+        let cr = asset.bs.debt>0 ? (asset.bs.cash/(asset.bs.debt*0.2)).toFixed(1) : '∞';
+        document.getElementById('bs-current-ratio').innerText = cr+'x';
+        document.getElementById('bs-fy').innerText = asset.bs.fy || 'FY2026';
+    }
+
     function updateTradingViewChart(symbol) {
         const container = document.getElementById('tradingview_chart');
         container.innerHTML = '';
@@ -376,128 +880,29 @@
         container.appendChild(script);
     }
 
-    // ---------- LIVE DATA FETCHING ----------
-    let priceInterval = null;
-    let currentSymbol = null;
-
-    async function fetchWithFallback(url, errorMessage) {
-        try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return await res.json();
-        } catch (err) {
-            console.warn(errorMessage, err);
-            return null;
-        }
-    }
-
-    async function updatePriceOnly() {
-        if (!currentSymbol) return;
-        const quote = await fetchWithFallback(`/api/quote?symbol=${currentSymbol}`, 'Price update failed');
-        if (quote && quote.price) {
-            const priceEl = document.getElementById('panel-price');
-            const changeEl = document.getElementById('panel-change');
-            if (priceEl) priceEl.textContent = `$${quote.price.toFixed(2)}`;
-            if (changeEl && quote.changePercent !== undefined) {
-                const change = parseFloat(quote.changePercent);
-                changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-                changeEl.style.color = change >= 0 ? '#22ab94' : '#f87171';
-            }
-        }
-    }
-
-    async function loadCompany(symbol) {
-        currentSymbol = symbol;
-        if (priceInterval) clearInterval(priceInterval);
-        priceInterval = setInterval(updatePriceOnly, 10000);
-
-        const co = getAssetById(symbol);
+    function selectCompany(id) {
+        const co = assets.find(a => a.id === id);
         if (!co) return;
         map.flyTo(co.c, 6, { duration: 1.2 });
+        renderBalanceSheet(co);
         drawSupplyRoutes(co);
-        document.getElementById('active-asset-label').innerHTML = `${symbol} — ${co.n}`;
-        updateTradingViewChart(symbol);
-
-        // Show loading
-        document.getElementById('company-content').innerHTML = `<div class="text-[8px]">Loading ${symbol} data...</div>`;
-        document.getElementById('bs-no-asset').style.display = 'block';
-        document.getElementById('bs-content').style.display = 'none';
-        document.getElementById('news-scroll').innerHTML = '<span>Loading news...</span>';
-
-        // Fetch all data in parallel
-        const [quote, profile, balance, income, news] = await Promise.all([
-            fetchWithFallback(`/api/quote?symbol=${symbol}`, 'Quote API failed'),
-            fetchWithFallback(`/api/company?symbol=${symbol}`, 'Company API failed'),
-            fetchWithFallback(`/api/balance?symbol=${symbol}`, 'Balance API failed'),
-            fetchWithFallback(`/api/income?symbol=${symbol}`, 'Income API failed'),
-            fetchWithFallback(`/api/news?symbol=${symbol}&limit=8`, 'News API failed')
-        ]);
-
-        // --- Company Intelligence Panel ---
-        const companyHtml = `
-            <div class="font-bold text-[11px]">${profile?.name || symbol} (${symbol})</div>
-            <div class="grid grid-cols-2 gap-1 mt-2 text-[8px]">
-                <span>Sector</span><span>${profile?.sector || 'N/A'}</span>
-                <span>Employees</span><span>${profile?.employees ? Number(profile.employees).toLocaleString() : 'N/A'}</span>
-                <span>Market Cap</span><span>${profile?.marketCap ? `$${(profile.marketCap/1e9).toFixed(2)}B` : 'N/A'}</span>
-            </div>
+        document.querySelectorAll('.supply-toggle-buttons button').forEach(btn => btn.classList.add('active'));
+        const rel = getSupplyChainForCompany(co);
+        const upstreamHtml = (rel.upstream || []).map(pid => `<span class="text-green-400">${pid}</span>`).join(', ') || 'None';
+        const midstreamHtml = (rel.midstream || []).map(pid => `<span class="text-yellow-400">${pid}</span>`).join(', ') || 'None';
+        const downstreamHtml = (rel.downstream || []).map(pid => `<span class="text-red-400">${pid}</span>`).join(', ') || 'None';
+        const earningsChartHtml = renderEarningsBarChart(co.earn);
+        document.getElementById('company-content').innerHTML = `
+            <div class="font-bold text-[11px]">${co.n} (${co.id})</div>
+            <div class="grid grid-cols-2 gap-1 mt-2 text-[8px]"><span>Revenue</span><span>${co.rev}</span><span>Cash</span><span>${co.cash}</span><span>Emp.</span><span>${co.emp}</span></div>
             <div class="mt-2 text-[8px] font-semibold border-t pt-1">Supply Chain</div>
-            <div class="text-[8px]"><span class="text-green-400">↑ Upstream:</span> ${(getSupplyChainForCompany(co).upstream || []).join(', ') || 'None'}</div>
-            <div class="text-[8px]"><span class="text-yellow-400">↔ Midstream:</span> ${(getSupplyChainForCompany(co).midstream || []).join(', ') || 'None'}</div>
-            <div class="text-[8px]"><span class="text-red-400">↓ Downstream:</span> ${(getSupplyChainForCompany(co).downstream || []).join(', ') || 'None'}</div>
+            <div class="text-[8px]"><span class="text-green-400">↑ Upstream:</span> ${upstreamHtml}</div>
+            <div class="text-[8px]"><span class="text-yellow-400">↔ Midstream:</span> ${midstreamHtml}</div>
+            <div class="text-[8px]"><span class="text-red-400">↓ Downstream:</span> ${downstreamHtml}</div>
+            ${earningsChartHtml}
         `;
-        document.getElementById('company-content').innerHTML = companyHtml;
-
-        // --- Balance Sheet ---
-        if (balance && balance.totalAssets !== undefined) {
-            document.getElementById('bs-no-asset').style.display = 'none';
-            document.getElementById('bs-content').style.display = 'block';
-            document.getElementById('bs-ticker-label').innerText = symbol;
-            const fmt = v => v ? `$${(v/1e9).toFixed(2)}B` : '---';
-            document.getElementById('bs-assets').innerText = fmt(balance.totalAssets);
-            document.getElementById('bs-debt').innerText = fmt(balance.totalDebt);
-            document.getElementById('bs-cash').innerText = fmt(balance.cashAndCashEquivalents);
-            document.getElementById('bs-equity').innerText = fmt(balance.totalEquity);
-            const maxVal = Math.max(balance.totalAssets || 1, 1);
-            document.getElementById('bs-assets-bar').style.width = Math.min(100, ((balance.totalAssets||0)/maxVal)*100)+'%';
-            document.getElementById('bs-debt-bar').style.width = Math.min(100, ((balance.totalDebt||0)/maxVal)*100)+'%';
-            document.getElementById('bs-cash-bar').style.width = Math.min(100, ((balance.cashAndCashEquivalents||0)/maxVal)*100)+'%';
-            document.getElementById('bs-equity-bar').style.width = Math.min(100, (Math.abs(balance.totalEquity||0)/maxVal)*100)+'%';
-            let de = balance.totalEquity ? (balance.totalDebt / balance.totalEquity).toFixed(2) : 'N/M';
-            document.getElementById('bs-de-ratio').innerText = de+'x';
-            let cr = balance.totalDebt ? (balance.cashAndCashEquivalents / (balance.totalDebt * 0.2)).toFixed(1) : '∞';
-            document.getElementById('bs-current-ratio').innerText = cr+'x';
-            document.getElementById('bs-fy').innerText = 'Latest Qtr';
-        } else {
-            document.getElementById('bs-no-asset').innerHTML = 'No balance data';
-            document.getElementById('bs-no-asset').style.display = 'block';
-            document.getElementById('bs-content').style.display = 'none';
-        }
-
-        // --- Quarterly Earnings ---
-        const incomeList = document.getElementById('income-list');
-        if (income && income.quarters && income.quarters.length) {
-            incomeList.innerHTML = income.quarters.slice(0,4).map(q => `
-                <div class="flex justify-between border-b border-[#111] py-1 text-[8px]">
-                    <span class="text-zinc-600 uppercase">${q.date?.slice(0,7) || '---'}</span>
-                    <span class="font-bold font-mono">${q.netIncome ? `$${(q.netIncome/1e9).toFixed(2)}B` : '---'}</span>
-                </div>
-            `).join('');
-        } else {
-            incomeList.innerHTML = '<div class="text-amber-500 text-[8px]">No earnings data</div>';
-        }
-
-        // --- News Ticker ---
-        const newsDiv = document.getElementById('news-scroll');
-        if (news && news.articles && news.articles.length) {
-            const headlines = news.articles.map(a => a.title).join(' <span class="news-divider">◆</span> ');
-            newsDiv.innerHTML = `<div class="news-scroll-inner">${headlines}</div>`;
-        } else {
-            newsDiv.innerHTML = '<span>No recent news for this symbol</span>';
-        }
-
-        // Initial price update
-        await updatePriceOnly();
+        updateTradingViewChart(co.id);
+        document.getElementById('active-asset-label').innerText = `${co.id} — ${co.n}`;
     }
 
     // ---------- POPULATE MAP & SIDEBAR ----------
@@ -516,21 +921,21 @@
             sticky: true,
             offset: [0, -5]
         });
-        marker.on('click', () => loadCompany(asset.id));
+        marker.on('click', () => selectCompany(asset.id));
         const row = document.createElement('div');
         row.className = 'flex justify-between text-[9px] p-1 border-b border-white/10 cursor-pointer hover:bg-white/5';
         row.innerHTML = `<span style="color:${asset.color}">${asset.id}</span><span class="text-gray-400">${asset.n}</span>`;
-        row.onclick = () => loadCompany(asset.id);
+        row.onclick = () => selectCompany(asset.id);
         listDiv.appendChild(row);
     });
 
-    // ---------- SEARCH ----------
+    // ---------- SEARCH (with dropdown) ----------
     window.runSearch = function() {
         const input = document.getElementById('terminal-search');
         const val = input.value.trim().toUpperCase();
         if (!val) return;
         const match = assets.find(a => a.id === val || a.n.toUpperCase().includes(val));
-        if (match) { loadCompany(match.id); input.value = ''; document.getElementById('search-results').style.display = 'none'; }
+        if (match) { selectCompany(match.id); input.value = ''; document.getElementById('search-results').style.display = 'none'; }
         else alert('Company not found');
     };
     const searchInput = document.getElementById('terminal-search');
@@ -543,21 +948,188 @@
         resultsDiv.innerHTML = matches.map(m => `<div class="search-result-item" data-id="${m.id}"><span style="color:${m.color}">${m.id}</span><span class="text-gray-400">${m.n}</span></div>`).join('');
         resultsDiv.style.display = 'block';
         document.querySelectorAll('.search-result-item').forEach(el => {
-            el.addEventListener('click', () => { loadCompany(el.dataset.id); searchInput.value = ''; resultsDiv.style.display = 'none'; });
+            el.addEventListener('click', () => { selectCompany(el.dataset.id); searchInput.value = ''; resultsDiv.style.display = 'none'; });
         });
     });
     document.addEventListener('click', (e) => { if (!resultsDiv.contains(e.target) && e.target !== searchInput) resultsDiv.style.display = 'none'; });
 
-    // ---------- SECTOR ROTATION BARS (static – can be removed or kept) ----------
+    // ---------- NEWS FEED (landscape popups attached to map location) ----------
+    const headlines = [
+        "NVIDIA Q1 FY2027 REVENUE $58B – DATA CENTER +91%",
+        "APPLE Q2 2026 SERVICES HIT $31B – IPHONE 17e CYCLE",
+        "FED SIGNALS Q3 CUT – MAY 2026 CORE PCE 2.4%",
+        "COPPER HITS ALL-TIME HIGH $11,500/T",
+        "GLOBAL AI INFRA SPEND $420B IN 2026",
+        "TSMC 2NM ON TRACK FOR H2 2026 VOLUME",
+        "STRAIT OF HORMUZ: IRAN SEIZES TWO TANKERS – OIL PRICES SPIKE 8%",
+        "HORMUZ TENSIONS: US 5TH FLEET ESCORTS COMMERCIAL VESSELS",
+        "OIL TANKER AVOIDS HORMUZ AFTER DRONE INCIDENT – INSURANCE PREMIUMS SOAR"
+    ];
+    const tickerDiv = document.getElementById('news-scroll');
+    tickerDiv.innerHTML = headlines.map(h => `<span>${h}<span class="news-divider">◆</span></span>`).join('') + headlines.map(h => `<span>${h}<span class="news-divider">◆</span></span>`).join('');
+    const newsStories = [
+
+        { tag: 'EARNINGS', loc: 'Cupertino, CA', coords: [37.33, -122.03], zoom: 9, headline: 'Apple Q2 2026 Services $31B', body: 'iPhone 17e drives upgrade cycle in India and Brazil.' },
+        { tag: 'FED', loc: 'Washington, D.C.', coords: [38.89, -77.03], zoom: 8, headline: 'Powell Signals Rate Cut in Q3', body: 'Core PCE at 2.4% opens door for easing.' },
+        { tag: 'COMMODITY', loc: 'London, UK', coords: [51.51, -0.12], zoom: 10, headline: 'Copper Hits Record $11,500/t', body: 'Electrification and AI power demand squeeze supply.' },
+        { tag: 'GEOPOLITICS', loc: 'Strait of Hormuz', coords: [26.5, 56.0], zoom: 6, headline: 'Iran Seizes Two Tankers – Oil Jumps 8%', body: 'US 5th Fleet escorts commercial vessels. Insurance premiums rise 300%.' },
+        { tag: 'DEFENSE', loc: 'Persian Gulf', coords: [27.0, 52.0], zoom: 6, headline: 'US Navy Escorts 15 Vessels Through Hormuz', body: 'Carrier strike group deployed after drone attacks.' },
+        { tag: 'TECH', loc: 'Santa Clara, CA', coords: [37.37, -121.96], zoom: 9, headline: 'NVIDIA B200 Ultra Shipments Begin', body: 'Hyperscalers finalise next‑gen AI clusters. Data centre revenue now 86% of total.' },
+        { tag: 'ENERGY', loc: 'Vienna, Austria', coords: [48.21, 16.37], zoom: 8, headline: 'OPEC+ Extends Cuts Through 2026', body: 'Brent holds $74 as Saudi Arabia signals $70 price floor.' },
+        { tag: 'SPACE', loc: 'Starbase, TX', coords: [25.98, -97.15], zoom: 8, headline: 'Starship Orbital Refueling Demo Success', body: 'Artemis lunar lander milestone. Starlink direct‑to‑cell now covers 95 countries.' },
+        { tag: 'HEALTH', loc: 'Geneva, Switzerland', coords: [46.20, 6.14], zoom: 8, headline: 'WHO Declares Avian Flu Contained', body: 'Poultry supply chains normalise. Vaccine stockpiles repurposed.' },
+        { tag: 'EV', loc: 'Austin, TX', coords: [30.22, -97.62], zoom: 9, headline: 'Tesla Q2 Deliveries 435K – Cybertruck Ramp', body: 'FSD v13 expands. Margin holds at 18.2%.' },
+        { tag: 'EV', loc: 'Shenzhen, China', coords: [22.55, 114.06], zoom: 9, headline: 'BYD Q2 Sales 1.2M – Overtakes Tesla', body: 'EU tariffs offset by Thailand & Brazil plants.' },
+        { tag: 'SEMICONDUCTORS', loc: 'Hsinchu, Taiwan', coords: [24.77, 121.02], zoom: 9, headline: 'TSMC 2nm Production on Track for H2', body: 'Arizona fab yields exceed Taiwan baseline. CoWoS capacity +65%.' },
+        { tag: 'AI', loc: 'San Francisco, CA', coords: [37.77, -122.42], zoom: 10, headline: 'OpenAI Unveils GPT-5 – Agentic Workflows', body: 'Enterprise pricing at $0.01 per 1k tokens.' },
+        { tag: 'RETAIL', loc: 'Bentonville, AR', coords: [36.37, -94.20], zoom: 9, headline: 'Walmart+ Hits 62M Members', body: 'Drone deliveries in 7 metros. Automated fulfilment centres handle 70% volume.' },
+        { tag: 'BANKING', loc: 'New York, NY', coords: [40.75, -73.97], zoom: 10, headline: 'JPMorgan Trading Revenue +22%', body: 'EM volatility drives FX and rates desk. NII guidance raised.' },
+        { tag: 'PHARMA', loc: 'Indianapolis, IN', coords: [39.76, -86.16], zoom: 9, headline: 'Eli Lilly Oral GLP-1 Phase III Success', body: 'Orforglipron receives FDA priority review.' },
+        { tag: 'CLIMATE', loc: 'Dubai, UAE', coords: [25.20, 55.27], zoom: 8, headline: 'COP30 Announces $100B Climate Fund', body: 'Developing nations to receive loss and damage payments.' },
+        { tag: 'TELECOM', loc: 'Tokyo, Japan', coords: [35.68, 139.76], zoom: 9, headline: 'SoftBank, Nokia Demo 6G at 100Gbps', body: 'Commercial rollout targeted for 2030.' },
+        { tag: 'AEROSPACE', loc: 'Toulouse, France', coords: [43.60, 1.44], zoom: 8, headline: 'Airbus A350F Receives Certification', body: 'First deliveries to DHL and FedEx in Q3.' },
+        { tag: 'MINING', loc: 'Santiago, Chile', coords: [-33.45, -70.65], zoom: 7, headline: 'Escondida Copper Mine Strike Averted', body: 'BHP agrees to 5% wage rise. Copper price stabilises.' },
+        { tag: 'AGRICULTURE', loc: 'São Paulo, Brazil', coords: [-23.55, -46.63], zoom: 8, headline: 'Soybean Exports to China Surge 30%', body: 'Rainy season boosts harvest.' },
+        { tag: 'TOURISM', loc: 'Bangkok, Thailand', coords: [13.73, 100.50], zoom: 8, headline: 'International Arrivals Hit 90% of Pre‑COVID', body: 'China, India visitors lead recovery.' },
+        { tag: 'CRYPTO', loc: 'Nassau, Bahamas', coords: [25.04, -77.35], zoom: 8, headline: 'Bitcoin ETFs See Record $2B Weekly Inflow', body: 'Institutional adoption accelerates.' },
+        { tag: 'REAL ESTATE', loc: 'Dubai, UAE', coords: [25.20, 55.27], zoom: 9, headline: 'Emaar Announces $5B Megaproject', body: 'Dubai Creek Tower restarted. Luxury villa prices up 22%.' },
+        { tag: 'SPORTS', loc: 'Paris, France', coords: [48.86, 2.35], zoom: 9, headline: 'Paris 2026 Winter Games Bid Finalised', body: 'French Alps proposal gains IOC support.' },
+        { tag: 'FINANCE', loc: 'Zurich, Switzerland', coords: [47.37, 8.54], zoom: 9, headline: 'UBS Reports Record Q2 Profit', body: 'Wealth management inflows surge.' },
+        { tag: 'TECH', loc: 'Seattle, WA', coords: [47.61, -122.33], zoom: 9, headline: 'Amazon Announces Kuiper Commercial Launch', body: 'First 1,500 satellites in orbit.' },
+        { tag: 'HEALTHCARE', loc: 'Boston, MA', coords: [42.36, -71.06], zoom: 9, headline: 'FDA Approves First CRISPR Sickle Cell Cure', body: 'One‑time treatment priced at $2.2M.' },
+        { tag: 'TELECOM', loc: 'Seoul, South Korea', coords: [37.57, 126.98], zoom: 9, headline: 'Samsung Unveils 6G Roadmap', body: 'Terabit speeds expected by 2028.' },
+        { tag: 'RETAIL', loc: 'Mumbai, India', coords: [19.08, 72.88], zoom: 9, headline: 'Reliance Retail Raises $5B from KKR', body: 'Valuation hits $120B.' },
+        { tag: 'MATERIALS', loc: 'Perth, Australia', coords: [-31.95, 115.86], zoom: 7, headline: 'Lithium Prices Stabilise After 18‑Month Slide', body: 'EV demand absorbs excess supply.' },
+        { tag: 'AI', loc: 'Beijing, China', coords: [39.90, 116.40], zoom: 9, headline: 'Baidu Ernie 5.0 Passes Turing Test', body: 'Chinese regulators approve commercial deployment.' },
+        { tag: 'DEFENSE', loc: 'Riyadh, Saudi Arabia', coords: [24.71, 46.67], zoom: 7, headline: 'Saudi Arabia Orders THAAD System from US', body: 'Deal valued at $15B.' },
+        { tag: 'CONSUMER', loc: 'Atlanta, GA', coords: [33.75, -84.39], zoom: 9, headline: 'Coke Revives Tab Soda After Viral Campaign', body: 'Limited edition run sells out in hours.' },
+        { tag: 'LOGISTICS', loc: 'Memphis, TN', coords: [35.15, -90.05], zoom: 8, headline: 'FedEx Announces Fully Electric Fleet by 2035', body: 'Orders 1,000 EVs from Rivian.' },
+        { tag: 'GAMING', loc: 'Kyoto, Japan', coords: [35.01, 135.77], zoom: 9, headline: 'Nintendo Switch 2 Launch Date Announced', body: 'Backward compatible. Pre‑orders begin next month.' },
+        { tag: 'FINANCE', loc: 'Singapore', coords: [1.35, 103.82], zoom: 9, headline: 'Grab, Sea Lead Southeast Asian Fintech Boom', body: 'Digital payment volumes surpass $200B.' },
+        { tag: 'CLIMATE', loc: 'Reykjavik, Iceland', coords: [64.15, -21.94], zoom: 7, headline: 'Iceland Opens World’s Largest Carbon Capture Plant', body: 'Climeworks facility removes 10,000 tons CO2/year.' },
+        { tag: 'SPACE', loc: 'Cape Canaveral, FL', coords: [28.39, -80.61], zoom: 8, headline: 'Blue Origin New Glenn Orbital Success', body: 'First commercial launch carries NASA payload.' },
+        { tag: 'ENERGY', loc: 'Abu Dhabi, UAE', coords: [24.45, 54.38], zoom: 8, headline: 'Masdar 10GW Solar Plant Comes Online', body: 'Largest single‑site solar farm.' },
+        { tag: 'TECH', loc: 'Berlin, Germany', coords: [52.52, 13.40], zoom: 9, headline: 'SAP Launches AI Cloud Suite', body: 'Integration with Azure, AWS. 200+ AI features.' },
+        { tag: 'BIOTECH', loc: 'Cambridge, MA', coords: [42.37, -71.11], zoom: 9, headline: 'Moderna RSV Vaccine Wins FDA Approval', body: 'mRNA‑1345 shows 85% efficacy.' },
+        { tag: 'CYBERSECURITY', loc: 'Tel Aviv, Israel', coords: [32.09, 34.78], zoom: 8, headline: 'Check Point Acquires Wiz for $10B', body: 'Combined cloud security platform targets 30% market share.' }
+    ];
+    let newsActive = false, newsIdx = 0, newsTimer, progTimer;
+    let currentNewsMarker = null;
+
+    function createNewsPopup(story) {
+        const content = `
+            <div style="width:380px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="background:#ff8800; color:#000; font-size:7px; font-weight:700; padding:2px 6px; border-radius:2px;">${story.tag}</span>
+                    <span style="color:#888; font-size:7px;">${story.loc}</span>
+                </div>
+                <div style="font-size:12px; font-weight:700; margin-bottom:6px;">${story.headline}</div>
+                <div style="font-size:9px; color:#aaa; margin-bottom:8px;">${story.body}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div id="news-progress-bar" style="height:2px; background:#ff8800; width:0%; transition:width 0.1s linear;"></div>
+                    <span id="news-counter" style="font-size:7px; color:#555;">${(newsIdx % newsStories.length)+1}/${newsStories.length}</span>
+                </div>
+            </div>
+        `;
+        return L.popup({ className: 'news-popup', offset: [0, -20], autoPan: false, closeButton: false })
+            .setLatLng(story.coords)
+            .setContent(content);
+    }
+
+    function updateProgressBar(percent) {
+        const progressDiv = document.querySelector('#news-progress-bar');
+        if (progressDiv) progressDiv.style.width = percent + '%';
+        const counterSpan = document.querySelector('#news-counter');
+        if (counterSpan) counterSpan.innerText = `${(newsIdx % newsStories.length)+1}/${newsStories.length}`;
+    }
+
+    function showNewsPopup(idx) {
+        const story = newsStories[idx % newsStories.length];
+        if (currentNewsMarker) {
+            map.closePopup(currentNewsMarker.getPopup());
+            map.removeLayer(currentNewsMarker);
+            currentNewsMarker = null;
+        }
+        const popup = createNewsPopup(story);
+        currentNewsMarker = L.marker(story.coords, { interactive: false }).addTo(map);
+        currentNewsMarker.bindPopup(popup).openPopup();
+        const progDiv = document.querySelector('#news-progress-bar');
+        if (progDiv) progDiv.style.width = '0%';
+        const counterSpan = document.querySelector('#news-counter');
+        if (counterSpan) counterSpan.innerText = `${(idx % newsStories.length)+1}/${newsStories.length}`;
+        if (progTimer) clearInterval(progTimer);
+        const start = Date.now();
+        progTimer = setInterval(() => {
+            if (!newsActive) { clearInterval(progTimer); return; }
+            const elapsed = Date.now() - start;
+            const pct = Math.min(100, (elapsed / 15000) * 100);
+            updateProgressBar(pct);
+            if (pct >= 100) clearInterval(progTimer);
+        }, 50);
+    }
+
+    function startNewsCycle() {
+        newsActive = true;
+        const firstStory = newsStories[newsIdx % newsStories.length];
+        map.flyTo(firstStory.coords, firstStory.zoom, { animate: true, duration: 1.4 });
+        if (window.flyEndHandler) map.off('moveend', window.flyEndHandler);
+        window.flyEndHandler = () => {
+            map.off('moveend', window.flyEndHandler);
+            setTimeout(() => { if (newsActive) showNewsPopup(newsIdx); }, 2400);
+        };
+        map.on('moveend', window.flyEndHandler);
+        newsTimer = setInterval(() => {
+            newsIdx++;
+            const nextStory = newsStories[newsIdx % newsStories.length];
+            map.flyTo(nextStory.coords, nextStory.zoom, { animate: true, duration: 1.4 });
+            if (window.flyEndHandler) map.off('moveend', window.flyEndHandler);
+            window.flyEndHandler = () => {
+                map.off('moveend', window.flyEndHandler);
+                setTimeout(() => { if (newsActive) showNewsPopup(newsIdx); }, 2400);
+            };
+            map.on('moveend', window.flyEndHandler);
+        }, 15000);
+    }
+
+    function stopNewsCycle() {
+        newsActive = false;
+        if (newsTimer) clearInterval(newsTimer);
+        if (progTimer) clearInterval(progTimer);
+        if (window.flyEndHandler) map.off('moveend', window.flyEndHandler);
+        if (currentNewsMarker) {
+            map.closePopup(currentNewsMarker.getPopup());
+            map.removeLayer(currentNewsMarker);
+            currentNewsMarker = null;
+        }
+    }
+
+    window.toggleNewsFeed = function() {
+        const btn = document.getElementById('news-feed-btn');
+        const dot = document.getElementById('news-btn-dot');
+        const toggleDiv = document.getElementById('supply-toggle-buttons');
+        if (!newsActive) {
+            btn.classList.add('active');
+            dot.classList.add('live');
+            toggleDiv.classList.add('hidden');
+            startNewsCycle();
+        } else {
+            btn.classList.remove('active');
+            dot.classList.remove('live');
+            toggleDiv.classList.remove('hidden');
+            stopNewsCycle();
+        }
+    };
+
+    // Sector bars
     document.getElementById('sector-bars').innerHTML = [
         {n:"Technology (XLK)",v:94},{n:"Financials (XLF)",v:84},{n:"Healthcare (XLV)",v:68},{n:"Consumer Disc (XLY)",v:61},{n:"Industrial (XLI)",v:55}
     ].map(s => `<div class="text-[8px] flex justify-between"><span>${s.n}</span><span>${s.v}%</span></div><div class="bar-container"><div class="bar-fill" style="width:${s.v}%"></div></div>`).join('');
 
-    // ---------- INITIAL LOAD ----------
-    loadCompany('AAPL');
+    // Default selection
+    selectCompany('AAPL');
     initToggleButtons();
 
-    // ---------- SIMPLE AIS VESSEL SIMULATION ----------
+    // AIS vessel simulation
     const vesselLayer = L.layerGroup().addTo(map);
     setInterval(() => {
         const lat = 20 + Math.random()*30;
@@ -565,10 +1137,6 @@
         L.marker([lat, lon], { icon: L.divIcon({ html: '🚢', iconSize: [12,12] }) }).addTo(vesselLayer).bindTooltip('Cargo Vessel', { className: 'leaflet-tooltip-own' }).openTooltip();
         setTimeout(() => vesselLayer.clearLayers(), 3000);
     }, 8000);
-
-    // The news feed popup feature (formerly toggleNewsFeed) is disabled because it relied on static mock data.
-    // You can safely ignore the button or remove it.
-    window.toggleNewsFeed = function() { console.log('News feed disabled – all news are live in the top ticker'); };
 </script>
 </body>
 </html>
