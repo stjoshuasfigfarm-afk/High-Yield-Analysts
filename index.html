@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HY Analysts Terminal</title>
+    <title>Y Analysis Terminal</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230f5c4a'/%3E%3Cstop offset='50%25' stop-color='%2322ab94'/%3E%3Cstop offset='100%25' stop-color='%2355d6b5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cline x1='50' y1='50' x2='28' y2='18' stroke='url(%23g)' stroke-width='8' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='72' y2='18' stroke='url(%23g)' stroke-width='8' stroke-linecap='round'/%3E%3Cline x1='18' y1='75' x2='50' y2='22' stroke='url(%23g)' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='82' y1='75' x2='50' y2='22' stroke='url(%23g)' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -166,11 +166,11 @@
                 </div>
             </div>
             <div class="glass-card p-2 rounded flex flex-col overflow-hidden h-1/4 shrink-0">
-                <h2 class="text-[9px] font-bold text-gray-500 mb-2">Tracked Assets</h2>
+                <h2 class="text-[9px] font-bold text-gray-500 mb-2">Companies/Ticker</h2>
                 <div id="equity-list" class="overflow-y-auto custom-scroll space-y-1"></div>
             </div>
             <div class="glass-card p-3 rounded flex-grow flex flex-col overflow-hidden">
-                <h2 class="text-[9px] font-bold text-[#ff8800] mb-3 border-b pb-1">Company Intelligence</h2>
+                <h2 class="text-[9px] font-bold text-[#ff8800] mb-3 border-b pb-1">Company Intell</h2>
                 <div id="company-content" class="overflow-y-auto text-[10px]">Click a company to see details and supply chain.</div>
             </div>
         </aside>
@@ -193,7 +193,7 @@
                 <div id="tradingview_chart" class="h-full w-full"></div>
             </div>
             <div class="glass-card p-3 rounded">
-                <h2 class="text-[9px] font-bold text-[#22ab94] mb-2">Balance Sheet Snapshot <span id="bs-ticker-label" class="text-[7px] text-gray-500 float-right">SELECT</span></h2>
+                <h2 class="text-[9px] font-bold text-[#22ab94] mb-2">Balance Sheet <span id="bs-ticker-label" class="text-[7px] text-gray-500 float-right">SELECT</span></h2>
                 <div id="bs-no-asset" class="text-[8px] text-gray-500 text-center py-4">Click any asset</div>
                 <div id="bs-content" class="hidden">
                     <div class="grid grid-cols-2 gap-2 mb-2">
